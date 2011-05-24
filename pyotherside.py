@@ -2,6 +2,6 @@
 import os
 import json
 
-def demo():
-    return json.dumps(os.listdir('.'))
+def demo(path='.'):
+    return json.dumps(['..'] + os.listdir(path))
 
