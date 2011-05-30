@@ -34,11 +34,15 @@ class QPython : public QObject
         bool importModule(QString name) {
             const char *moduleName = name.toUtf8().constData();
 
-            PyObject *result;
-            /*result = */PyRun_String(
+            /**
+             * FIXME: Use PyImport_ImportModule() or something,
+             * but right now this crashes, so we use a more lame
+             * approach..
+             **/
+
+            /*PyObject *result =*/PyRun_String(
                     (QString("import ") + name).toUtf8().constData(),
                     Py_single_input, globals, locals);
-            //return QString(PyString_AsString(result));
             return true;
 
             /*PyObject *module;
@@ -56,6 +60,14 @@ class QPython : public QObject
             PyObject *result;
             result = PyRun_String(expr.toUtf8().constData(),
                     Py_eval_input, globals, locals);
+
+            /* FIXME: Error checking, hey! */
+
+            /**
+             * TODO: Maybe auto-serialize stuff into QVariant or JSON for use
+             * in QML's JavaScript
+             **/
+
             return QString(PyString_AsString(result));
         }
 
