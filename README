@@ -1,0 +1,12 @@
+This is an incomplete, buggy, proof-of-concept prototype (got it?) of a
+thin wrapper of libpython for QML. Ideally, this should allow you to import
+Python modules in QML and execute Python expressions from within your QML
+JavaScript code.
+
+Thanks to Attila Csipa and Ville Vainio for the initial idea of this approach
+during MeeGo Conference Spring 2011 in San Francisco.
+
+This is obviously not intended as a replacement for the awesome PySide, but
+could be a viable alternative in some corner cases where PySide is not
+available (e.g. Symbian^3, for which no PySide build exists yet).
+
