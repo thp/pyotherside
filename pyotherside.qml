@@ -11,12 +11,26 @@ Rectangle {
 
         model: listModel
         delegate: Text {
+            width: parent.width
             font.pixelSize: 30
-            text: pyValue
+            text: name
+            font.bold: directory
+
+            Rectangle {
+                anchors.fill: parent
+                color: (!directory && mouseArea.pressed)?'red':'yellow'
+                opacity: (directory || mouseArea.pressed)?.5:0
+            }
+
             MouseArea {
+                id: mouseArea
                 anchors.fill: parent
                 onClicked: {
-                    py.chdir(pyValue)
+                    if (directory) {
+                        py.chdir(name)
+                    } else {
+                        console.log('clicked on a file')
+                    }
                 }
             }
         }
@@ -24,6 +38,16 @@ Rectangle {
 
     ListModel {
         id: listModel
+
+        function fill(data) {
+            listModel.clear()
+
+            // Python returns a list of dicts - we can simply append
+            // each dict in the list to the list model
+            for (var i=0; i<data.length; i++) {
+                listModel.append(data[i])
+            }
+        }
     }
 
     Python {
@@ -32,19 +56,20 @@ Rectangle {
 
         function chdir(newpath) {
             path += '/' + newpath
-            listModel.clear()
+
+            // Need to use eval to convert JSON-encoded string to JS data
             var data = eval(py.evaluate('pyotherside.demo("'+path+'")'))
-            for (var i=0; i<data.length; i++) {
-                listModel.append({'pyValue': data[i]})
-            }
+
+            // Replace list model data with list-of-dicts from Python
+            listModel.fill(data)
         }
 
         Component.onCompleted: {
+            // Import the module named "pyotherside" to Python interpreter
             py.importModule('pyotherside')
-            var data = eval(py.evaluate('pyotherside.demo("'+path+'")'))
-            for (var i=0; i<data.length; i++) {
-                listModel.append({'pyValue': data[i]})
-            }
+
+            // Fill the list model with files from current working directory
+            chdir('.')
         }
     }
 }
