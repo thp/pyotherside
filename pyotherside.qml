@@ -1,5 +1,5 @@
 
-import Qt 4.7
+import QtQuick 1.0
 import com.thpinfo.python 1.0
 
 Rectangle {
@@ -55,21 +55,36 @@ Rectangle {
         property string path: '.'
 
         function chdir(newpath) {
-            path += '/' + newpath
-
-            // Need to use eval to convert JSON-encoded string to JS data
-            var data = eval(py.evaluate('pyotherside.demo("'+path+'")'))
+            // Append new path to current path, then use Python to calculate the
+            // real path from it (resolves e.g. '..' to parent directory)
+            path = call('os.path.join', [path, newpath]);
+            path = call('os.path.abspath', [path]);
 
             // Replace list model data with list-of-dicts from Python
-            listModel.fill(data)
+            listModel.fill(call('pyotherside.demo', [path]));
         }
 
         Component.onCompleted: {
-            // Import the module named "pyotherside" to Python interpreter
-            py.importModule('pyotherside')
+            // Import standard library modules
+            importModule('os');
+            console.log(call('os.listdir', ['.']));
+
+            // Import custom modules
+            addImportPath('.');
+            importModule('pyotherside');
+
+            // We can also evalulate arbitrary Python expressions
+            console.log('ten squares:' + evaluate('[x*x for x in range(1, 11)]'));
+
+            importModule('math');
+            console.log('square root of 4.5: ' + call('math.sqrt', [4.5]));
+
+            // Call built-in functions
+            console.log(call('list', [[1, 2, 'b']]));
+            console.log('Absolute value of -42: ' + call('abs', [-42]));
 
             // Fill the list model with files from current working directory
-            chdir('.')
+            chdir('.');
         }
     }
 }

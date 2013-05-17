@@ -1,19 +1,19 @@
 
-#include <QtCore>
-#include <QtDeclarative>
+#include <QApplication>
+#include <QTextStream>
+#include <QDeclarativeView>
+#include <QUrl>
 
 #include "qpython.h"
+#include "qpython_test.h"
 
 int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
 
-    QPython::registerQML();
+    qpython_test();
 
-    /*QTextStream out(stderr);
-    QPython py;
-    py.importModule("pyotherside");
-    out << py.evaluate("pyotherside.demo()");*/
+    QPython::registerQML();
 
     QDeclarativeView *view = new QDeclarativeView();
     view->setSource(QUrl("pyotherside.qml"));

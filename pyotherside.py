@@ -1,6 +1,5 @@
 
 import os
-import json
 
 # For a given filename and a (relative) base path, generate a dictionary
 # containing the filename (key "name") without the path and a boolean value
@@ -12,6 +11,5 @@ def mkdict(fn, path):
 # that when supplied tells for which directory we want to get the file list
 def demo(path='.'):
     files = ['..'] + os.listdir(path)
-    result = [mkdict(fn, path) for fn in files]
-    return json.dumps(result)
+    return [mkdict(fn, path) for fn in files]
 

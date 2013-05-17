@@ -1,7 +1,9 @@
 #ifndef _QPYTHON_H
 #define _QPYTHON_H
 
-#include <QtCore>
+#include <QVariant>
+#include <QObject>
+#include <QString>
 
 #include "Python.h"
 
@@ -10,72 +12,38 @@ class QPython : public QObject
     Q_OBJECT
 
     public:
-        QPython() : locals(PyDict_New()), globals(PyDict_New())
-        {
-            if (instances == 0) {
-                Py_Initialize();
-            }
-            instances++;
+        QPython(QObject *parent=NULL);
+        virtual ~QPython();
 
-            if (PyDict_GetItemString(globals, "__builtins__") == NULL) {
-                PyDict_SetItemString(globals, "__builtins__",
-                        PyEval_GetBuiltins());
-            }
-        }
+        Q_INVOKABLE void
+        addImportPath(QString path);
 
-        ~QPython() {
-            instances--;
-            if (instances == 0) {
-                Py_Finalize();
-            }
-        }
+        Q_INVOKABLE bool
+        importModule(QString name);
 
-        Q_INVOKABLE
-        bool importModule(QString name) {
-            const char *moduleName = name.toUtf8().constData();
+        Q_INVOKABLE QVariant
+        evaluate(QString expr);
 
-            /**
-             * FIXME: Use PyImport_ImportModule() or something,
-             * but right now this crashes, so we use a more lame
-             * approach..
-             **/
+        Q_INVOKABLE QVariant
+        call(QString func, QVariant args);
 
-            /*PyObject *result =*/PyRun_String(
-                    (QString("import ") + name).toUtf8().constData(),
-                    Py_single_input, globals, locals);
-            return true;
+        static void
+        registerQML();
 
-            /*PyObject *module;
-            module = PyImport_ImportModule(moduleName);
-            if (module != NULL) {
-                PyDict_SetItemString(globals, moduleName, module);
-                return true;
-            }
+        // Convert a Python value to a Qt value
+        QVariant fromPython(PyObject *o);
 
-            return false;*/
-        }
+        // Convert a Qt value to a Python value
+        PyObject *toPython(QVariant v);
 
-        Q_INVOKABLE
-        QString evaluate(QString expr) {
-            PyObject *result;
-            result = PyRun_String(expr.toUtf8().constData(),
-                    Py_eval_input, globals, locals);
-
-            /* FIXME: Error checking, hey! */
-
-            /**
-             * TODO: Maybe auto-serialize stuff into QVariant or JSON for use
-             * in QML's JavaScript
-             **/
-
-            return QString(PyString_AsString(result));
-        }
-
-        static void registerQML();
+        // Internal function to evaluate a string to a PyObject *
+        // Used by evaluate() and call()
+        PyObject *eval(QString expr);
 
     private:
         PyObject *locals;
         PyObject *globals;
+
         static int instances;
 };
 

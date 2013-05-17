@@ -1,0 +1,22 @@
+
+Data type conversion:
+
+ - Python tuple to Qt list
+
+Would be nice:
+
+ - Obtaining references to Python objects from QML (if only by key)
+ - Upcalls from Python to QML (or signals / events / ...)
+
+Other stuff:
+
+ - Load libpython at runtime, don't link against it
+ - Statically link libpython, no need for shared library
+ - Embed python scripts into qt resources, load from there
+ - PyOtherSide services could be provided by some "dummy" module, e.g.:
+
+     import pyotherside
+
+     data = pyotherside.read_from_qtresource(':/data.txt')
+     blubb = pyotherside.import_module(':/blubb.py')
+
