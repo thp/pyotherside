@@ -167,7 +167,7 @@ QPythonPriv::formatExc()
         return "Exception";
     }
     QVariant v = convertPyObjectToQVariant(s);
-    Q_ASSERT(v != NULL);
+    Q_ASSERT(v.isValid());
     Py_DECREF(s);
     Py_DECREF(n);
     Py_DECREF(list);
