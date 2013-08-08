@@ -20,54 +20,12 @@
 
 #include "qpython.h"
 #include "qpython_priv.h"
+#include "qpython_worker.h"
 
 #include <QDebug>
 
 #include <QJSEngine>
 
-
-class QPythonWorker : public QObject {
-    Q_OBJECT
-
-    public:
-        QPythonWorker(QPython *qpython);
-        ~QPythonWorker();
-
-    public slots:
-        void process(QString func, QVariant args, QJSValue callback);
-        void import(QString func, QJSValue callback);
-
-    signals:
-        void finished(QVariant result, QJSValue callback);
-        void imported(bool result, QJSValue callback);
-
-    private:
-        QPython *qpython;
-};
-
-QPythonWorker::QPythonWorker(QPython *qpython)
-    : QObject()
-    , qpython(qpython)
-{
-}
-
-QPythonWorker::~QPythonWorker()
-{
-}
-
-void
-QPythonWorker::process(QString func, QVariant args, QJSValue callback)
-{
-    QVariant result = qpython->call_sync(func, args);
-    emit finished(result, callback);
-}
-
-void
-QPythonWorker::import(QString name, QJSValue callback)
-{
-    bool result = qpython->importModule_sync(name);
-    emit imported(result, callback);
-}
 
 QPythonPriv *
 QPython::priv = NULL;

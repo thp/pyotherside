@@ -23,6 +23,8 @@ HEADERS += pyotherside_plugin.h
 # Python QML Object
 SOURCES += qpython.cpp
 HEADERS += qpython.h
+SOURCES += qpython_worker.cpp
+HEADERS += qpython_worker.h
 SOURCES += qpython_priv.cpp
 HEADERS += qpython_priv.h
 

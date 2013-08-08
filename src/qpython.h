@@ -259,9 +259,11 @@ class QPython : public QObject {
          **/
         void error(QString traceback);
 
-    private slots:
+        /* For internal use only */
         void process(QString func, QVariant args, QJSValue callback);
         void import(QString name, QJSValue callback);
+
+    private slots:
         void receive(QVariant data);
 
         void finished(QVariant result, QJSValue callback);

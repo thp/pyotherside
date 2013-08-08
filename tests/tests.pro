@@ -5,9 +5,11 @@ SOURCES += tests.cpp
 HEADERS += tests.h
 
 SOURCES += ../src/qpython.cpp
+SOURCES += ../src/qpython_worker.cpp
 SOURCES += ../src/qpython_priv.cpp
 
 HEADERS += ../src/qpython.h
+HEADERS += ../src/qpython_worker.h
 HEADERS += ../src/qpython_priv.h
 HEADERS += ../src/converter.h
 HEADERS += ../src/qvariant_converter.h

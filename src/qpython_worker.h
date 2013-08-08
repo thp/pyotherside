@@ -16,30 +16,33 @@
  * PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "qpython_priv.h"
-#include "qpython.h"
+#ifndef PYOTHERSIDE_QPYTHON_WORKER_H
+#define PYOTHERSIDE_QPYTHON_WORKER_H
 
-#include "pyotherside_plugin.h"
+#include <QObject>
+#include <QString>
+#include <QVariant>
+#include <QJSValue>
 
+class QPython;
 
-static void
-pyotherside_atexit()
-{
-    QPythonPriv::closing();
-}
+class QPythonWorker : public QObject {
+    Q_OBJECT
 
-PyOtherSideExtensionPlugin::PyOtherSideExtensionPlugin()
-{
-    atexit(pyotherside_atexit);
-}
+    public:
+        QPythonWorker(QPython *qpython);
+        ~QPythonWorker();
 
-PyOtherSideExtensionPlugin::~PyOtherSideExtensionPlugin()
-{
-}
+    public slots:
+        void process(QString func, QVariant args, QJSValue callback);
+        void import(QString func, QJSValue callback);
 
-void
-PyOtherSideExtensionPlugin::registerTypes(const char *uri)
-{
-    Q_ASSERT(QString(PYOTHERSIDE_PLUGIN_ID) == uri);
-    qmlRegisterType<QPython>(uri, 1, 0, PYOTHERSIDE_QPYTHON_NAME);
-}
+    signals:
+        void finished(QVariant result, QJSValue callback);
+        void imported(bool result, QJSValue callback);
+
+    private:
+        QPython *qpython;
+};
+
+#endif /* PYOTHERSIDE_QPYTHON_WORKER_H */
