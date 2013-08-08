@@ -26,6 +26,25 @@
 #include <QJSEngine>
 
 
+class QPythonWorker : public QObject {
+    Q_OBJECT
+
+    public:
+        QPythonWorker(QPython *qpython);
+        ~QPythonWorker();
+
+    public slots:
+        void process(QString func, QVariant args, QJSValue callback);
+        void import(QString func, QJSValue callback);
+
+    signals:
+        void finished(QVariant result, QJSValue callback);
+        void imported(bool result, QJSValue callback);
+
+    private:
+        QPython *qpython;
+};
+
 QPythonWorker::QPythonWorker(QPython *qpython)
     : QObject()
     , qpython(qpython)
@@ -55,7 +74,7 @@ QPython::priv = NULL;
 
 QPython::QPython(QObject *parent)
     : QObject(parent)
-    , worker(this)
+    , worker(new QPythonWorker(this))
     , thread()
     , handlers()
 {
@@ -63,20 +82,20 @@ QPython::QPython(QObject *parent)
         priv = new QPythonPriv;
     }
 
-    worker.moveToThread(&thread);
+    worker->moveToThread(&thread);
 
     QObject::connect(priv, SIGNAL(receive(QVariant)),
                      this, SLOT(receive(QVariant)));
 
     QObject::connect(this, SIGNAL(process(QString,QVariant,QJSValue)),
-                    &worker, SLOT(process(QString,QVariant,QJSValue)));
-    QObject::connect(&worker, SIGNAL(finished(QVariant,QJSValue)),
-                          this, SLOT(finished(QVariant,QJSValue)));
+                     worker, SLOT(process(QString,QVariant,QJSValue)));
+    QObject::connect(worker, SIGNAL(finished(QVariant,QJSValue)),
+                     this, SLOT(finished(QVariant,QJSValue)));
 
     QObject::connect(this, SIGNAL(import(QString,QJSValue)),
-                    &worker, SLOT(import(QString,QJSValue)));
-    QObject::connect(&worker, SIGNAL(imported(bool,QJSValue)),
-                          this, SLOT(imported(bool,QJSValue)));
+                     worker, SLOT(import(QString,QJSValue)));
+    QObject::connect(worker, SIGNAL(imported(bool,QJSValue)),
+                     this, SLOT(imported(bool,QJSValue)));
 
     thread.start();
 }
@@ -85,6 +104,8 @@ QPython::~QPython()
 {
     thread.quit();
     thread.wait();
+
+    delete worker;
 }
 
 void
@@ -242,12 +263,3 @@ QPython::imported(bool result, QJSValue callback)
         callback.call(args);
     }
 }
-
-void
-QPython::closing()
-{
-    priv->enter();
-    priv->closing();
-    priv->leave();
-}
-

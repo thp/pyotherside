@@ -192,6 +192,7 @@ QPythonPriv::eval(QString expr)
 void
 QPythonPriv::closing()
 {
+    enter();
     if (priv->atexit_callback != NULL) {
         PyObject *args = PyTuple_New(0);
         PyObject *result = PyObject_Call(priv->atexit_callback, args, NULL);
@@ -201,5 +202,6 @@ QPythonPriv::closing()
         Py_DECREF(priv->atexit_callback);
         priv->atexit_callback = NULL;
     }
+    leave();
 }
 

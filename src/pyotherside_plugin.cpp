@@ -17,12 +17,12 @@
  **/
 
 #include "pyotherside_plugin.h"
-#include "qpython.h"
+#include "qpython_priv.h"
 
 static void
 pyotherside_atexit()
 {
-    QPython::closing();
+    QPythonPriv::closing();
 }
 
 PyOtherSideExtensionPlugin::PyOtherSideExtensionPlugin()
