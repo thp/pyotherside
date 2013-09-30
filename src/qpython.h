@@ -77,7 +77,7 @@ class QPython : public QObject {
          * \code
          * import pyotherside
          *
-         * pyotherside.call('new-entries', 100, 123)
+         * pyotherside.send('new-entries', 100, 123)
          * \endcode
          *
          * The event can be captured in QML like this:
