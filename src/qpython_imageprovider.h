@@ -16,26 +16,17 @@
  * PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef PYOTHERSIDE_PLUGIN_H
-#define PYOTHERSIDE_PLUGIN_H
+#ifndef PYOTHERSIDE_QPYTHON_IMAGEPROVIDER_H
+#define PYOTHERSIDE_QPYTHON_IMAGEPROVIDER_H
 
-#include <QtQml>
-#include <QQmlExtensionPlugin>
+#include <QQuickImageProvider>
 
-#define PYOTHERSIDE_PLUGIN_ID "io.thp.pyotherside"
-#define PYOTHERSIDE_IMAGEPROVIDER_ID "python"
-#define PYOTHERSIDE_QPYTHON_NAME "Python"
+class QPythonImageProvider : public QQuickImageProvider {
+public:
+    QPythonImageProvider();
+    virtual ~QPythonImageProvider();
 
-class Q_DECL_EXPORT PyOtherSideExtensionPlugin : public QQmlExtensionPlugin {
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID PYOTHERSIDE_PLUGIN_ID)
-
-    public:
-        PyOtherSideExtensionPlugin();
-        ~PyOtherSideExtensionPlugin();
-
-        virtual void initializeEngine(QQmlEngine *engine, const char *uri);
-        virtual void registerTypes(const char *uri);
+    virtual QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize);
 };
 
-#endif /* PYOTHERSIDE_PLUGIN_H */
+#endif /* PYOTHERSIDE_QPYTHON_IMAGEPROVIDER_H */

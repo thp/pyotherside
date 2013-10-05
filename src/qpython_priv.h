@@ -40,6 +40,7 @@ class QPythonPriv : public QObject {
 
         void receiveObject(PyObject *o);
         static void closing();
+        static QPythonPriv *instance();
 
         QString formatExc();
 
@@ -47,6 +48,7 @@ class QPythonPriv : public QObject {
         PyObject *globals;
         PyThreadState *state;
         PyObject *atexit_callback;
+        PyObject *image_provider;
         PyObject *traceback_mod;
 
         QMutex mutex;

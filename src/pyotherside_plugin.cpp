@@ -18,6 +18,7 @@
 
 #include "qpython_priv.h"
 #include "qpython.h"
+#include "qpython_imageprovider.h"
 
 #include "pyotherside_plugin.h"
 
@@ -35,6 +36,13 @@ PyOtherSideExtensionPlugin::PyOtherSideExtensionPlugin()
 
 PyOtherSideExtensionPlugin::~PyOtherSideExtensionPlugin()
 {
+}
+
+void
+PyOtherSideExtensionPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
+{
+    Q_ASSERT(QString(PYOTHERSIDE_PLUGIN_ID) == uri);
+    engine->addImageProvider(PYOTHERSIDE_IMAGEPROVIDER_ID, new QPythonImageProvider);
 }
 
 void

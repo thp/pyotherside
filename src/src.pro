@@ -4,7 +4,7 @@ PLUGIN_IMPORT_PATH = io/thp/pyotherside
 
 TEMPLATE = lib
 CONFIG += qt plugin
-QT += qml
+QT += qml quick
 
 target.path = $$[QT_INSTALL_QML]/$$PLUGIN_IMPORT_PATH
 INSTALLS += target
@@ -19,6 +19,10 @@ INCLUDEPATH += .
 # PyOtherSide QML Plugin
 SOURCES += pyotherside_plugin.cpp
 HEADERS += pyotherside_plugin.h
+
+# QML Image Provider
+SOURCES += qpython_imageprovider.cpp
+HEADERS += qpython_imageprovider.h
 
 # Python QML Object
 SOURCES += qpython.cpp

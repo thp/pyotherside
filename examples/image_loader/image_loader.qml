@@ -16,26 +16,24 @@
  * PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef PYOTHERSIDE_PLUGIN_H
-#define PYOTHERSIDE_PLUGIN_H
+import QtQuick 2.0
+import io.thp.pyotherside 1.0
 
-#include <QtQml>
-#include <QQmlExtensionPlugin>
+Image {
+    id: image
+    width: 300
+    height: 300
 
-#define PYOTHERSIDE_PLUGIN_ID "io.thp.pyotherside"
-#define PYOTHERSIDE_IMAGEPROVIDER_ID "python"
-#define PYOTHERSIDE_QPYTHON_NAME "Python"
+    Python {
+        Component.onCompleted: {
+            // Add the directory of this .qml file to the search path
+            addImportPath(Qt.resolvedUrl('.').substr('file://'.length));
 
-class Q_DECL_EXPORT PyOtherSideExtensionPlugin : public QQmlExtensionPlugin {
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID PYOTHERSIDE_PLUGIN_ID)
+            importModule('image_loader', function () {
+                image.source = 'image://python/pyotherside.png';
+            });
+        }
 
-    public:
-        PyOtherSideExtensionPlugin();
-        ~PyOtherSideExtensionPlugin();
-
-        virtual void initializeEngine(QQmlEngine *engine, const char *uri);
-        virtual void registerTypes(const char *uri);
-};
-
-#endif /* PYOTHERSIDE_PLUGIN_H */
+        onError: console.log('Python error: ' + traceback)
+    }
+}

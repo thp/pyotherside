@@ -30,6 +30,9 @@ To run one of the included examples (after installing the plugin):
     qmlscene examples/events/main.qml
     qmlscene examples/atexit/main.qml
     qmlscene examples/notes/main.qml
+    qmlscene examples/imageprovider/imageprovider.qml
+    qmlscene examples/mandelbrot/mandelbrot.qml
+    qmlscene examples/image_loader/image_loader.qml
 
 
 Website and Git repository:

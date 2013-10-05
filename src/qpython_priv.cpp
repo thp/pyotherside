@@ -20,6 +20,8 @@
 
 #include "qpython_priv.h"
 
+#include <QImage>
+
 static QPythonPriv *priv = NULL;
 
 PyObject *
@@ -42,9 +44,23 @@ pyotherside_atexit(PyObject *self, PyObject *o)
     Py_RETURN_NONE;
 }
 
+PyObject *
+pyotherside_set_image_provider(PyObject *self, PyObject *o)
+{
+    if (priv->image_provider != NULL) {
+        Py_DECREF(priv->image_provider);
+    }
+
+    Py_INCREF(o);
+    priv->image_provider = o;
+
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef PyOtherSideMethods[] = {
     {"send", pyotherside_send, METH_VARARGS, "Send data to Qt."},
     {"atexit", pyotherside_atexit, METH_O, "Function to call on shutdown."},
+    {"set_image_provider", pyotherside_set_image_provider, METH_O, "Set the QML image provider."},
     {NULL, NULL, 0, NULL},
 };
 
@@ -60,7 +76,21 @@ static struct PyModuleDef PyOtherSideModule = {
 PyMODINIT_FUNC
 PyOtherSide_init()
 {
-    return PyModule_Create(&PyOtherSideModule);
+    PyObject *pyotherside = PyModule_Create(&PyOtherSideModule);
+
+    // Format constants for the image provider return value format
+    // see http://qt-project.org/doc/qt-5.1/qtgui/qimage.html#Format-enum
+    PyModule_AddIntConstant(pyotherside, "format_mono", QImage::Format_Mono);
+    PyModule_AddIntConstant(pyotherside, "format_mono_lsb", QImage::Format_MonoLSB);
+    PyModule_AddIntConstant(pyotherside, "format_rgb32", QImage::Format_RGB32);
+    PyModule_AddIntConstant(pyotherside, "format_argb32", QImage::Format_ARGB32);
+    PyModule_AddIntConstant(pyotherside, "format_rgb16", QImage::Format_RGB16);
+    PyModule_AddIntConstant(pyotherside, "format_rgb666", QImage::Format_RGB666);
+    PyModule_AddIntConstant(pyotherside, "format_rgb555", QImage::Format_RGB555);
+    PyModule_AddIntConstant(pyotherside, "format_rgb888", QImage::Format_RGB888);
+    PyModule_AddIntConstant(pyotherside, "format_rgb444", QImage::Format_RGB444);
+
+    return pyotherside;
 }
 #endif
 
@@ -69,6 +99,7 @@ QPythonPriv::QPythonPriv()
     , globals(NULL)
     , state(NULL)
     , atexit_callback(NULL)
+    , image_provider(NULL)
     , traceback_mod(NULL)
     , mutex()
 {
@@ -206,6 +237,15 @@ QPythonPriv::closing()
         Py_DECREF(priv->atexit_callback);
         priv->atexit_callback = NULL;
     }
+    if (priv->image_provider != NULL) {
+        Py_DECREF(priv->image_provider);
+        priv->image_provider = NULL;
+    }
     priv->leave();
 }
 
+QPythonPriv *
+QPythonPriv::instance()
+{
+    return priv;
+}
