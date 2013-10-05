@@ -192,6 +192,10 @@ QPythonPriv::eval(QString expr)
 void
 QPythonPriv::closing()
 {
+    if (!priv) {
+        return;
+    }
+
     priv->enter();
     if (priv->atexit_callback != NULL) {
         PyObject *args = PyTuple_New(0);
