@@ -90,6 +90,9 @@ PyOtherSide_init()
     PyModule_AddIntConstant(pyotherside, "format_rgb888", QImage::Format_RGB888);
     PyModule_AddIntConstant(pyotherside, "format_rgb444", QImage::Format_RGB444);
 
+    // Custom constant - pixels are to be interpreted as encoded image file data
+    PyModule_AddIntConstant(pyotherside, "format_data", -1);
+
     return pyotherside;
 }
 #endif

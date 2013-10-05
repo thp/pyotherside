@@ -48,7 +48,8 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
 
     // Image data (and metadata) returned from Python
     PyObject *pixels = NULL;
-    unsigned int width = 0, height = 0, format = 0;
+    unsigned int width = 0, height = 0;
+    int format = 0;
 
     // For counting the number of required bytes
     int bitsPerPixel = 0;
@@ -107,6 +108,8 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
     }
 
     switch (format) {
+        case -1: /* pyotherside.format_data */
+            break;
         case QImage::Format_Mono:
         case QImage::Format_MonoLSB:
             bitsPerPixel = 1;
@@ -137,7 +140,7 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
     // While we could re-pack the data to be aligned, we don't want to do that
     // for performance reasons.
     // If we're using 32-bit data (e.g. ARGB32), it will always be aligned.
-    if (bitsPerPixel != 32) {
+    if (format != -1 && bitsPerPixel != 32) {
         if ((bitsPerPixel * width) % 32 != 0) {
             // If actualBytes > requiredBytes, we can check if there are enough
             // bytes to consider the data 32-bit aligned (from Python) and avoid
@@ -151,7 +154,7 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
         }
     }
 
-    if (requiredBytes > actualBytes) {
+    if (format != -1 && requiredBytes > actualBytes) {
         qDebug() << "Format" << (enum QImage::Format)format <<
             "at size" << QSize(width, height) <<
             "requires at least" << requiredBytes <<
@@ -159,14 +162,21 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
         goto cleanup;
     }
 
-    // Need to keep a reference to the byte array object, as it contains
-    // the backing store data for the QImage.
-    // Will be decref'd by cleanup_python_qimage once the QImage is gone.
-    Py_INCREF(pixels);
 
-    img = QImage((const unsigned char *)PyByteArray_AsString(pixels),
-            width, height, (enum QImage::Format)format,
-            cleanup_python_qimage, pixels);
+    if (format == -1) {
+        // Pixel data is actually encoded image data that we need to decode
+        img.loadFromData((const unsigned char*)PyByteArray_AsString(pixels),
+                PyByteArray_Size(pixels));
+    } else {
+        // Need to keep a reference to the byte array object, as it contains
+        // the backing store data for the QImage.
+        // Will be decref'd by cleanup_python_qimage once the QImage is gone.
+        Py_INCREF(pixels);
+
+        img = QImage((const unsigned char *)PyByteArray_AsString(pixels),
+                width, height, (enum QImage::Format)format,
+                cleanup_python_qimage, pixels);
+    }
 
 cleanup:
     Py_XDECREF(result);
