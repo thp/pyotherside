@@ -10,6 +10,7 @@ BuildRequires: python3-devel
 BuildRequires: qt5-qmake
 BuildRequires: pkgconfig(Qt5Gui)
 BuildRequires: pkgconfig(Qt5Qml)
+BuildRequires: pkgconfig(Qt5Quick)
 BuildRequires: pkgconfig(Qt5Test)
 
 %description
