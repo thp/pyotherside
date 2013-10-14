@@ -44,3 +44,10 @@ QPythonWorker::import(QString name, QJSValue callback)
     bool result = qpython->importModule_sync(name);
     emit imported(result, callback);
 }
+
+void
+QPythonWorker::importFromResources(QString name, QString path, QJSValue callback)
+{
+    bool result = qpython->importModuleFromResources_sync(name, path);
+    emit imported(result, callback);
+}
