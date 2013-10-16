@@ -21,6 +21,7 @@
 #include "qpython_priv.h"
 #include <QImage>
 #include <QFile>
+#include <QDir>
 
 static QPythonPriv *priv = NULL;
 
@@ -57,6 +58,17 @@ pyotherside_set_image_provider(PyObject *self, PyObject *o)
     Py_RETURN_NONE;
 }
 
+char *
+pyotherside_search_module(char *fullpath, char *path) {
+
+    QDir res(":/");
+
+    qDebug() << fullpath;
+    qDebug() << path;
+
+    return NULL;
+}
+
 PyObject *
 pyotherside_find_module(PyObject *self, PyObject *args) {
 
@@ -70,6 +82,8 @@ pyotherside_find_module(PyObject *self, PyObject *args) {
         PyErr_Print();
         PySys_WriteStdout("\n");
     }
+
+    pyotherside_search_module(fullname, path);
 
     QString filename(fullname);
     filename = ":/"+filename+".py";
@@ -121,7 +135,7 @@ pyotherside_load_module(PyObject *self, PyObject *args) {
         // Import the compiled code module
         mod = PyImport_ExecCodeModuleEx(fullname, module_code, fullname);
 
-        Py_DECREF(module_code);
+        //Py_DECREF(module_code);
         Py_DECREF(dict);
 
         return mod;
