@@ -129,59 +129,6 @@ class QPython : public QObject {
         /**
          * \brief Asynchronously import a Python module
          *
-         * Imports a Python module by name asynchronously from Qt Resources.
-         * The function will return immediately. If the module is successfully
-         * imported, the supplied \a callback will be called. Only then will the
-         * imported module be available:
-         *
-         * \code
-         * Python {
-         *     Component.onCompleted: {
-         *         importModuleFromResources(':/pyotherside.py', 'pyotherside', function() {
-         *             // You can use the "os" module here
-         *         });
-         *     }
-         * }
-         * \endcode
-         *
-         * If an error occurs while trying to import, the signal error()
-         * will be emitted with detailed information about the error.
-         *
-         * \arg name The name of the Python module to import
-         * \arg callback The JS callback to be called when the module is
-         *               successfully imported
-         **/
-        Q_INVOKABLE void
-        importModuleFromResources(QString path, QString name, QJSValue callback);
-
-        /**
-         * \brief Synchronously import a Python module from Qt Resources
-         *
-         * Imports a Python module by name synchronously. This function
-         * will block until the module is imported and available. In
-         * general, you should use importModule() instead of this function
-         * to avoid blocking the QML UI thread. Example use:
-         *
-         * \code
-         * Python {
-         *     Component.onCompleted: {
-         *         var success = importModuleFromResources_sync(':/pyotherside.py', 'pyotherside');
-         *         if (success) {
-         *             // You can use the "pyotherside" module here
-         *         }
-         *     }
-         * }
-         * \endcode
-         *
-         * \arg name The name of the Python module to import
-         * \result \c true if the import was successful, \c false otherwise
-         **/
-        Q_INVOKABLE bool
-        importModuleFromResources_sync(QString path, QString name);
-
-        /**
-         * \brief Asynchronously import a Python module
-         *
          * Imports a Python module by name asynchronously. The function
          * will return immediately. If the module is successfully imported,
          * the supplied \a callback will be called. Only then will the
@@ -315,7 +262,6 @@ class QPython : public QObject {
         /* For internal use only */
         void process(QString func, QVariant args, QJSValue callback);
         void import(QString name, QJSValue callback);
-        void importFromResources(QString name, QString path, QJSValue callback);
 
     private slots:
         void receive(QVariant data);

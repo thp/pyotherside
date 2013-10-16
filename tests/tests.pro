@@ -19,3 +19,9 @@ DEPENDPATH += . ../src
 INCLUDEPATH += . ../src
 
 include(../python.pri)
+
+RESOURCES += \
+    test.qrc
+
+OTHER_FILES += \
+    tests.py

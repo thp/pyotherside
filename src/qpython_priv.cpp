@@ -17,10 +17,9 @@
  **/
 
 #include "qml_python_bridge.h"
-
 #include "qpython_priv.h"
-
 #include <QImage>
+#include <QFile>
 
 static QPythonPriv *priv = NULL;
 
@@ -57,10 +56,91 @@ pyotherside_set_image_provider(PyObject *self, PyObject *o)
     Py_RETURN_NONE;
 }
 
+PyObject *
+pyotherside_find_module(PyObject *self, PyObject *args) {
+
+    char *fullname, *path;
+    int err = PyArg_ParseTuple(args, "s|z", &fullname, &path);
+
+    if(err == 0)
+    {
+        PyObject_Print(PyErr_Occurred(), stdout, Py_PRINT_RAW);
+        PySys_WriteStdout("\n");
+        PyErr_Print();
+        PySys_WriteStdout("\n");
+    }
+
+    QString filename(fullname);
+    filename = ":/"+filename+".py";
+    QFile file(filename);
+
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return Py_None;
+    } else {
+        return self;
+    }
+}
+
+PyObject *
+pyotherside_load_module(PyObject *self, PyObject *args) {
+
+    qDebug() << "pyotherside_load_module called";
+
+    const char *module_source;
+    char *fullname;
+    PyArg_ParseTuple(args, "s", &fullname);
+    PyObject *mod, *dict;
+    PyObject *module_code;
+
+    mod = PyImport_AddModule(fullname);
+    if (mod == NULL) {
+        return NULL;
+    }
+
+    QString filename(fullname);
+    filename = ":/"+filename+".py";
+    QFile moduleContent(filename);
+
+    if(moduleContent.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        module_source = moduleContent.readAll().constData();
+
+        //Next, we grab the reference to the new module's __dict__
+
+        if(module_source == NULL) {
+            //We couldnt load the module. Raise ImportError
+            return PyExc_ImportError;
+        }
+
+        module_code = Py_CompileString(module_source, fullname, Py_file_input);
+        //PyObject *new_module_dict = PyModule_GetDict(new_mod);
+
+
+        /* mod.__loader__ = self */
+        dict = PyModule_GetDict(mod);
+        if (PyDict_SetItemString(dict, "__loader__", (PyObject *)self) != 0)
+            return PyExc_ImportError;
+
+        /*
+         * This is really important. the second arg should be Py_file_input because we need
+         * the interpreter to believe is a file, and accept multiple statements in multiple lines.
+         * Else, the plug-in should throw a SegFault.
+         */
+
+        /* Now eval in context with new_mod.__dict__ in both globals and locals;
+         * The following (I believe) would be the translation in C of the
+         * exec CODE in mod.__dict__
+         */
+        mod = PyImport_ExecCodeModuleEx(fullname, module_code, fullname);
+        return mod;
+    }
+}
+
 static PyMethodDef PyOtherSideMethods[] = {
     {"send", pyotherside_send, METH_VARARGS, "Send data to Qt."},
     {"atexit", pyotherside_atexit, METH_O, "Function to call on shutdown."},
     {"set_image_provider", pyotherside_set_image_provider, METH_O, "Set the QML image provider."},
+    {"find_module", pyotherside_find_module, METH_VARARGS},
+    {"load_module", pyotherside_load_module, METH_VARARGS},
     {NULL, NULL, 0, NULL},
 };
 
@@ -92,6 +172,17 @@ PyOtherSide_init()
 
     // Custom constant - pixels are to be interpreted as encoded image file data
     PyModule_AddIntConstant(pyotherside, "format_data", -1);
+
+    PyImport_ImportModule("sys");
+
+        PyObject *meta_path = PySys_GetObject("meta_path");
+        if (meta_path != NULL)
+        {
+        PyList_Append(meta_path, pyotherside);
+        }
+
+    //TODO
+
 
     return pyotherside;
 }

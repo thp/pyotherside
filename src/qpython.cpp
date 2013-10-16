@@ -24,7 +24,6 @@
 
 #include <QDebug>
 #include <QJSEngine>
-#include <QFile>
 
 QPythonPriv *
 QPython::priv = NULL;
@@ -85,12 +84,6 @@ QPython::importModule(QString name, QJSValue callback)
     emit import(name, callback);
 }
 
-void
-QPython::importModuleFromResources(QString path, QString name, QJSValue callback)
-{
-    emit importFromResources(name, path, callback);
-}
-
 bool
 QPython::importModule_sync(QString name)
 {
@@ -114,7 +107,8 @@ QPython::importModule_sync(QString name)
     return true;
 }
 
-bool
+
+/*bool
 QPython::importModuleFromResources_sync(QString path, QString name)
 {
     // Lesson learned: name.toUtf8().constData() doesn't work, as the
@@ -145,7 +139,7 @@ QPython::importModuleFromResources_sync(QString path, QString name)
     PyDict_SetItemString(priv->globals, moduleName, module);
     priv->leave();
     return true;
-}
+}*/
 
 void
 QPython::receive(QVariant variant)

@@ -32,6 +32,7 @@ class TestPyOtherSide : public QObject {
 
     private slots:
         void testEvaluate();
+        void testImport();
         void testQVariantConverter();
         void testPyObjectConverter();
         void testConvertToPythonAndBack();
