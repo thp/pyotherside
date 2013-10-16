@@ -107,40 +107,6 @@ QPython::importModule_sync(QString name)
     return true;
 }
 
-
-/*bool
-QPython::importModuleFromResources_sync(QString path, QString name)
-{
-    // Lesson learned: name.toUtf8().constData() doesn't work, as the
-    // temporary QByteArray will be destroyed after constData() has
-    // returned, so we need to save the toUtf8() result in a local
-    // variable that doesn't get destroyed until the function returns.
-    QByteArray utf8bytes = name.toUtf8();
-    char *moduleName = utf8bytes.data();
-    QFile moduleContent(path);
-    PyObject *module = NULL;
-
-    priv->enter();
-
-    if(moduleContent.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        PyObject *moduleCode = Py_CompileString(moduleContent.readAll().constData(), moduleName, Py_file_input);
-        module = PyImport_ExecCodeModule(moduleName, moduleCode);
-        if (module == NULL) {
-            emit error(priv->formatExc());
-            priv->leave();
-            return false;
-        }
-    } else {
-        emit error("ImportError : Can't find module");
-        priv->leave();
-        return false;
-    }
-
-    PyDict_SetItemString(priv->globals, moduleName, module);
-    priv->leave();
-    return true;
-}*/
-
 void
 QPython::receive(QVariant variant)
 {

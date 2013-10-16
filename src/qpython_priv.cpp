@@ -2,6 +2,7 @@
 /**
  * PyOtherSide: Asynchronous Python 3 Bindings for Qt 5
  * Copyright (c) 2011, 2013, Thomas Perl <m@thp.io>
+ * Copyright (c) 2013 Benoît HERVIER <khertan@khertan.net>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -104,33 +105,25 @@ pyotherside_load_module(PyObject *self, PyObject *args) {
     if(moduleContent.open(QIODevice::ReadOnly | QIODevice::Text)) {
         module_source = moduleContent.readAll().constData();
 
-        //Next, we grab the reference to the new module's __dict__
-
         if(module_source == NULL) {
             //We couldnt load the module. Raise ImportError
             return PyExc_ImportError;
         }
 
+        // Compile module code
         module_code = Py_CompileString(module_source, fullname, Py_file_input);
-        //PyObject *new_module_dict = PyModule_GetDict(new_mod);
 
-
-        /* mod.__loader__ = self */
+        // Set the __loader__ object to pyotherside module
         dict = PyModule_GetDict(mod);
         if (PyDict_SetItemString(dict, "__loader__", (PyObject *)self) != 0)
             return PyExc_ImportError;
 
-        /*
-         * This is really important. the second arg should be Py_file_input because we need
-         * the interpreter to believe is a file, and accept multiple statements in multiple lines.
-         * Else, the plug-in should throw a SegFault.
-         */
-
-        /* Now eval in context with new_mod.__dict__ in both globals and locals;
-         * The following (I believe) would be the translation in C of the
-         * exec CODE in mod.__dict__
-         */
+        // Import the compiled code module
         mod = PyImport_ExecCodeModuleEx(fullname, module_code, fullname);
+
+        Py_DECREF(module_code);
+        Py_DECREF(dict);
+
         return mod;
     }
 }
@@ -173,16 +166,14 @@ PyOtherSide_init()
     // Custom constant - pixels are to be interpreted as encoded image file data
     PyModule_AddIntConstant(pyotherside, "format_data", -1);
 
-    PyImport_ImportModule("sys");
+    // Useless
+    //PyImport_ImportModule("sys");
 
-        PyObject *meta_path = PySys_GetObject("meta_path");
-        if (meta_path != NULL)
-        {
+    PyObject *meta_path = PySys_GetObject("meta_path");
+    if (meta_path != NULL)
+    {
         PyList_Append(meta_path, pyotherside);
-        }
-
-    //TODO
-
+    }
 
     return pyotherside;
 }
