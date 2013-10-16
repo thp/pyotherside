@@ -92,6 +92,7 @@ pyotherside_find_module(PyObject *self, PyObject *args) {
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         return Py_None;
     } else {
+        Py_INCREF(self);
         return self;
     }
 }
