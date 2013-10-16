@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>tests.py</file>
+        <file>tests2.py</file>
+    </qresource>
+</RCC>

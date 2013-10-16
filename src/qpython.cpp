@@ -23,9 +23,7 @@
 #include "qpython_worker.h"
 
 #include <QDebug>
-
 #include <QJSEngine>
-
 
 QPythonPriv *
 QPython::priv = NULL;

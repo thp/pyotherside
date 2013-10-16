@@ -2,6 +2,7 @@
 /**
  * PyOtherSide: Asynchronous Python 3 Bindings for Qt 5
  * Copyright (c) 2011, 2013, Thomas Perl <m@thp.io>
+ * Copyright (c) 2013 Benoît HERVIER <khertan@khertan.net>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,10 +18,10 @@
  **/
 
 #include "qml_python_bridge.h"
-
 #include "qpython_priv.h"
-
 #include <QImage>
+#include <QFile>
+#include <QDir>
 
 static QPythonPriv *priv = NULL;
 
@@ -57,10 +58,101 @@ pyotherside_set_image_provider(PyObject *self, PyObject *o)
     Py_RETURN_NONE;
 }
 
+char *
+pyotherside_search_module(char *fullpath, char *path) {
+
+    QDir res(":/");
+
+    qDebug() << fullpath;
+    qDebug() << path;
+
+    return NULL;
+}
+
+PyObject *
+pyotherside_find_module(PyObject *self, PyObject *args) {
+
+    char *fullname, *path;
+    int err = PyArg_ParseTuple(args, "s|z", &fullname, &path);
+
+    if(err == 0)
+    {
+        PyObject_Print(PyErr_Occurred(), stdout, Py_PRINT_RAW);
+        PySys_WriteStdout("\n");
+        PyErr_Print();
+        PySys_WriteStdout("\n");
+    }
+
+    pyotherside_search_module(fullname, path);
+
+    QString filename(fullname);
+    filename = ":/"+filename+".py";
+    QFile file(filename);
+
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return Py_None;
+    } else {
+        Py_INCREF(self);
+        return self;
+    }
+}
+
+PyObject *
+pyotherside_load_module(PyObject *self, PyObject *args) {
+
+    qDebug() << "pyotherside_load_module called";
+
+    const char *module_source;
+    char *fullname;
+    PyArg_ParseTuple(args, "s", &fullname);
+    PyObject *mod, *dict;
+    PyObject *module_code;
+
+    mod = PyImport_AddModule(fullname);
+    if (mod == NULL) {
+        return NULL;
+    }
+
+    QString filename(fullname);
+    filename = ":/"+filename+".py";
+    QFile moduleContent(filename);
+
+    if(moduleContent.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        module_source = moduleContent.readAll().constData();
+
+        if(module_source == NULL) {
+            //We couldnt load the module. Raise ImportError
+            Py_RETURN_NONE;
+        }
+
+        // Compile module code
+        module_code = Py_CompileString(module_source, fullname, Py_file_input);
+        if (module_code == NULL){
+            //Can't compile the module
+            Py_RETURN_NONE;
+        }
+        // Set the __loader__ object to pyotherside module
+        dict = PyModule_GetDict(mod);
+        if (PyDict_SetItemString(dict, "__loader__", (PyObject *)self) != 0)
+            Py_RETURN_NONE;
+
+        // Import the compiled code module
+        mod = PyImport_ExecCodeModuleEx(fullname, module_code, fullname);
+
+        //Py_DECREF(module_code);
+        Py_DECREF(dict);
+
+        return mod;
+    }
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef PyOtherSideMethods[] = {
     {"send", pyotherside_send, METH_VARARGS, "Send data to Qt."},
     {"atexit", pyotherside_atexit, METH_O, "Function to call on shutdown."},
     {"set_image_provider", pyotherside_set_image_provider, METH_O, "Set the QML image provider."},
+    {"find_module", pyotherside_find_module, METH_VARARGS},
+    {"load_module", pyotherside_load_module, METH_VARARGS},
     {NULL, NULL, 0, NULL},
 };
 
@@ -92,6 +184,15 @@ PyOtherSide_init()
 
     // Custom constant - pixels are to be interpreted as encoded image file data
     PyModule_AddIntConstant(pyotherside, "format_data", -1);
+
+    // Useless
+    //PyImport_ImportModule("sys");
+
+    PyObject *meta_path = PySys_GetObject("meta_path");
+    if (meta_path != NULL)
+    {
+        PyList_Append(meta_path, pyotherside);
+    }
 
     return pyotherside;
 }
