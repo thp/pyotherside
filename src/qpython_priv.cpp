@@ -126,6 +126,7 @@ pyotherside_load_module(PyObject *self, PyObject *args) {
 
         return mod;
     }
+    return NULL;
 }
 
 static PyMethodDef PyOtherSideMethods[] = {
