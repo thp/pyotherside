@@ -121,16 +121,19 @@ pyotherside_load_module(PyObject *self, PyObject *args) {
 
         if(module_source == NULL) {
             //We couldnt load the module. Raise ImportError
-            return PyExc_ImportError;
+            Py_RETURN_NONE;
         }
 
         // Compile module code
         module_code = Py_CompileString(module_source, fullname, Py_file_input);
-
+        if (module_code == NULL){
+            //Can't compile the module
+            Py_RETURN_NONE;
+        }
         // Set the __loader__ object to pyotherside module
         dict = PyModule_GetDict(mod);
         if (PyDict_SetItemString(dict, "__loader__", (PyObject *)self) != 0)
-            return PyExc_ImportError;
+            Py_RETURN_NONE;
 
         // Import the compiled code module
         mod = PyImport_ExecCodeModuleEx(fullname, module_code, fullname);
@@ -140,7 +143,7 @@ pyotherside_load_module(PyObject *self, PyObject *args) {
 
         return mod;
     }
-    return NULL;
+    Py_RETURN_NONE;
 }
 
 static PyMethodDef PyOtherSideMethods[] = {

@@ -24,4 +24,5 @@ RESOURCES += \
     test.qrc
 
 OTHER_FILES += \
-    tests.py
+    tests.py \
+    tests2.py
