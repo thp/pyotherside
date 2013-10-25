@@ -22,6 +22,9 @@
 
 #include "pyotherside_plugin.h"
 
+#if defined(Q_OS_UNIX)
+#include <dlfcn.h>
+#endif
 
 static void
 pyotherside_atexit()
@@ -42,6 +45,15 @@ void
 PyOtherSideExtensionPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
 {
     Q_ASSERT(QString(PYOTHERSIDE_PLUGIN_ID) == uri);
+
+#if defined(Q_OS_UNIX)
+    QByteArray pythonlib(PYTHON_LIBRARY);
+    if (!pythonlib.isEmpty()) {
+        qDebug() << "RTLD_GLOBAL" << pythonlib;
+        dlopen(pythonlib, RTLD_NOLOAD | RTLD_GLOBAL);
+    }
+#endif
+
     engine->addImageProvider(PYOTHERSIDE_IMAGEPROVIDER_ID, new QPythonImageProvider);
 }
 
