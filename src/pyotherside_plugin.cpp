@@ -22,9 +22,7 @@
 
 #include "pyotherside_plugin.h"
 
-#if defined(Q_OS_UNIX)
-#include <dlfcn.h>
-#endif
+#include <QLibrary>
 
 static void
 pyotherside_atexit()
@@ -49,8 +47,10 @@ PyOtherSideExtensionPlugin::initializeEngine(QQmlEngine *engine, const char *uri
 #if defined(Q_OS_UNIX)
     QByteArray pythonlib(PYTHON_LIBRARY);
     if (!pythonlib.isEmpty()) {
-        qDebug() << "RTLD_GLOBAL" << pythonlib;
-        dlopen(pythonlib, RTLD_NOLOAD | RTLD_GLOBAL);
+        QLibrary lib(pythonlib);
+        lib.setLoadHints(QLibrary::ExportExternalSymbolsHint | QLibrary::ResolveAllSymbolsHint);
+        if (!lib.load())
+            qWarning() << "RTLD_GLOBAL" << pythonlib << lib.errorString();
     }
 #endif
 
