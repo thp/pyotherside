@@ -19,6 +19,7 @@
 #include "qpython_priv.h"
 #include "qpython.h"
 #include "qpython_imageprovider.h"
+#include "global_libpython_loader.h"
 
 #include "pyotherside_plugin.h"
 
@@ -42,6 +43,13 @@ void
 PyOtherSideExtensionPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
 {
     Q_ASSERT(QString(PYOTHERSIDE_PLUGIN_ID) == uri);
+
+    // In some Linux distributions, the plugin (and subsequently libpython)
+    // isn't loaded with the RTLD_GLOBAL flag, so symbols in libpython that
+    // are needed by shared Python modules won't be resolved unless we also
+    // load libpython again RTLD_GLOBAL again. We do this here.
+    GlobalLibPythonLoader::loadPythonGlobally();
+
     engine->addImageProvider(PYOTHERSIDE_IMAGEPROVIDER_ID, new QPythonImageProvider);
 }
 

@@ -32,6 +32,10 @@ HEADERS += qpython_worker.h
 SOURCES += qpython_priv.cpp
 HEADERS += qpython_priv.h
 
+# Globally Load Python hack
+SOURCES += global_libpython_loader.cpp
+HEADERS += global_libpython_loader.h
+
 # Type System Conversion Logic
 HEADERS += converter.h
 HEADERS += qvariant_converter.h
