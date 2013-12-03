@@ -129,10 +129,27 @@ TestPyOtherSide::testImport()
 {
     QPython py;
     QVERIFY(true == py.importModule_sync(QString("pyotherside")));
+}
+
+void
+TestPyOtherSide::testImportFromQrc()
+{
+    QPython py;
+    QVERIFY(true == py.importModule_sync(QString("pyotherside")));
     QVERIFY(true == py.importModule_sync(QString("tests")));
     QString echo("echo");
     QVERIFY(echo == py.call_sync("tests.echo", QVariantList()));
+}
 
+void
+TestPyOtherSide::testCompiledImportFromQrc()
+{
+    QPython py;
+    QVERIFY(true == py.importModule_sync(QString("pyotherside")));
+    QVERIFY(true == py.importModule_sync(QString("tests")));
+    //WIP
+    //QString echo("echo");
+    //QVERIFY(echo == py.call_sync("tests.echo2", QVariantList()));
 }
 
 void

@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>tests.py</file>
-        <file>tests2.py</file>
+        <file>tests2.pyc</file>
+        <file>tests3/__init__.py</file>
     </qresource>
 </RCC>

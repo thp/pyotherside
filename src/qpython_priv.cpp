@@ -19,11 +19,36 @@
 
 #include "qml_python_bridge.h"
 #include "qpython_priv.h"
+#include "marshal.h"
 #include <QImage>
 #include <QFile>
 #include <QDir>
 
 static QPythonPriv *priv = NULL;
+
+enum pyotherside_module_info {
+    MI_ERROR,
+    MI_NOT_FOUND,
+    MI_MODULE,
+    MI_PACKAGE
+};
+
+/* Given a buffer, return the long that is represented by the first
+   4 bytes, encoded as little endian. This partially reimplements
+   marshal.c:r_long() */
+static long
+get_long(unsigned char *buf) {
+    long x;
+    x =  buf[0];
+    x |= (long)buf[1] <<  8;
+    x |= (long)buf[2] << 16;
+    x |= (long)buf[3] << 24;
+#if SIZEOF_LONG > 4
+    /* Sign extension for 64-bit machines */
+    x |= -(x & 0x80000000L);
+#endif
+    return x;
+}
 
 PyObject *
 pyotherside_send(PyObject *self, PyObject *args)
@@ -58,14 +83,140 @@ pyotherside_set_image_provider(PyObject *self, PyObject *o)
     Py_RETURN_NONE;
 }
 
-char *
-pyotherside_search_module(char *fullpath, char *path) {
+/* Given the contents of a .py[co] file in a buffer, unmarshal the data
+   and return the code object. Return None if it the magic word doesn't
+   match (we do this instead of raising an exception as we fall back
+   to .py if available and we don't want to mask other errors).
+   Returns a new reference. */
+static PyObject *
+unmarshal_code(char *pathname, PyObject *data)
+{
+    PyObject *code;
+    char *buf = PyBytes_AsString(data);
+    Py_ssize_t size = PyBytes_Size(data);
 
-    QDir res(":/");
+    if (size <= 9) {
+        PyErr_SetString(PyExc_TypeError,
+                        "bad pyc data");
+        return NULL;
+    }
 
-    qDebug() << fullpath;
-    qDebug() << path;
+    if (get_long((unsigned char *)buf) != PyImport_GetMagicNumber()) {
+        if (Py_VerboseFlag)
+            PySys_WriteStderr("# %s has bad magic\n",
+                              pathname);
+        Py_INCREF(Py_None);
+        return NULL;
+    }
 
+    code = PyMarshal_ReadObjectFromString(buf + 8, size - 8);
+    if (code == NULL)
+        return NULL;
+    if (!PyCode_Check(code)) {
+        Py_DECREF(code);
+        PyErr_Format(PyExc_TypeError,
+                     "compiled module %.200s is not a code object",
+                     pathname);
+        return NULL;
+    }
+    return code;
+}
+
+static PyObject *
+pyotherside_get_code_from_data(QString filename) {
+
+    QString buf;
+    QDir qrc(":/");
+    PyObject *module_code;
+    FILE *fh;
+
+    if (qrc.exists(filename+"/__init__.py")) {
+        QFile module_data(":/"+filename+"/__init__.py");
+        if(module_data.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QTextStream data(&module_data);
+            buf = data.readAll();
+            module_data.close();
+            if (buf == NULL) {
+                qDebug() << "Can t get code of "+filename.toUtf8();
+            }
+
+            // Compile module code
+            module_code = Py_CompileString(buf.toUtf8().constData(), filename.toUtf8().constData(), Py_file_input);
+            if (module_code != NULL){
+                return module_code;
+            }
+            else {
+                qDebug() << "Can t compile code of "+filename.toUtf8();
+                return NULL;
+            }
+        } else {
+            qDebug() << "Can't get content from qrc (__init__) for "+filename.toUtf8();
+        }
+    }
+
+    // WIP
+    /*if (qrc.exists(filename+".pyc")) {
+        QFile module_data(":/"+filename+".pyc");
+        qDebug() << "Opening compiled module pyc : " + filename.toUtf8();
+        if(module_data.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            int h = module_data.handle();          
+            FILE* fh = fdopen(h, "rb");
+            qDebug() << "Read MarchalObject from fh : " + filename.toUtf8();
+            module_code = PyMarshal_ReadObjectFromFile(fh);
+            fclose(fh);
+            qDebug() << "Close MarchalObject from fh : " + filename.toUtf8();
+
+            //Load bytecode
+            qDebug() << "Loading bytecode from fh : " + filename.toUtf8();
+            module_code = unmarshal_code(filename.toUtf8().data(), PyBytes_FromString(buf.toUtf8().data()));
+            if (module_code != NULL){
+                qDebug() << "Bytecode loaded from fh : " + filename.toUtf8();
+                return module_code;
+            }
+
+        }
+    }*/
+
+    // WIP
+    /*if (qrc.exists(filename+".pyo")) {
+        QFile module_data(":/"+filename+".pyo");
+        if(module_data.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            buf = module_data.readAll().constData();
+
+            //Load bytecode
+            module_code = unmarshal_code(filename.toUtf8().data(), PyBytes_FromString(buf));
+            if (module_code != NULL){
+                return module_code;
+            }
+        }
+    }*/
+
+    if (qrc.exists(filename+".py")) {
+        QFile module_data(":/"+filename+".py");
+        if(module_data.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QTextStream data(&module_data);
+            buf = data.readAll();
+            module_data.close();
+
+            qDebug() << "Content:";
+            qDebug() << buf;
+
+            // Compile module code
+            module_code = Py_CompileString(buf.toUtf8().constData(), filename.toUtf8().constData(), Py_file_input);
+            if (module_code != NULL){
+                return module_code;
+            }
+            else {
+                qDebug() << "Can t compile code of "+filename.toUtf8();
+                return NULL;
+
+            }
+        } else {
+            qDebug() << "Can't get qrc content for " + filename.toUtf8();
+        }
+    }
+
+    qDebug() << filename.toUtf8() + ' not found';
     return NULL;
 }
 
@@ -75,26 +226,29 @@ pyotherside_find_module(PyObject *self, PyObject *args) {
     char *fullname, *path;
     int err = PyArg_ParseTuple(args, "s|z", &fullname, &path);
 
+    QString filename(fullname);
+    qDebug() << "Search for module " + filename.toUtf8();
     if(err == 0)
     {
         PyObject_Print(PyErr_Occurred(), stdout, Py_PRINT_RAW);
         PySys_WriteStdout("\n");
         PyErr_Print();
         PySys_WriteStdout("\n");
+        return Py_None;
     }
 
-    pyotherside_search_module(fullname, path);
-
-    QString filename(fullname);
-    filename = ":/"+filename+".py";
-    QFile file(filename);
-
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return Py_None;
-    } else {
+    QDir qrc(":/");
+    if (((qrc.exists(filename+".py"))
+         | (qrc.exists(filename+".pyc"))
+         | (qrc.exists(filename+".pyo")))
+            | (QDir(":/"+filename).exists())) {
         Py_INCREF(self);
+        qDebug() << "Found module "+filename.toUtf8();
         return self;
     }
+    qDebug() << "Can't found module "+filename.toUtf8();
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 PyObject *
@@ -102,49 +256,40 @@ pyotherside_load_module(PyObject *self, PyObject *args) {
 
     qDebug() << "pyotherside_load_module called";
 
-    const char *module_source;
+
     char *fullname;
     PyArg_ParseTuple(args, "s", &fullname);
     PyObject *mod, *dict;
     PyObject *module_code;
 
+    QString filename(fullname);
+
     mod = PyImport_AddModule(fullname);
     if (mod == NULL) {
-        return NULL;
+        qDebug() << "Can't add module " + filename.toUtf8();
+        Py_RETURN_NONE;
     }
 
-    QString filename(fullname);
-    filename = ":/"+filename+".py";
-    QFile moduleContent(filename);
-
-    if(moduleContent.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        module_source = moduleContent.readAll().constData();
-
-        if(module_source == NULL) {
-            //We couldnt load the module. Raise ImportError
-            Py_RETURN_NONE;
-        }
-
-        // Compile module code
-        module_code = Py_CompileString(module_source, fullname, Py_file_input);
-        if (module_code == NULL){
-            //Can't compile the module
-            Py_RETURN_NONE;
-        }
-        // Set the __loader__ object to pyotherside module
-        dict = PyModule_GetDict(mod);
-        if (PyDict_SetItemString(dict, "__loader__", (PyObject *)self) != 0)
-            Py_RETURN_NONE;
-
-        // Import the compiled code module
-        mod = PyImport_ExecCodeModuleEx(fullname, module_code, fullname);
-
-        //Py_DECREF(module_code);
-        Py_DECREF(dict);
-
-        return mod;
+    module_code = pyotherside_get_code_from_data(filename);
+    if (module_code == NULL) {
+        qDebug() << "Can't get module code " + filename.toUtf8();
+        Py_RETURN_NONE;
     }
-    Py_RETURN_NONE;
+
+    // Set the __loader__ object to pyotherside module
+    dict = PyModule_GetDict(mod);
+    if (PyDict_SetItemString(dict, "__loader__", (PyObject *)self) != 0) {
+        Py_RETURN_NONE;
+    }
+
+    mod = PyImport_ExecCodeModuleEx(fullname, module_code, fullname);
+    Py_DECREF(module_code);
+    Py_DECREF(dict);
+    if (Py_VerboseFlag)
+        PySys_WriteStderr("import %s # loaded from QRC\n",
+                          fullname);
+
+    return mod;
 }
 
 static PyMethodDef PyOtherSideMethods[] = {
@@ -184,9 +329,6 @@ PyOtherSide_init()
 
     // Custom constant - pixels are to be interpreted as encoded image file data
     PyModule_AddIntConstant(pyotherside, "format_data", -1);
-
-    // Useless
-    //PyImport_ImportModule("sys");
 
     PyObject *meta_path = PySys_GetObject("meta_path");
     if (meta_path != NULL)
@@ -231,7 +373,7 @@ QPythonPriv::QPythonPriv()
 
     if (PyDict_GetItemString(globals, "__builtins__") == NULL) {
         PyDict_SetItemString(globals, "__builtins__",
-                PyEval_GetBuiltins());
+                             PyEval_GetBuiltins());
     }
 
     // Need to lock mutex here, as it will always be unlocked
@@ -291,7 +433,7 @@ QPythonPriv::formatExc()
     }
 
     PyObject *list = PyObject_CallMethod(traceback_mod,
-            "format_exception", "OOO", type, value, traceback);
+                                         "format_exception", "OOO", type, value, traceback);
     Q_ASSERT(list != NULL);
     PyObject *n = PyUnicode_FromString("\n");
     Q_ASSERT(n != NULL);
@@ -311,6 +453,7 @@ QPythonPriv::formatExc()
     Py_DECREF(value);
     Py_DECREF(traceback);
 
+    qDebug() << v.toString();
     return v.toString();
 }
 
@@ -319,7 +462,7 @@ QPythonPriv::eval(QString expr)
 {
     QByteArray utf8bytes = expr.toUtf8();
     PyObject *result = PyRun_String(utf8bytes.constData(),
-            Py_eval_input, globals, locals);
+                                    Py_eval_input, globals, locals);
 
     return result;
 }

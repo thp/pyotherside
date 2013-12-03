@@ -7,8 +7,10 @@ QMAKE_CXXFLAGS += $$system($$PYTHON_CONFIG --includes)
 }
 
 win32: {
-INCLUDEPATH += C:\Python27\include
-LIBS += -LC:\Python27\libs -lpython27
+INCLUDEPATH += C:\Python33\include
+LIBS += -LC:\Python33\libs -lpython33
+
+QMAKE_LIBS += -IC:\Python33\include -fno-strict-aliasing -DNDEBUG -g -fwrapv -O2 -Wall -g -fstack-protector
 }
 
 #RESOURCES +=

@@ -22,7 +22,3 @@ include(../python.pri)
 
 RESOURCES += \
     test.qrc
-
-OTHER_FILES += \
-    tests.py \
-    tests2.py
