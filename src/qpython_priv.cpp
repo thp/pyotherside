@@ -178,39 +178,68 @@ QPythonPriv::formatExc()
     PyObject *type = NULL;
     PyObject *value = NULL;
     PyObject *traceback = NULL;
+
+    PyObject *list = NULL;
+    PyObject *n = NULL;
+    PyObject *s = NULL;
+
     PyErr_Fetch(&type, &value, &traceback);
-    PyErr_Clear();
+    PyErr_NormalizeException(&type, &value, &traceback);
+
+    QString message;
+    QVariant v;
 
     if (type == NULL && value == NULL && traceback == NULL) {
-        return "No Error";
+        // No exception thrown?
+        goto cleanup;
     }
 
-    if (value != NULL && (type == NULL || traceback == NULL)) {
-        return convertPyObjectToQVariant(PyObject_Str(value)).toString();
+    if (value != NULL) {
+        // We can at least format the exception as string
+        message = convertPyObjectToQVariant(PyObject_Str(value)).toString();
     }
 
-    PyObject *list = PyObject_CallMethod(traceback_mod,
+    if (type == NULL || traceback == NULL) {
+        // Cannot get a traceback for this exception
+        goto cleanup;
+    }
+
+    list = PyObject_CallMethod(traceback_mod,
             "format_exception", "OOO", type, value, traceback);
-    Q_ASSERT(list != NULL);
-    PyObject *n = PyUnicode_FromString("\n");
-    Q_ASSERT(n != NULL);
-    PyObject *s = PyUnicode_Join(n, list);
-    Q_ASSERT(s != NULL);
+
+    if (list == NULL) {
+        // Could not format exception, fall back to original message
+        PyErr_Print();
+        goto cleanup;
+    }
+
+    n = PyUnicode_FromString("\n");
+    if (n == NULL) {
+        PyErr_Print();
+        goto cleanup;
+    }
+
+    s = PyUnicode_Join(n, list);
     if (s == NULL) {
         PyErr_Print();
-        return "Exception";
+        goto cleanup;
     }
-    QVariant v = convertPyObjectToQVariant(s);
-    Q_ASSERT(v.isValid());
-    Py_DECREF(s);
-    Py_DECREF(n);
-    Py_DECREF(list);
 
-    Py_DECREF(type);
-    Py_DECREF(value);
-    Py_DECREF(traceback);
+    v = convertPyObjectToQVariant(s);
+    if (v.isValid()) {
+        message = v.toString();
+    }
 
-    return v.toString();
+cleanup:
+    Py_XDECREF(s);
+    Py_XDECREF(n);
+    Py_XDECREF(list);
+
+    Py_XDECREF(type);
+    Py_XDECREF(value);
+    Py_XDECREF(traceback);
+
+    return message;
 }
 
 PyObject *
