@@ -99,7 +99,7 @@ QPython::importModule_sync(QString name)
     priv->enter();
     PyObject *module = PyImport_ImportModule(moduleName);
     if (module == NULL) {
-        emit error(priv->formatExc());
+        emit error(QString("Cannot import module: %1 (%2)").arg(name).arg(priv->formatExc()));
         priv->leave();
         return false;
     }
@@ -143,7 +143,7 @@ QPython::evaluate(QString expr)
     priv->enter();
     PyObject *o = priv->eval(expr);
     if (o == NULL) {
-        emit error(priv->formatExc());
+        emit error(QString("Cannot evaluate '%1' (%2)").arg(expr).arg(priv->formatExc()));
         priv->leave();
         return QVariant();
     }
@@ -167,7 +167,7 @@ QPython::call_sync(QString func, QVariant args)
     PyObject *callable = priv->eval(func);
 
     if (callable == NULL) {
-        emit error(priv->formatExc());
+        emit error(QString("Function not found: '%1' (%2)").arg(func).arg(priv->formatExc()));
         priv->leave();
         return QVariant();
     }
@@ -183,7 +183,7 @@ QPython::call_sync(QString func, QVariant args)
         Py_DECREF(argt);
 
         if (o == NULL) {
-            emit error(priv->formatExc());
+            emit error(QString("Return value of PyObject call is NULL: %1").arg(priv->formatExc()));
         } else {
             v = convertPyObjectToQVariant(o);
             Py_DECREF(o);
@@ -194,7 +194,7 @@ QPython::call_sync(QString func, QVariant args)
         return v;
     }
 
-    emit error(QString("Not a callable: ") + func);
+    emit error(QString("Not a callable: %1").arg(func));
     Py_DECREF(callable);
     priv->leave();
     return QVariant();

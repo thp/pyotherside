@@ -21,6 +21,7 @@
 #include "qpython_priv.h"
 
 #include <QImage>
+#include <QDebug>
 
 static QPythonPriv *priv = NULL;
 
@@ -239,6 +240,7 @@ cleanup:
     Py_XDECREF(value);
     Py_XDECREF(traceback);
 
+    qDebug() << QString("PyOtherSide error: %1").arg(message);
     return message;
 }
 
