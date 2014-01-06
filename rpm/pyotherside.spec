@@ -1,7 +1,7 @@
 Summary: Asynchronous Python 3 Bindings for Qt 5
 Name: pyotherside-qml-plugin-python3-qt5
 Version: 1.0.0
-Release: 2
+Release: 8
 Source: %{name}-%{version}.tar.gz
 URL: http://github.com/thp/pyotherside
 License: ISC
