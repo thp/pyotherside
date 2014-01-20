@@ -31,7 +31,7 @@ namespace GlobalLibPythonLoader {
 static int load_python_globally_callback(struct dl_phdr_info *info, size_t size, void *data)
 {
     int major, minor;
-    char *basename = strrchr(info->dlpi_name, '/');
+    const char *basename = strrchr(info->dlpi_name, '/');
     int *success = (int *)data;
 
     if (basename != NULL) {
