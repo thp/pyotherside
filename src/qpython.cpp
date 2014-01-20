@@ -186,7 +186,15 @@ QPython::call_sync(QString func, QVariant args)
         QVariant v;
 
         PyObject *argl = convertQVariantToPyObject(args);
-        assert(PyList_Check(argl));
+        if (!PyList_Check(argl)) {
+            Py_DECREF(callable);
+            Py_XDECREF(argl);
+            emit error(QString("Not a parameter list in call to %1: %2")
+                    .arg(func).arg(args.toString()));
+            priv->leave();
+            return QVariant();
+        }
+
         PyObject *argt = PyList_AsTuple(argl);
         Py_DECREF(argl);
         PyObject *o = PyObject_Call(callable, argt, NULL);
