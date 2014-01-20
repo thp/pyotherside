@@ -120,7 +120,17 @@ QPython::receive(QVariant variant)
         for (int i=1; i<list.size(); i++) {
             args << callback.engine()->toScriptValue(list[i]);
         }
-        callback.call(args);
+        QJSValue result = callback.call(args);
+        if (result.isError()) {
+            // Ideally we would throw the error back to Python (so that the
+            // pyotherside.send() method fails, as this is where the call
+            // originated). We can't do this, because the pyotherside.send()
+            // call is asynchronous (it returns before we call into JS), so do
+            // the next best thing and report the error to our error handler in
+            // QML instead.
+            emit error(QString("pyotherside.send() failed handler: %1")
+                    .arg(result.toString()));
+        }
     } else {
         // Default action
         emit received(variant);

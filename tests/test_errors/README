@@ -1,0 +1,6 @@
+Test if JS errors from pyotherside.send() are propagated to the PyOtherSide
+error handler. Thanks to Osmo Salomaa for the original report and test case.
+
+----
+https://github.com/thp/pyotherside/issues/9
+https://gist.github.com/otsaloma/8258322
