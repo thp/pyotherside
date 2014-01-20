@@ -22,6 +22,7 @@
 
 #include "pyotherside_plugin.h"
 
+#include <QLibrary>
 
 static void
 pyotherside_atexit()
@@ -42,6 +43,23 @@ void
 PyOtherSideExtensionPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
 {
     Q_ASSERT(QString(PYOTHERSIDE_PLUGIN_ID) == uri);
+
+#if defined(Q_OS_UNIX)
+    // Its needed to dlopen the python library using RTLD_GLOBAL so modules
+    // dynamic loaded later, which not link against the python library, find
+    // its symbols. This is only needed on Unix where our/python symbols may
+    // be hidden and not acccessible to libraries/modules we/python loads. By
+    // loading the python library here again using RTLD_GLOBAL we make its
+    // symbols proper accessible to other libraries/modules.
+    QByteArray pythonlib(PYTHON_LIBRARY);
+    if (!pythonlib.isEmpty()) {
+        QLibrary lib(pythonlib);
+        lib.setLoadHints(QLibrary::ExportExternalSymbolsHint | QLibrary::ResolveAllSymbolsHint);
+        if (!lib.load())
+            qWarning() << "Failed loading python library" << pythonlib << lib.errorString();
+    }
+#endif
+
     engine->addImageProvider(PYOTHERSIDE_IMAGEPROVIDER_ID, new QPythonImageProvider);
 }
 
