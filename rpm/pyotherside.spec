@@ -3,7 +3,7 @@ Name: pyotherside-qml-plugin-python3-qt5
 Version: 1.0.0
 Release: 8
 Source: %{name}-%{version}.tar.gz
-URL: http://github.com/thp/pyotherside
+URL: http://thp.io/2011/pyotherside/
 License: ISC
 Group: Development/Libraries
 BuildRequires: python3-devel
