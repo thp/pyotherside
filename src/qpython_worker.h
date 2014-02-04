@@ -34,12 +34,12 @@ class QPythonWorker : public QObject {
         ~QPythonWorker();
 
     public slots:
-        void process(QString func, QVariant args, QJSValue callback);
-        void import(QString func, QJSValue callback);
+        void process(QString func, QVariant args, QJSValue *callback);
+        void import(QString func, QJSValue *callback);
 
     signals:
-        void finished(QVariant result, QJSValue callback);
-        void imported(bool result, QJSValue callback);
+        void finished(QVariant result, QJSValue *callback);
+        void imported(bool result, QJSValue *callback);
 
     private:
         QPython *qpython;

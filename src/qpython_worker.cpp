@@ -32,15 +32,19 @@ QPythonWorker::~QPythonWorker()
 }
 
 void
-QPythonWorker::process(QString func, QVariant args, QJSValue callback)
+QPythonWorker::process(QString func, QVariant args, QJSValue *callback)
 {
     QVariant result = qpython->call_sync(func, args);
-    emit finished(result, callback);
+    if (callback) {
+        emit finished(result, callback);
+    }
 }
 
 void
-QPythonWorker::import(QString name, QJSValue callback)
+QPythonWorker::import(QString name, QJSValue *callback)
 {
     bool result = qpython->importModule_sync(name);
-    emit imported(result, callback);
+    if (callback) {
+        emit imported(result, callback);
+    }
 }

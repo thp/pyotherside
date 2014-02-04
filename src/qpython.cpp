@@ -45,15 +45,15 @@ QPython::QPython(QObject *parent)
     QObject::connect(priv, SIGNAL(receive(QVariant)),
                      this, SLOT(receive(QVariant)));
 
-    QObject::connect(this, SIGNAL(process(QString,QVariant,QJSValue)),
-                     worker, SLOT(process(QString,QVariant,QJSValue)));
-    QObject::connect(worker, SIGNAL(finished(QVariant,QJSValue)),
-                     this, SLOT(finished(QVariant,QJSValue)));
+    QObject::connect(this, SIGNAL(process(QString,QVariant,QJSValue *)),
+                     worker, SLOT(process(QString,QVariant,QJSValue *)));
+    QObject::connect(worker, SIGNAL(finished(QVariant,QJSValue *)),
+                     this, SLOT(finished(QVariant,QJSValue *)));
 
-    QObject::connect(this, SIGNAL(import(QString,QJSValue)),
-                     worker, SLOT(import(QString,QJSValue)));
-    QObject::connect(worker, SIGNAL(imported(bool,QJSValue)),
-                     this, SLOT(imported(bool,QJSValue)));
+    QObject::connect(this, SIGNAL(import(QString,QJSValue *)),
+                     worker, SLOT(import(QString,QJSValue *)));
+    QObject::connect(worker, SIGNAL(imported(bool,QJSValue *)),
+                     this, SLOT(imported(bool,QJSValue *)));
 
     thread.setObjectName("QPythonWorker");
     thread.start();
@@ -84,7 +84,11 @@ QPython::addImportPath(QString path)
 void
 QPython::importModule(QString name, QJSValue callback)
 {
-    emit import(name, callback);
+    QJSValue *cb = 0;
+    if (!callback.isNull() && !callback.isUndefined() && callback.isCallable()) {
+        cb = new QJSValue(callback);
+    }
+    emit import(name, cb);
 }
 
 bool
@@ -168,7 +172,11 @@ QPython::evaluate(QString expr)
 void
 QPython::call(QString func, QVariant args, QJSValue callback)
 {
-    emit process(func, args, callback);
+    QJSValue *cb = 0;
+    if (!callback.isNull() && !callback.isUndefined() && callback.isCallable()) {
+        cb = new QJSValue(callback);
+    }
+    emit process(func, args, cb);
 }
 
 QVariant
@@ -220,23 +228,21 @@ QPython::call_sync(QString func, QVariant args)
 }
 
 void
-QPython::finished(QVariant result, QJSValue callback)
+QPython::finished(QVariant result, QJSValue *callback)
 {
-    if (!callback.isNull() && !callback.isUndefined() && callback.isCallable()) {
-        QJSValueList args;
-        QJSValue v = callback.engine()->toScriptValue(result);
-        args << v;
-        callback.call(args);
-    }
+    QJSValueList args;
+    QJSValue v = callback->engine()->toScriptValue(result);
+    args << v;
+    callback->call(args);
+    delete callback;
 }
 
 void
-QPython::imported(bool result, QJSValue callback)
+QPython::imported(bool result, QJSValue *callback)
 {
-    if (!callback.isNull() && !callback.isUndefined() && callback.isCallable()) {
-        QJSValueList args;
-        QJSValue v = callback.engine()->toScriptValue(QVariant(result));
-        args << v;
-        callback.call(args);
-    }
+    QJSValueList args;
+    QJSValue v = callback->engine()->toScriptValue(QVariant(result));
+    args << v;
+    callback->call(args);
+    delete callback;
 }

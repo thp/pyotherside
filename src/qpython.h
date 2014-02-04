@@ -260,14 +260,14 @@ class QPython : public QObject {
         void error(QString traceback);
 
         /* For internal use only */
-        void process(QString func, QVariant args, QJSValue callback);
-        void import(QString name, QJSValue callback);
+        void process(QString func, QVariant args, QJSValue *callback);
+        void import(QString name, QJSValue *callback);
 
     private slots:
         void receive(QVariant data);
 
-        void finished(QVariant result, QJSValue callback);
-        void imported(bool result, QJSValue callback);
+        void finished(QVariant result, QJSValue *callback);
+        void imported(bool result, QJSValue *callback);
 
     private:
         static QPythonPriv *priv;
