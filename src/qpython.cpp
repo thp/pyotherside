@@ -55,6 +55,7 @@ QPython::QPython(QObject *parent)
     QObject::connect(worker, SIGNAL(imported(bool,QJSValue)),
                      this, SLOT(imported(bool,QJSValue)));
 
+    thread.setObjectName("QPythonWorker");
     thread.start();
 }
 
