@@ -673,7 +673,7 @@ BB10), the QML plugins folder can be deployed with the .bar file.
 ChangeLog
 =========
 
-Version 1.1.0 (2014-02-XX)
+Version 1.1.0 (2014-02-06)
 --------------------------
 
 * Add support for Python-based image providers (see `Image Provider`_).
