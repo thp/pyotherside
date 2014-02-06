@@ -93,7 +93,7 @@ test_converter_for(Converter<V> *conv)
     QVERIFY(conv->type(x) == Converter<V>::BOOLEAN);
     QVERIFY(conv->boolean(x) == true);
     delete iterator2;
-    
+
     delete conv;
 }
 

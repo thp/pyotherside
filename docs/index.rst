@@ -13,7 +13,7 @@ At its core, PyOtherSide is basically a simple layer that converts Qt (QML)
 objects to Python objects and vice versa, with focus on asynchronous events
 and continuation-passing style function calls.
 
-While PyOtherSide historically also worked with Python 2.x and Qt 4.x, its
+While PyOtherSide once worked with Qt 4.x, and still works with Python 2.7, its
 focus now lies on Python 3.x and Qt 5. Python 3 has been out for several years,
 and offers some nice language features and clean-ups, while Qt 5 supports most
 mobile platforms well, and has an improved QML engine and a faster renderer (Qt
@@ -30,7 +30,7 @@ introduced, the API version will be bumped and documented here.
 Import Versions
 ---------------
 
-**io.thp.pyotherside 1.0** (since: 0.1.0)
+**io.thp.pyotherside 1.0** (since: 1.0.0)
     Initial API release.
 
 QML ``Python`` Element
@@ -564,6 +564,66 @@ This module can now be imported in QML and used as ``source`` in the QML
         }
     }
 
+
+Building PyOtherSide
+====================
+
+The following build requirements have to be satisfied to build PyOtherSide:
+
+* Qt 5.1.0 or newer
+* Python 3.2.0 or newer
+
+If you have the required build-dependencies installed, building and installing
+the PyOtherSide plugin should be as simple as:
+
+.. code-block:: sh
+
+    qmake
+    make
+    make install
+
+In case your system doesn't provide ``python3-config``, you might have to
+pass a suitable ``python-config`` to ``qmake`` at configure time:
+
+.. code-block:: sh
+
+    qmake PYTHON_CONFIG=python3.3-config
+    make
+    make install
+
+Alternatively, you can edit ``python.pri`` manually and specify the compiler
+flags for compiling and linking against Python on your system.
+
+As of version 1.1.0, PyOtherSide still builds against Python 2.x (tested with
+Python 2.7, use ``qmake PYTHON_CONFIG=python2.7-config``), but future point
+releases of PyOtherSide might drop support for Python 2.x.
+
+Building for Blackberry 10
+--------------------------
+
+On Blackberry 10 (tested versions: 10.1, 10.2), Python 3.2.2 is already
+installed on-device.  Qt 5 is not installed (only Qt 4), so if you are
+packaging a PyOtherSide application, you need to ship Qt 5 with it.
+
+The approach we currently use is:
+
+1. Build Qt 5 using the Native SDK
+2. Get a set of matching Python 3.2.2 headers
+3. Fetch the following files from the device's filesystem:
+  * ``/usr/lib/libpython3.2m.so``
+  * ``/usr/include/python3.2m/pyconfig.h``
+4. Use ``pyconfig.h`` with the Python 3.2.2 headers and link against ``libpython3.2m``
+
+Modify ``python.pri`` to point to the fetched library and your
+Python 3.2.2 headers (with ``pyconfig.h`` from the device):
+
+.. code-block:: qmake
+
+    QMAKE_LIBS += -lpython3.2m -L/path/to/where/the/library/is
+    QMAKE_CXXFLAGS += -I/path/to/where/the/headers/are/include/python3.2m
+
+After installing PyOtherSide in the locally-build Qt 5 (cross-compiled for
+BB10), the QML plugins folder can be deployed with the .bar file.
 
 
 Search

@@ -1,12 +1,12 @@
 PyOtherSide: Asynchronous Python 3 Bindings for Qt 5
 ====================================================
 
-This is a QML Plugin that provides access to a Python 3 interpreter from QML.
-See examples/ for some basic code examples what you can do with this.
+A Qt 5 QML Plugin that provides access to a Python 3 interpreter from QML.
+
 
 Requirements:
 
-    Qt >= 5.0.2
+    Qt >= 5.1.0
     Python >= 3.3.0
 
 
@@ -17,25 +17,21 @@ To build and install the QML plugin:
     make install
 
 
-To run the included unit tests:
+To build against a specific Python version, use:
 
-    qmake
+    qmake PYTHON_CONFIG=python3.3-config
     make
-    tests/tests
+    make install
 
 
-To run one of the included examples (after installing the plugin):
+To run the included unit tests after building, use:
 
-    qmlscene examples/simple/simple.qml
-    qmlscene examples/events/main.qml
-    qmlscene examples/atexit/main.qml
-    qmlscene examples/notes/main.qml
-    qmlscene examples/imageprovider/imageprovider.qml
-    qmlscene examples/mandelbrot/mandelbrot.qml
-    qmlscene examples/image_loader/image_loader.qml
+    ./tests/tests
 
 
-Website and Git repository:
+More information:
 
-    http://thp.io/2011/pyotherside/
-    http://github.com/thp/pyotherside/
+    Project page: https://thp.io/2011/pyotherside/
+    Git repo: http://github.com/thp/pyotherside/
+    Bug tracker: https://github.com/thp/pyotherside/issues
+    Documentation: http://pyotherside.readthedocs.org/
