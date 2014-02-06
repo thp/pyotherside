@@ -229,7 +229,7 @@ between Python and QML (and vice versa):
 | list       | JS Array   |                             |
 +------------+------------+-----------------------------+
 | tuple      | JS Array   | JS Arrays are converted to  |
-|            |            | lists, no tuples            |
+|            |            | lists, not tuples           |
 +------------+------------+-----------------------------+
 | dict       | JS Object  | Keys must be strings        |
 +------------+------------+-----------------------------+
@@ -381,8 +381,8 @@ user in a dialog box, message or notification in addition to or instead of using
 :func:`console.log()` to print the error.
 
 
-Handing asynchronous events from Python in QML
-----------------------------------------------
+Handling asynchronous events from Python in QML
+-----------------------------------------------
 
 Your Python code can send asynchronous events with optional data to the QML
 layer using the :func:`pyotherside.send` function. You can call this function from
