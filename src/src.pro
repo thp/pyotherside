@@ -1,5 +1,9 @@
 TARGET = pyothersideplugin
 
+include(../pyotherside.pri)
+
+DEFINES += PYOTHERSIDE_VERSION=\\\"$${VERSION}\\\"
+
 PLUGIN_IMPORT_PATH = io/thp/pyotherside
 
 TEMPLATE = lib

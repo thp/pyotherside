@@ -252,3 +252,15 @@ QPython::imported(bool result, QJSValue *callback)
     callback->call(args);
     delete callback;
 }
+
+QString
+QPython::pluginVersion()
+{
+    return QString(PYOTHERSIDE_VERSION);
+}
+
+QString
+QPython::pythonVersion()
+{
+    return QString(PY_VERSION);
+}

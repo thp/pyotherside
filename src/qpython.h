@@ -236,6 +236,23 @@ class QPython : public QObject {
         Q_INVOKABLE QVariant
         call_sync(QString func, QVariant args=QVariantList());
 
+
+        /**
+         * \brief Get the PyOtherSide version
+         *
+         * \result The running version of PyOtherSide
+         **/
+        Q_INVOKABLE QString
+        pluginVersion();
+
+        /**
+         * \brief Get the Python versino
+         *
+         * \result The running versino of Python
+         **/
+        Q_INVOKABLE QString
+        pythonVersion();
+
     signals:
         /**
          * \brief Default event handler for \c pyotherside.send()

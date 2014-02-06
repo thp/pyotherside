@@ -16,6 +16,10 @@ Rectangle {
         id: python
 
         Component.onCompleted: {
+            // Print version of plugin and Python interpreter
+            console.log('PyOtherSide version: ' + pluginVersion());
+            console.log('Python version: ' + pythonVersion());
+
             // Asynchronous module importing
             importModule('os', function() {
                 console.log('Python module "os" is now imported');

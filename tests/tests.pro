@@ -1,6 +1,9 @@
 QT += testlib qml
 CONFIG -= app_bundle
 
+include(../pyotherside.pri)
+DEFINES += PYOTHERSIDE_VERSION=\\\"$${VERSION}\\\"
+
 SOURCES += tests.cpp
 HEADERS += tests.h
 

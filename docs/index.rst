@@ -114,6 +114,21 @@ the QML UI thread:
 
     Call a Python function. Returns the return value of the Python function.
 
+The following functions allow access to the version of the running PyOtherSide
+plugin and Python interpreter.
+
+.. function:: pluginVersion() -> string
+
+    Get the version of the PyOtherSide plugin that is currently used.
+
+.. versionadded:: 1.1.0
+
+.. function:: pythonVersion() -> string
+
+    Get the version of the Python interpreter that is currently used.
+
+.. versionadded:: 1.1.0
+
 Python API
 ==========
 
@@ -664,6 +679,7 @@ Version 1.1.0 (2014-02-XX)
 * Add support for Python-based image providers (see `Image Provider`_).
 * Fix threading crashes and aborts due to assertions.
 * :func:`addImportPath` will automatically strip a leading ``file://``.
+* Added :func:`pluginVersion` and :func:`pythonVersion` for runtime version detection.
 
 Version 1.0.0 (2013-08-08)
 --------------------------
