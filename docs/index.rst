@@ -24,14 +24,17 @@ QML API
 =======
 
 This section describes the QML API exposed by the *PyOtherSide* QML Plugin.
-The current QML API version of PyOtherSide is 1.0. When new features are
-introduced, the API version will be bumped and documented here.
 
 Import Versions
 ---------------
 
-**io.thp.pyotherside 1.0** (since: 1.0.0)
-    Initial API release.
+The current QML API version of PyOtherSide is 1.0. When new features are
+introduced, the API version will be bumped and documented here.
+
+io.thp.pyotherside 1.0
+``````````````````````
+
+* Initial API release.
 
 QML ``Python`` Element
 ----------------------
@@ -50,35 +53,46 @@ To use the ``Python`` element in a QML file, you have to import the plugin using
 Signals
 ```````
 
-**received(var data)**
-    Default event handler for ``pyotherside.send()``
+.. function:: received(var data)
+
+    Default event handler for :func:`pyotherside.send`
     if no other event handler was set.
 
-**error(string traceback)**
+.. function:: error(string traceback)
+
     Error handler for errors from Python.
 
 Methods
 ```````
 
 To configure event handlers for events from Python, you can use
-the ``setHandler(event, callback)`` method:
+the :func:`setHandler` method:
 
-**setHandler(string event, callable callback)**
-    Set the handler for events sent with ``pyotherside.send()``.
+.. function:: setHandler(string event, callable callback)
+
+    Set the handler for events sent with :func:`pyotherside.send`.
 
 Importing modules is then done by optionally adding an import
 path and then importing the module asynchronously:
 
-**addImportPath(string path)**
+.. function:: addImportPath(string path)
+
     Add a local filesystem path to Python's ``sys.path``.
 
-**importModule(string name, callable callback)**
+.. versionchanged:: 1.1.0
+    :func:`addImportPath` will automatically strip a leading
+    ``file://`` from the path, so you can use :func:`Qt.resolvedUrl()`
+    without having to manually strip the leading ``file://`` in QML.
+
+.. function:: importModule(string name, callable callback)
+
     Import a Python module.
 
 Once modules are imported, Python function can be called on the
 imported modules using:
 
-**call(string func, args=[], function callback(result) {})**
+.. function:: call(string func, args=[], function callback(result) {})
+
     Call the Python function ``func`` with ``args`` asynchronously.
     If ``args`` is omitted, ``func`` will be called without arguments.
     If ``callback`` is a callable, it will be called with the Python
@@ -88,13 +102,16 @@ For some of these methods, there also exist synchronous variants, but it is
 highly recommended to use the asynchronous variants instead to avoid blocking
 the QML UI thread:
 
-**var evaluate(string expr)**
+.. function:: evaluate(string expr) -> var
+
     Evaluate a Python expression synchronously.
 
-**bool importModule_sync(string name)**
+.. function:: importModule_sync(string name) -> bool
+
     Import a Python module. Returns ``true`` on success, ``false`` otherwise.
 
-**var call_sync(string func, var args=[])**
+.. function:: call_sync(string func, var args=[]) -> var
+
     Call a Python function. Returns the return value of the Python function.
 
 Python API
@@ -106,7 +123,7 @@ The ``pyotherside`` module
 --------------------------
 
 When a module is imported in PyOtherSide, it will have access to a special
-module called ``pyotherside`` in addition to all Python Standard Library modules
+module called :mod:`pyotherside` in addition to all Python Standard Library modules
 and Python modules in ``sys.path``:
 
 .. code-block:: python
@@ -120,19 +137,27 @@ integrate with other QML-specific features of PyOtherSide.
 Methods
 ```````
 
-**pyotherside.send(event, *args)**
-    Send an asynchronous event with name ``event`` with optional arguments ``args`` to QML.
+.. function:: pyotherside.send(event, \*args)
 
-**pyotherside.atexit(callback)**
+    Send an asynchronous event with name ``event`` with optional arguments
+    ``args`` to QML.
+
+.. function:: pyotherside.atexit(callback)
+
     Register a ``callback`` to be called when the application is closing.
 
-**pyotherside.set_image_provider(provider)**
+.. function:: pyotherside.set_image_provider(provider)
+
     Set the QML `image provider`_ (``image://python/``).
+
+.. versionadded:: 1.1.0
 
 .. _constants:
 
 Constants
 `````````
+
+.. versionadded:: 1.1.0
 
 These constants are used in the return value of a `image provider`_ function:
 
@@ -202,6 +227,8 @@ behavior and will usually result in an error.
 Image Provider
 ==============
 
+.. versionadded:: 1.1.0
+
 A QML Image Provider can be registered from Python to load image
 data (e.g. map tiles, diagrams, graphs or generated images) in
 QML ``Image`` elements without resorting to saving/loading files.
@@ -256,7 +283,7 @@ provider will only be registered once the module registering the image
 provider is successfully imported. You have to make sure that setting
 the ``source`` property on a QML ``Image`` element only happens *after*
 the image provider has been set (e.g. by setting the ``source`` property
-in the callback function passed to ``importModule``).
+in the callback function passed to :func:`importModule`).
 
 Cookbook
 ========
@@ -268,15 +295,15 @@ Importing modules and calling functions asynchronously
 ------------------------------------------------------
 
 In this example, we import the Python Standard Library module ``os``
-and - when the module is imported - call the ``os.getcwd()`` function on it.
-The result of the ``os.getcwd()`` function is then printed to the console
-and ``os.chdir()`` is called with a single argument (``'/'``) - again, after
-the ``os.chdir()`` function has returned, a message will be printed.
+and - when the module is imported - call the :func:`os.getcwd` function on it.
+The result of the :func:`os.getcwd` function is then printed to the console
+and :func:`os.chdir` is called with a single argument (``'/'``) - again, after
+the :func:`os.chdir` function has returned, a message will be printed.
 
 In this example, importing modules and calling functions are both done in
 an asynchronous way - the QML/GUI thread will not block while these functions
 execute. In fact, the ``Component.onCompleted`` code block will probably
-finish before the ``os`` module has been imported in Python.
+finish before the :mod:`os` module has been imported in Python.
 
 .. code-block:: javascript
 
@@ -303,7 +330,7 @@ scroll and move around in the UI) while the Python code can process requests.
 Evaluating Python expressions in QML
 ````````````````````````````````````
 
-The ``evaluate()`` method on the ``Python`` object can be used to evaluate a
+The :func:`evaluate` method on the ``Python`` object can be used to evaluate a
 simple Python expression and return its result as JavaScript object:
 
 .. code-block:: javascript
@@ -323,7 +350,7 @@ Error handling in QML
 
 If an error happens in Python while calling functions, the traceback of the
 error (or an error message in case the error happens in the PyOtherSide layer)
-will be sent with the ``error`` signal of the ``Python`` element. During early
+will be sent with the :func:`error` signal of the ``Python`` element. During early
 development, it's probably enough to just log the error to the console:
 
 .. code-block:: javascript
@@ -336,14 +363,14 @@ development, it's probably enough to just log the error to the console:
 
 Once your application grows, it might make sense to maybe show the error to the
 user in a dialog box, message or notification in addition to or instead of using
-``console.log()`` to print the error.
+:func:`console.log()` to print the error.
 
 
 Handing asynchronous events from Python in QML
 ----------------------------------------------
 
 Your Python code can send asynchronous events with optional data to the QML
-layer using the ``pyotherside.send()`` function. You can call this function from
+layer using the :func:`pyotherside.send` function. You can call this function from
 functions called from QML, but also from anywhere else - including threads that
 you created in Python. The first parameter is mandatory, and must be a string
 that identifies the event. Additional parameters are optional and can be of any
@@ -356,8 +383,8 @@ data type that PyOtherSide supports:
     pyotherside.send('new-entries', 100, 123)
 
 If you do not add a special handler on the ``Python`` object, such events would
-be handled by the ``onReceived`` signal in QML - its ``data`` parameter contains
-the event name and all arguments in a list:
+be handled by the :func:`received` signal handler in QML - its ``data`` parameter
+contains the event name and all arguments in a list:
 
 .. code-block:: javascript
 
@@ -384,12 +411,12 @@ simple handler function that will process this event:
         }
     }
 
-Once a handler for a given event is defined, the ``onReceived`` signal will not
+Once a handler for a given event is defined, the :func:`received` signal will not
 be emitted anymore. If you need to unset a handler for a given event, you can
 use ``setHandler('event', undefined)`` to do so.
 
 In some cases, it might be useful to not install a handler function directly, but
-turn the ``pyotherside.send()`` call into a new signal on the ``Python`` object.
+turn the :func:`pyotherside.send` call into a new signal on the ``Python`` object.
 As there is no easy way for PyOtherSide to determine the names of the arguments
 of the event, you have to define and hook up these signals manually. The upside
 of having to define the signals this way is that all signals will be nicely
@@ -410,7 +437,7 @@ documented in your QML file for future reference:
     }
 
 With this setup, you can now emit these signals from the ``Python`` object by
-using ``pyotherside.send()`` in your Python code:
+using :func:`pyotherside.send` in your Python code:
 
 .. code-block:: python
 
@@ -441,7 +468,7 @@ to return a list-of-dicts in your Python function:
 
 Of course, the function could do other things (such as doing web requests, querying
 databases, etc..) - as long as it returns a list-olf-dicts, it will be fine (if you
-are using a generator that yields dicts, just wrap the generator with ``list()``).
+are using a generator that yields dicts, just wrap the generator with :func:`list`).
 Using this function from QML is straightforward:
 
 **listmodel.qml**
@@ -475,7 +502,7 @@ Using this function from QML is straightforward:
 
             Component.onCompleted: {
                 // Add the directory of this .qml file to the search path
-                addImportPath(Qt.resolvedUrl('.').substr('file://'.length));
+                addImportPath(Qt.resolvedUrl('.'));
 
                 // Import the main module and load the data
                 importModule('listmodel', function () {
@@ -491,7 +518,7 @@ Using this function from QML is straightforward:
     }
 
 Instead of passing a list-of-dicts, it is of course also possible to send
-new list items via ``pyotherside.send()``, one item at a time, and append
+new list items via :func:`pyotherside.send`, one item at a time, and append
 them to the list model that way.
 
 Rendering RGBA image data in Python
@@ -553,7 +580,7 @@ This module can now be imported in QML and used as ``source`` in the QML
         Python {
             Component.onCompleted: {
                 // Add the directory of this .qml file to the search path
-                addImportPath(Qt.resolvedUrl('.').substr('file://'.length));
+                addImportPath(Qt.resolvedUrl('.'));
 
                 importModule('imageprovider', function () {
                     image.source = 'image://python/image-id-passed-from-qml';
@@ -596,7 +623,9 @@ flags for compiling and linking against Python on your system.
 
 As of version 1.1.0, PyOtherSide still builds against Python 2.x (tested with
 Python 2.7, use ``qmake PYTHON_CONFIG=python2.7-config``), but future point
-releases of PyOtherSide might drop support for Python 2.x.
+releases of PyOtherSide might drop support for Python 2.x. However, only one
+version of PyOtherSide can be installed/active at one time. It is highly
+recommended that you do not use Python 2 support except on legacy platforms.
 
 Building for Blackberry 10
 --------------------------
@@ -626,8 +655,23 @@ After installing PyOtherSide in the locally-build Qt 5 (cross-compiled for
 BB10), the QML plugins folder can be deployed with the .bar file.
 
 
-Search
-======
+ChangeLog
+=========
 
-* :ref:`search`
+Version 1.1.0 (2014-02-XX)
+--------------------------
+
+* Add support for Python-based image providers (see `Image Provider`_).
+* Fix threading crashes and aborts due to assertions.
+* :func:`addImportPath` will automatically strip a leading ``file://``.
+
+Version 1.0.0 (2013-08-08)
+--------------------------
+
+* Initial QML plugin release.
+
+Version 0.0.1 (2013-05-17)
+--------------------------
+
+* Proof-of-concept (based on a prototype from May 2011).
 
