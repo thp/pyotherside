@@ -1,4 +1,3 @@
-
 import QtQuick 2.0
 import io.thp.pyotherside 1.0
 
@@ -12,7 +11,7 @@ Rectangle {
         anchors.fill: parent
 
         onTextChanged: {
-            py.call('main.notes.set_contents', [text], function() {
+            py.call('notes_example.notes.set_contents', [text], function() {
                 console.log('Changes sent to Python');
             });
         }
@@ -20,10 +19,12 @@ Rectangle {
         Python {
             id: py
             Component.onCompleted: {
-                addImportPath('examples/notes');
-                importModule('main', function () {
+                // Add the directory of this .qml file to the search path
+                addImportPath(Qt.resolvedUrl('.').substr('file://'.length));
+
+                importModule('notes_example', function () {
                     console.log('imported python module');
-                    call('main.notes.get_contents', [], function(result) {
+                    call('notes_example.notes.get_contents', [], function(result) {
                         console.log('got contents from Python: ' + result);
                         ti.text = result;
                     });
@@ -31,5 +32,4 @@ Rectangle {
             }
         }
     }
-
 }

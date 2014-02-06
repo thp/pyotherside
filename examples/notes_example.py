@@ -1,3 +1,5 @@
+# A very simple notetaking application that uses Python to load
+# and save a string in a text file in the user's home directory.
 
 import os
 import threading

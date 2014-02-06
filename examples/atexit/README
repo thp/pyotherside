@@ -1,2 +1,0 @@
-This examples shows how to do cleanups and other things when
-the application exists by using pyside.atexit().

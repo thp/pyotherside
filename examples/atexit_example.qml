@@ -1,4 +1,3 @@
-
 import QtQuick 2.0
 import io.thp.pyotherside 1.0
 
@@ -8,10 +7,11 @@ Rectangle {
     color: 'red'
 
     Python {
-        id: python
         Component.onCompleted: {
-            addImportPath('examples/atexit');
-            importModule_sync('main');
+            // Add the directory of this .qml file to the search path
+            addImportPath(Qt.resolvedUrl('.').substr('file://'.length));
+
+            importModule_sync('atexit_example');
         }
 
         onError: console.log('error in python: ' + traceback);

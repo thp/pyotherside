@@ -1,3 +1,4 @@
+# This example demonstrates the use of pyotherside.send() to send events to Qt.
 
 import pyotherside
 
@@ -18,4 +19,3 @@ def thread_func():
 
 thread = threading.Thread(target=thread_func)
 thread.start()
-
