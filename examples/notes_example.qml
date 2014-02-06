@@ -20,7 +20,7 @@ Rectangle {
             id: py
             Component.onCompleted: {
                 // Add the directory of this .qml file to the search path
-                addImportPath(Qt.resolvedUrl('.').substr('file://'.length));
+                addImportPath(Qt.resolvedUrl('.'));
 
                 importModule('notes_example', function () {
                     console.log('imported python module');

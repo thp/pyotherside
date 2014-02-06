@@ -106,7 +106,7 @@ Image {
 
         Component.onCompleted: {
             // Add the directory of this .qml file to the search path
-            py.addImportPath(Qt.resolvedUrl('.').substr('file://'.length));
+            py.addImportPath(Qt.resolvedUrl('.'));
 
             py.importModule('mandelbrot', function () {
                 // Do the first image update once the module is loaded

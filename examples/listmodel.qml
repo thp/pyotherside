@@ -25,7 +25,7 @@ Rectangle {
 
         Component.onCompleted: {
             // Add the directory of this .qml file to the search path
-            addImportPath(Qt.resolvedUrl('.').substr('file://'.length));
+            addImportPath(Qt.resolvedUrl('.'));
 
             // Import the main module and load the data
             importModule('listmodel', function () {

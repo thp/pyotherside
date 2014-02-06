@@ -27,7 +27,7 @@ Image {
     Python {
         Component.onCompleted: {
             // Add the directory of this .qml file to the search path
-            addImportPath(Qt.resolvedUrl('.').substr('file://'.length));
+            addImportPath(Qt.resolvedUrl('.'));
 
             importModule('plotorama', function () {
                 input.text = '4.3,5.5,3.3,2.2,1.4,1.3,1.2,0.7,0.2';

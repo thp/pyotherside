@@ -27,7 +27,7 @@ Image {
     Python {
         Component.onCompleted: {
             // Add the directory of this .qml file to the search path
-            addImportPath(Qt.resolvedUrl('.').substr('file://'.length));
+            addImportPath(Qt.resolvedUrl('.'));
 
             importModule('image_loader', function () {
                 image.source = 'image://python/pyotherside.png';

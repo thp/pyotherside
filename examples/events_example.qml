@@ -8,7 +8,7 @@ Rectangle {
     Python {
         Component.onCompleted: {
             // Add the directory of this .qml file to the search path
-            addImportPath(Qt.resolvedUrl('.').substr('file://'.length));
+            addImportPath(Qt.resolvedUrl('.'));
 
             setHandler('append', function (message, number) {
                 output.text += '\n' + message + number;
