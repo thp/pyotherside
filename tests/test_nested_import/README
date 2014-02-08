@@ -1,0 +1,5 @@
+Test for importModule() with dots in the module name.
+
+Tests the (broken) behavior of QML API import 1.0, and the fixed 1.2 behavior.
+
+See: https://github.com/thp/pyotherside/issues/3

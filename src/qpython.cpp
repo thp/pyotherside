@@ -30,11 +30,13 @@
 QPythonPriv *
 QPython::priv = NULL;
 
-QPython::QPython(QObject *parent)
+QPython::QPython(QObject *parent, int major, int minor)
     : QObject(parent)
     , worker(new QPythonWorker(this))
     , thread()
     , handlers()
+    , major(major)
+    , minor(minor)
 {
     if (priv == NULL) {
         priv = new QPythonPriv;
@@ -108,11 +110,35 @@ QPython::importModule_sync(QString name)
     const char *moduleName = utf8bytes.constData();
 
     priv->enter();
-    PyObject *module = PyImport_ImportModule(moduleName);
+
+    bool use_api_10 = (major == 1 && minor == 0);
+
+    PyObject *module = NULL;
+
+    if (use_api_10) {
+        // PyOtherSide API 1.0 behavior (star import)
+        module = PyImport_ImportModule(moduleName);
+    } else {
+        // PyOtherSide API 1.2 behavior: "import x.y.z"
+        PyObject *fromList = PyList_New(0);
+        module = PyImport_ImportModuleEx(moduleName, NULL, NULL, fromList);
+        Py_XDECREF(fromList);
+    }
+
     if (module == NULL) {
         emit error(QString("Cannot import module: %1 (%2)").arg(name).arg(priv->formatExc()));
         priv->leave();
         return false;
+    }
+
+    if (!use_api_10) {
+        // PyOtherSide API 1.2 behavior: "import x.y.z"
+        // If "x.y.z" is imported, we need to set "x" in globals
+        if (name.indexOf('.') != -1) {
+            name = name.mid(0, name.indexOf('.'));
+            utf8bytes = name.toUtf8();
+            moduleName = utf8bytes.constData();
+        }
     }
 
     PyDict_SetItemString(priv->globals, moduleName, module);

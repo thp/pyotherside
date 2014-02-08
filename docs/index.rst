@@ -28,13 +28,21 @@ This section describes the QML API exposed by the *PyOtherSide* QML Plugin.
 Import Versions
 ---------------
 
-The current QML API version of PyOtherSide is 1.0. When new features are
-introduced, the API version will be bumped and documented here.
+The current QML API version of PyOtherSide is 1.2. When new features are
+introduced, or behavior is changed, the API version will be bumped and
+documented here.
 
 io.thp.pyotherside 1.0
 ``````````````````````
 
 * Initial API release.
+
+io.thp.pyotherside 1.2
+``````````````````````
+
+* :func:`importModule` now behaves like the ``import`` statement in Python
+  for names with dots. This means that ``importModule('x.y.z', ...)`` now
+  works like ``import x.y.z`` in Python.
 
 QML ``Python`` Element
 ----------------------
@@ -88,6 +96,12 @@ path and then importing the module asynchronously:
 
     Import a Python module.
 
+.. versionchanged:: 1.2.0
+    Previously, this function didn't work correctly for importing
+    modules with dots in their name. Starting with the API version 1.2
+    (``import io.thp.pyotherside 1.2``), this behavior is now fixed,
+    and ``importModule('x.y.z, ...)`` behaves like ``import x.y.z``.
+
 Once modules are imported, Python function can be called on the
 imported modules using:
 
@@ -120,6 +134,12 @@ plugin and Python interpreter.
 .. function:: pluginVersion() -> string
 
     Get the version of the PyOtherSide plugin that is currently used.
+
+.. note::
+    This is not necessarily the same as the QML API version currently in use.
+    The QML API version is decided by the QML import statement, so even if
+    :func:`pluginVersion`` returns 1.2.0, if the plugin has been imported as
+    ``import io.thp.pyotherside 1.0``, the API version used would be 1.0.
 
 .. versionadded:: 1.1.0
 
@@ -672,6 +692,12 @@ BB10), the QML plugins folder can be deployed with the .bar file.
 
 ChangeLog
 =========
+
+Version 1.2.0dev (UNRELEASED)
+-----------------------------
+
+* Introduced versioned QML imports for API change.
+* QML API 1.2: Change :func:`importModule` behavior for imports with dots.
 
 Version 1.1.0 (2014-02-06)
 --------------------------

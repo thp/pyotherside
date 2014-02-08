@@ -124,11 +124,9 @@ TestPyOtherSide::testConvertToPythonAndBack()
     QVERIFY(v == v2);
 }
 
-void
-TestPyOtherSide::testEvaluate()
+static void testEvaluateWith(QPython *py)
 {
-    QPython py;
-    QVariant squares = py.evaluate("[x*x for x in range(10)]");
+    QVariant squares = py->evaluate("[x*x for x in range(10)]");
     QVERIFY(squares.canConvert(QMetaType::QVariantList));
 
     QVariantList squares_list = squares.toList();
@@ -143,4 +141,16 @@ TestPyOtherSide::testEvaluate()
     QVERIFY(squares_list[7] == 49);
     QVERIFY(squares_list[8] == 64);
     QVERIFY(squares_list[9] == 81);
+}
+
+void
+TestPyOtherSide::testEvaluate()
+{
+    // PyOtherSide API 1.0
+    QPython10 py10;
+    testEvaluateWith(&py10);
+
+    // PyOtherSide API 1.2
+    QPython12 py12;
+    testEvaluateWith(&py12);
 }
