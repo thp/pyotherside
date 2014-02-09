@@ -56,7 +56,7 @@ To use the ``Python`` element in a QML file, you have to import the plugin using
 
 .. code-block:: javascript
 
-    import io.thp.pyotherside 1.0
+    import io.thp.pyotherside 1.2
 
 Signals
 ```````
@@ -511,7 +511,7 @@ Using this function from QML is straightforward:
 .. code-block:: javascript
 
     import QtQuick 2.0
-    import io.thp.pyotherside 1.0
+    import io.thp.pyotherside 1.2
 
     Rectangle {
         color: 'black'
@@ -605,7 +605,7 @@ This module can now be imported in QML and used as ``source`` in the QML
 .. code-block:: javascript
 
     import QtQuick 2.0
-    import io.thp.pyotherside 1.0
+    import io.thp.pyotherside 1.2
 
     Image {
         id: image
