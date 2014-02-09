@@ -30,13 +30,13 @@
 QPythonPriv *
 QPython::priv = NULL;
 
-QPython::QPython(QObject *parent, int major, int minor)
+QPython::QPython(QObject *parent, int api_version_major, int api_version_minor)
     : QObject(parent)
     , worker(new QPythonWorker(this))
     , thread()
     , handlers()
-    , major(major)
-    , minor(minor)
+    , api_version_major(api_version_major)
+    , api_version_minor(api_version_minor)
 {
     if (priv == NULL) {
         priv = new QPythonPriv;
@@ -111,7 +111,7 @@ QPython::importModule_sync(QString name)
 
     priv->enter();
 
-    bool use_api_10 = (major == 1 && minor == 0);
+    bool use_api_10 = (api_version_major == 1 && api_version_minor == 0);
 
     PyObject *module = NULL;
 
@@ -121,7 +121,7 @@ QPython::importModule_sync(QString name)
     } else {
         // PyOtherSide API 1.2 behavior: "import x.y.z"
         PyObject *fromList = PyList_New(0);
-        module = PyImport_ImportModuleEx(moduleName, NULL, NULL, fromList);
+        module = PyImport_ImportModuleEx(const_cast<char *>(moduleName), NULL, NULL, fromList);
         Py_XDECREF(fromList);
     }
 

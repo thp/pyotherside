@@ -50,10 +50,10 @@ class QPython : public QObject {
          * \endcode
          *
          * \arg parent The parent QObject
-         * \arg major Major API version (used internally)
-         * \arg minor Minor API version (used internally)
+         * \arg api_version_major Major API version (used internally)
+         * \arg api_version_minor Minor API version (used internally)
          **/
-        QPython(QObject *parent, int major, int minor);
+        QPython(QObject *parent, int api_version_major, int api_version_minor);
 
         virtual ~QPython();
 
@@ -295,8 +295,8 @@ class QPython : public QObject {
         QThread thread;
         QMap<QString,QJSValue> handlers;
 
-        int major;
-        int minor;
+        int api_version_major;
+        int api_version_minor;
 };
 
 class QPython10 : public QPython {
