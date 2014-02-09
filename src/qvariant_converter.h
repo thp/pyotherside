@@ -136,6 +136,7 @@ class QVariantConverter : public Converter<QVariant> {
                 case QVariant::DateTime:
                     return DATETIME;
                 case QVariant::List:
+                case QVariant::StringList:
                     return LIST;
                 case QVariant::Map:
                     return DICT;

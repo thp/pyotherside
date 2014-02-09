@@ -201,6 +201,42 @@ Methods
 
 .. versionadded:: 1.1.0
 
+.. function:: pyotherside.qrc_is_file(filename)
+
+    Check if ``filename`` is an existing file in the `Qt Resource System`_.
+
+    :returns: ``True`` if ``filename`` is a file, ``False`` otherwise.
+
+.. versionadded:: 1.3.0
+
+.. function:: pyotherside.qrc_is_dir(dirname)
+
+    Check if ``dirname`` is an existing directory in the `Qt Resource System`_.
+
+    :returns: ``True`` if ``dirname`` is a directory, ``False`` otherwise.
+
+.. versionadded:: 1.3.0
+
+.. function:: pyotherside.qrc_get_file_contents(filename)
+
+    Get the file contents of a file in the `Qt Resource System`_.
+
+    :raise ValueError: If ``filename`` does not denote a valid file.
+    :returns: The file contents as Python ``bytearray`` object.
+
+.. versionadded:: 1.3.0
+
+.. function:: pyotherside.qrc_list_dir(dirname)
+
+    Get the entry list of a directory in the `Qt Resource System`_.
+
+    :raise ValueError: If ``dirname`` does not denote a valid directory.
+    :returns: The directory entries as list of strings.
+
+.. versionadded:: 1.3.0
+
+.. _Qt Resource System: http://qt-project.org/doc/qt-5/resources.html
+
 .. _constants:
 
 Constants
@@ -339,6 +375,36 @@ provider is successfully imported. You have to make sure that setting
 the ``source`` property on a QML ``Image`` element only happens *after*
 the image provider has been set (e.g. by setting the ``source`` property
 in the callback function passed to :func:`importModule`).
+
+.. _qt resource access:
+
+Qt Resource Access
+==================
+
+.. versionadded:: 1.3.0
+
+If you are using PyOtherSide in combination with an application binary compiled
+from C++ code with Qt Resources (see `Qt Resource System`_), you can inspect
+and access the resources from Python. This example demonstrates the API by
+walking the whole resource tree, printing out directory names and file sizes:
+
+.. code-block:: python
+
+    import pyotherside
+    import os.path
+
+    def walk(root):
+        for entry in pyotherside.qrc_list_dir(root):
+            name = os.path.join(root, entry)
+            if pyotherside.qrc_is_dir(name):
+                print('Directory:', name)
+                walk(name)
+            else:
+                data = pyotherside.qrc_get_file_contents(name)
+                print('File:', name, 'has', len(data), 'bytes')
+
+    walk('/')
+
 
 Cookbook
 ========
@@ -579,6 +645,8 @@ them to the list model that way.
 Rendering RGBA image data in Python
 -----------------------------------
 
+.. versionadded:: 1.1.0
+
 .. image:: images/image_provider_example.png
 
 This example uses the `image provider`_ feature of PyOtherSide to
@@ -646,7 +714,6 @@ This module can now be imported in QML and used as ``source`` in the QML
         }
     }
 
-
 Building PyOtherSide
 ====================
 
@@ -712,6 +779,11 @@ BB10), the QML plugins folder can be deployed with the .bar file.
 
 ChangeLog
 =========
+
+Version 1.3.0 (UNRELEASED)
+--------------------------
+
+* Access to the `Qt Resource System`_ from Python (see `Qt Resource Access`_).
 
 Version 1.2.0 (2014-02-16)
 --------------------------

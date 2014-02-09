@@ -1,0 +1,7 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource>
+    <file>qrc_example.qml</file>
+    <file>qrc_example.py</file>
+  </qresource>
+</RCC>

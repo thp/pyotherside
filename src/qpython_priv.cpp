@@ -22,8 +22,24 @@
 
 #include <QImage>
 #include <QDebug>
+#include <QResource>
+#include <QFile>
+#include <QDir>
 
 static QPythonPriv *priv = NULL;
+
+static QString
+qstring_from_pyobject_arg(PyObject *object)
+{
+    PyObjectConverter conv;
+
+    if (conv.type(object) != PyObjectConverter::STRING) {
+        PyErr_SetString(PyExc_ValueError, "Argument must be a string");
+        return QString();
+    }
+
+    return QString::fromUtf8(conv.string(object));
+}
 
 PyObject *
 pyotherside_send(PyObject *self, PyObject *args)
@@ -58,10 +74,90 @@ pyotherside_set_image_provider(PyObject *self, PyObject *o)
     Py_RETURN_NONE;
 }
 
+PyObject *
+pyotherside_qrc_is_file(PyObject *self, PyObject *filename)
+{
+    QString qfilename = qstring_from_pyobject_arg(filename);
+
+    if (qfilename.isNull()) {
+        return NULL;
+    }
+
+    if (QFile(":" + qfilename).exists()) {
+        Py_RETURN_TRUE;
+    }
+
+    Py_RETURN_FALSE;
+}
+
+PyObject *
+pyotherside_qrc_is_dir(PyObject *self, PyObject *dirname)
+{
+    QString qdirname = qstring_from_pyobject_arg(dirname);
+
+    if (qdirname.isNull()) {
+        return NULL;
+    }
+
+    if (QDir(":" + qdirname).exists()) {
+        Py_RETURN_TRUE;
+    }
+
+    Py_RETURN_FALSE;
+}
+
+PyObject *
+pyotherside_qrc_get_file_contents(PyObject *self, PyObject *filename)
+{
+    QString qfilename = qstring_from_pyobject_arg(filename);
+
+    if (qfilename.isNull()) {
+        return NULL;
+    }
+
+    QFile file(":" + qfilename);
+    if (!file.exists() || !file.open(QIODevice::ReadOnly)) {
+        PyErr_SetString(PyExc_ValueError, "File not found");
+        return NULL;
+    }
+
+    QByteArray ba = file.readAll();
+    return PyByteArray_FromStringAndSize(ba.constData(), ba.size());
+}
+
+PyObject *
+pyotherside_qrc_list_dir(PyObject *self, PyObject *dirname)
+{
+    QString qdirname = qstring_from_pyobject_arg(dirname);
+
+    if (qdirname.isNull()) {
+        return NULL;
+    }
+
+    QDir dir(":" + qdirname);
+    if (!dir.exists()) {
+        PyErr_SetString(PyExc_ValueError, "Directory not found");
+        return NULL;
+    }
+
+    return convertQVariantToPyObject(dir.entryList());
+}
+
 static PyMethodDef PyOtherSideMethods[] = {
+    /* Introduced in PyOtherSide 1.0 */
     {"send", pyotherside_send, METH_VARARGS, "Send data to Qt."},
     {"atexit", pyotherside_atexit, METH_O, "Function to call on shutdown."},
+
+    /* Introduced in PyOtherSide 1.1 */
     {"set_image_provider", pyotherside_set_image_provider, METH_O, "Set the QML image provider."},
+
+    /* Introduced in PyOtherSide 1.3 */
+    {"qrc_is_file", pyotherside_qrc_is_file, METH_O, "Check if a file exists in Qt Resources."},
+    {"qrc_is_dir", pyotherside_qrc_is_dir, METH_O, "Check if a directory exists in Qt Resources."},
+    {"qrc_get_file_contents", pyotherside_qrc_get_file_contents, METH_O, "Get file contents from a Qt Resource."},
+    {"qrc_list_dir", pyotherside_qrc_list_dir, METH_O, "Get directory entries from a Qt Resource."},
+
+    /* sentinel */
     {NULL, NULL, 0, NULL},
 };
 
