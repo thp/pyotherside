@@ -22,6 +22,7 @@
 #include "converter.h"
 
 #include "Python.h"
+#include "datetime.h"
 
 #if PY_MAJOR_VERSION >= 3
 #  define PY3K
@@ -113,7 +114,14 @@ class PyObjectDictIterator : public DictIterator<PyObject *> {
 
 class PyObjectConverter : public Converter<PyObject *> {
     public:
-        PyObjectConverter() : stringcontainer(NULL) {}
+        PyObjectConverter() : stringcontainer(NULL) {
+            static bool datetime_imported = false;
+            if (!datetime_imported) {
+                PyDateTime_IMPORT;
+                datetime_imported = true;
+            }
+        }
+
         virtual ~PyObjectConverter() {
             if (stringcontainer != NULL) {
                 Py_DECREF(stringcontainer);
@@ -134,6 +142,14 @@ class PyObjectConverter : public Converter<PyObject *> {
                 return FLOATING;
             } else if (PyUnicode_Check(o) || PyBytes_Check(o)) {
                 return STRING;
+            } else if (PyDateTime_Check(o)) {
+                // Need to check PyDateTime before PyDate, because
+                // it is a subclass of PyDate.
+                return DATETIME;
+            } else if (PyDate_Check(o)) {
+                return DATE;
+            } else if (PyTime_Check(o)) {
+                return TIME;
             } else if (PyList_Check(o) || PyTuple_Check(o)) {
                 return LIST;
             } else if (PyDict_Check(o)) {
@@ -176,11 +192,36 @@ class PyObjectConverter : public Converter<PyObject *> {
         }
         virtual ListIterator<PyObject *> *list(PyObject *&o) { return new PyObjectListIterator(o); }
         virtual DictIterator<PyObject *> *dict(PyObject *&o) { return new PyObjectDictIterator(o);; }
+        virtual ConverterDate date(PyObject *&o) {
+            return ConverterDate(PyDateTime_GET_YEAR(o),
+                    PyDateTime_GET_MONTH(o),
+                    PyDateTime_GET_DAY(o));
+        }
+        virtual ConverterTime time(PyObject *&o) {
+            return ConverterTime(PyDateTime_TIME_GET_HOUR(o),
+                    PyDateTime_TIME_GET_MINUTE(o),
+                    PyDateTime_TIME_GET_SECOND(o),
+                    PyDateTime_TIME_GET_MICROSECOND(o) / 1000);
+        }
+        virtual ConverterDateTime dateTime(PyObject *&o) {
+            return ConverterDateTime(PyDateTime_GET_YEAR(o),
+                    PyDateTime_GET_MONTH(o),
+                    PyDateTime_GET_DAY(o),
+                    PyDateTime_DATE_GET_HOUR(o),
+                    PyDateTime_DATE_GET_MINUTE(o),
+                    PyDateTime_DATE_GET_SECOND(o),
+                    PyDateTime_DATE_GET_MICROSECOND(o) / 1000);
+        }
 
         virtual PyObject * fromInteger(long long v) { return PyLong_FromLong((long)v); }
         virtual PyObject * fromFloating(double v) { return PyFloat_FromDouble(v); }
         virtual PyObject * fromBoolean(bool v) { return PyBool_FromLong((long)v); }
         virtual PyObject * fromString(const char *v) { return PyUnicode_FromString(v); }
+        virtual PyObject * fromDate(ConverterDate v) { return PyDate_FromDate(v.y, v.m, v.d); }
+        virtual PyObject * fromTime(ConverterTime v) { return PyTime_FromTime(v.h, v.m, v.s, 1000 * v.ms); }
+        virtual PyObject * fromDateTime(ConverterDateTime v) {
+            return PyDateTime_FromDateAndTime(v.y, v.m, v.d, v.time.h, v.time.m, v.time.s, v.time.ms * 1000);
+        }
         virtual ListBuilder<PyObject *> *newList() { return new PyObjectListBuilder(); }
         virtual DictBuilder<PyObject *> *newDict() { return new PyObjectDictBuilder(); }
         virtual PyObject * none() { Py_RETURN_NONE; }

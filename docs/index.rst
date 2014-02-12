@@ -249,24 +249,30 @@ PyOtherSide will automatically convert Python data types to Qt data types
 The following data types are supported and can be used to pass data
 between Python and QML (and vice versa):
 
-+------------+------------+-----------------------------+
-| Python     | QML        | Remarks                     |
-+============+============+=============================+
-| bool       | bool       |                             |
-+------------+------------+-----------------------------+
-| int        | int        |                             |
-+------------+------------+-----------------------------+
-| float      | double     |                             |
-+------------+------------+-----------------------------+
-| str        | string     |                             |
-+------------+------------+-----------------------------+
-| list       | JS Array   |                             |
-+------------+------------+-----------------------------+
-| tuple      | JS Array   | JS Arrays are converted to  |
-|            |            | lists, not tuples           |
-+------------+------------+-----------------------------+
-| dict       | JS Object  | Keys must be strings        |
-+------------+------------+-----------------------------+
++--------------------+------------+-----------------------------+
+| Python             | QML        | Remarks                     |
++====================+============+=============================+
+| bool               | bool       |                             |
++--------------------+------------+-----------------------------+
+| int                | int        |                             |
++--------------------+------------+-----------------------------+
+| float              | double     |                             |
++--------------------+------------+-----------------------------+
+| str                | string     |                             |
++--------------------+------------+-----------------------------+
+| list               | JS Array   |                             |
++--------------------+------------+-----------------------------+
+| tuple              | JS Array   | JS Arrays are converted to  |
+|                    |            | lists, not tuples           |
++--------------------+------------+-----------------------------+
+| dict               | JS Object  | Keys must be strings        |
++--------------------+------------+-----------------------------+
+| datetime.date      | QML date   | since PyOtherSide 1.2.0     |
++--------------------+------------+-----------------------------+
+| datetime.time      | QML time   | since PyOtherSide 1.2.0     |
++--------------------+------------+-----------------------------+
+| datetime.datetime  | JS Date    | since PyOtherSide 1.2.0     |
++--------------------+------------+-----------------------------+
 
 Trying to pass in other types than the ones listed here is undefined
 behavior and will usually result in an error.
@@ -714,6 +720,9 @@ Version 1.2.0dev (UNRELEASED)
 * QML API 1.2: Change :func:`importModule` behavior for imports with dots.
 * QML API 1.2: Emit :func:`error` when JavaScript callbacks passed to
   :func:`importModule` and :func:`call` throw an exception.
+* New data type conversions: Python ``datetime.date``, ``datetime.time``
+  and ``datetime.datetime`` are converted to QML ``date``, ``time`` and
+  JS ``Date`` types, respectively.
 
 Version 1.1.0 (2014-02-06)
 --------------------------

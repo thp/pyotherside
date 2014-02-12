@@ -22,6 +22,9 @@
 #include "converter.h"
 
 #include <QVariant>
+#include <QTime>
+#include <QDate>
+#include <QDateTime>
 #include <QDebug>
 
 class QVariantListBuilder : public ListBuilder<QVariant> {
@@ -126,6 +129,12 @@ class QVariantConverter : public Converter<QVariant> {
                     return FLOATING;
                 case QVariant::String:
                     return STRING;
+                case QVariant::Date:
+                    return DATE;
+                case QVariant::Time:
+                    return TIME;
+                case QVariant::DateTime:
+                    return DATETIME;
                 case QVariant::List:
                     return LIST;
                 case QVariant::Map:
@@ -158,6 +167,24 @@ class QVariantConverter : public Converter<QVariant> {
             return v.toBool();
         }
 
+        virtual ConverterDate date(QVariant &v) {
+            QDate d = v.toDate();
+            return ConverterDate(d.year(), d.month(), d.day());
+        }
+
+        virtual ConverterTime time(QVariant &v) {
+            QTime t = v.toTime();
+            return ConverterTime(t.hour(), t.minute(), t.second(), t.msec());
+        }
+
+        virtual ConverterDateTime dateTime(QVariant &v) {
+            QDateTime dt = v.toDateTime();
+            QDate d = dt.date();
+            QTime t = dt.time();
+            return ConverterDateTime(d.year(), d.month(), d.day(),
+                    t.hour(), t.minute(), t.second(), t.msec());
+        }
+
         virtual const char *string(QVariant &v) {
             stringstorage = v.toString().toUtf8();
             return stringstorage.constData();
@@ -175,6 +202,13 @@ class QVariantConverter : public Converter<QVariant> {
         virtual QVariant fromFloating(double v) { return QVariant(v); }
         virtual QVariant fromBoolean(bool v) { return QVariant(v); }
         virtual QVariant fromString(const char *v) { return QVariant(QString::fromUtf8(v)); }
+        virtual QVariant fromDate(ConverterDate v) { return QVariant(QDate(v.y, v.m, v.d)); }
+        virtual QVariant fromTime(ConverterTime v) { return QVariant(QTime(v.h, v.m, v.s, v.ms)); }
+        virtual QVariant fromDateTime(ConverterDateTime v) {
+            QDate d(v.y, v.m, v.d);
+            QTime t(v.time.h, v.time.m, v.time.s, v.time.ms);
+            return QVariant(QDateTime(d, t));
+        }
         virtual QVariant none() { return QVariant(); };
 
     private:

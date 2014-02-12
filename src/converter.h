@@ -19,6 +19,34 @@
 #ifndef PYOTHERSIDE_CONVERTER_H
 #define PYOTHERSIDE_CONVERTER_H
 
+struct ConverterDate {
+    ConverterDate(int y, int m, int d)
+        : y(y), m(m), d(d)
+    {
+    }
+
+    int y, m, d;
+};
+
+struct ConverterTime {
+    ConverterTime(int h, int m, int s, int ms)
+        : h(h), m(m), s(s), ms(ms)
+    {
+    }
+
+    int h, m, s, ms;
+};
+
+struct ConverterDateTime : public ConverterDate {
+    ConverterDateTime(int y, int m, int d, int h, int mm, int s, int ms)
+        : ConverterDate(y, m, d)
+        , time(h, mm, s, ms)
+    {
+    }
+
+    ConverterTime time;
+};
+
 template<class V>
 class ListBuilder {
     public:
@@ -72,6 +100,9 @@ class Converter {
             STRING,
             LIST,
             DICT,
+            DATE,
+            TIME,
+            DATETIME,
         };
 
         virtual enum Type type(V&) = 0;
@@ -81,11 +112,17 @@ class Converter {
         virtual const char *string(V&) = 0;
         virtual ListIterator<V> *list(V&) = 0;
         virtual DictIterator<V> *dict(V&) = 0;
+        virtual ConverterDate date(V&) = 0;
+        virtual ConverterTime time(V&) = 0;
+        virtual ConverterDateTime dateTime(V&) = 0;
 
         virtual V fromInteger(long long v) = 0;
         virtual V fromFloating(double v) = 0;
         virtual V fromBoolean(bool v) = 0;
         virtual V fromString(const char *v) = 0;
+        virtual V fromDate(ConverterDate date) = 0;
+        virtual V fromTime(ConverterTime time) = 0;
+        virtual V fromDateTime(ConverterDateTime dateTime) = 0;
         virtual ListBuilder<V> *newList() = 0;
         virtual DictBuilder<V> *newDict() = 0;
         virtual V none() = 0;
@@ -144,6 +181,12 @@ convert(F from)
 
                 return dictResult;
             }
+        case FC::DATE:
+            return tconv.fromDate(fconv.date(from));
+        case FC::TIME:
+            return tconv.fromTime(fconv.time(from));
+        case FC::DATETIME:
+            return tconv.fromDateTime(fconv.dateTime(from));
     }
 
     return tconv.none();
