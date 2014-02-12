@@ -1,0 +1,5 @@
+Expecting ReferenceError for "invalid" on import
+Got error: test_callback_errors.qml:23: ReferenceError: invalid is not defined
+Expecting TypeError for "lock" property
+Got error: test_callback_errors.qml:29: TypeError: Property 'lock' of object [object Object] is not a function
+Tests done

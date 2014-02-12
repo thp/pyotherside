@@ -27,6 +27,10 @@
 #include <QJSEngine>
 
 
+#define SINCE_API_VERSION(smaj, smin) \
+    ((api_version_major > smaj) || (api_version_major == smaj && api_version_minor >= smin))
+
+
 QPythonPriv *
 QPython::priv = NULL;
 
@@ -165,8 +169,10 @@ QPython::receive(QVariant variant)
             // call is asynchronous (it returns before we call into JS), so do
             // the next best thing and report the error to our error handler in
             // QML instead.
-            emit error(QString("pyotherside.send() failed handler: %1")
-                    .arg(result.toString()));
+            emit error("pyotherside.send() failed handler: " +
+                    result.property("fileName").toString() + ":" +
+                    result.property("lineNumber").toString() + ": " +
+                    result.toString());
         }
     } else {
         // Default action
@@ -265,7 +271,14 @@ QPython::finished(QVariant result, QJSValue *callback)
     QJSValueList args;
     QJSValue v = callback->engine()->toScriptValue(result);
     args << v;
-    callback->call(args);
+    QJSValue callbackResult = callback->call(args);
+    if (SINCE_API_VERSION(1, 2)) {
+        if (callbackResult.isError()) {
+            emit error(callbackResult.property("fileName").toString() + ":" +
+                    callbackResult.property("lineNumber").toString() + ": " +
+                    callbackResult.toString());
+        }
+    }
     delete callback;
 }
 
@@ -275,7 +288,14 @@ QPython::imported(bool result, QJSValue *callback)
     QJSValueList args;
     QJSValue v = callback->engine()->toScriptValue(QVariant(result));
     args << v;
-    callback->call(args);
+    QJSValue callbackResult = callback->call(args);
+    if (SINCE_API_VERSION(1, 2)) {
+        if (callbackResult.isError()) {
+            emit error(callbackResult.property("fileName").toString() + ":" +
+                    callbackResult.property("lineNumber").toString() + ": " +
+                    callbackResult.toString());
+        }
+    }
     delete callback;
 }
 

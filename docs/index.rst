@@ -44,6 +44,10 @@ io.thp.pyotherside 1.2
   for names with dots. This means that ``importModule('x.y.z', ...)`` now
   works like ``import x.y.z`` in Python.
 
+* If a JavaScript exception occurs in the callback passed to
+  :func:`importModule` or :func:`call`, the signal :func:`error` is emitted
+  with the exception information (filename, line, message) as ``traceback``.
+
 QML ``Python`` Element
 ----------------------
 
@@ -92,7 +96,7 @@ path and then importing the module asynchronously:
     ``file://`` from the path, so you can use :func:`Qt.resolvedUrl()`
     without having to manually strip the leading ``file://`` in QML.
 
-.. function:: importModule(string name, callable callback)
+.. function:: importModule(string name, function callback(success) {})
 
     Import a Python module.
 
@@ -101,6 +105,11 @@ path and then importing the module asynchronously:
     modules with dots in their name. Starting with the API version 1.2
     (``import io.thp.pyotherside 1.2``), this behavior is now fixed,
     and ``importModule('x.y.z, ...)`` behaves like ``import x.y.z``.
+
+.. versionchanged:: 1.2.0
+    If a JavaScript exception occurs in the callback, the :func:`error`
+    signal is emitted with ``traceback`` containing the exception info
+    (QML API version 1.2 and newer).
 
 Once modules are imported, Python function can be called on the
 imported modules using:
@@ -111,6 +120,11 @@ imported modules using:
     If ``args`` is omitted, ``func`` will be called without arguments.
     If ``callback`` is a callable, it will be called with the Python
     function result as single argument when the call has succeeded.
+
+.. versionchanged:: 1.2.0
+    If a JavaScript exception occurs in the callback, the :func:`error`
+    signal is emitted with ``traceback`` containing the exception info
+    (QML API version 1.2 and newer).
 
 For some of these methods, there also exist synchronous variants, but it is
 highly recommended to use the asynchronous variants instead to avoid blocking
@@ -698,6 +712,8 @@ Version 1.2.0dev (UNRELEASED)
 
 * Introduced versioned QML imports for API change.
 * QML API 1.2: Change :func:`importModule` behavior for imports with dots.
+* QML API 1.2: Emit :func:`error` when JavaScript callbacks passed to
+  :func:`importModule` and :func:`call` throw an exception.
 
 Version 1.1.0 (2014-02-06)
 --------------------------
