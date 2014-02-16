@@ -83,6 +83,15 @@ QPython::addImportPath(QString path)
         path = path.mid(7);
     }
 
+    if (SINCE_API_VERSION(1, 3) && path.startsWith("qrc:")) {
+        const char *module = "pyotherside.qrc_importer";
+        QString filename = "/io/thp/pyotherside/qrc_importer.py";
+        QString errorMessage = priv->importFromQRC(module, filename);
+        if (!errorMessage.isNull()) {
+            emit error(errorMessage);
+        }
+    }
+
     QByteArray utf8bytes = path.toUtf8();
 
     PyObject *sys_path = PySys_GetObject((char*)"path");

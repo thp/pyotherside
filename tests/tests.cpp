@@ -153,4 +153,8 @@ TestPyOtherSide::testEvaluate()
     // PyOtherSide API 1.2
     QPython12 py12;
     testEvaluateWith(&py12);
+
+    // PyOtherSide API 1.3
+    QPython13 py13;
+    testEvaluateWith(&py13);
 }

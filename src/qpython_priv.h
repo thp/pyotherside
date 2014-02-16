@@ -38,6 +38,8 @@ class QPythonPriv : public QObject {
         void enter();
         void leave();
 
+        QString importFromQRC(const char *module, const QString &filename);
+
         void receiveObject(PyObject *o);
         static void closing();
         static QPythonPriv *instance();

@@ -28,7 +28,7 @@ This section describes the QML API exposed by the *PyOtherSide* QML Plugin.
 Import Versions
 ---------------
 
-The current QML API version of PyOtherSide is 1.2. When new features are
+The current QML API version of PyOtherSide is 1.3. When new features are
 introduced, or behavior is changed, the API version will be bumped and
 documented here.
 
@@ -48,6 +48,13 @@ io.thp.pyotherside 1.2
   :func:`importModule` or :func:`call`, the signal :func:`error` is emitted
   with the exception information (filename, line, message) as ``traceback``.
 
+io.thp.pyotherside 1.3
+``````````````````````
+
+* :func:`addImportPath` now also accepts ``qrc:/`` URLs. This is useful if
+  your Python files are embedded as Qt Resources, relative to your QML files
+  (use :func:`Qt.resolvedUrl` from the QML file).
+
 QML ``Python`` Element
 ----------------------
 
@@ -60,7 +67,7 @@ To use the ``Python`` element in a QML file, you have to import the plugin using
 
 .. code-block:: javascript
 
-    import io.thp.pyotherside 1.2
+    import io.thp.pyotherside 1.3
 
 Signals
 ```````
@@ -89,12 +96,18 @@ path and then importing the module asynchronously:
 
 .. function:: addImportPath(string path)
 
-    Add a local filesystem path to Python's ``sys.path``.
+    Add a path to Python's ``sys.path``.
 
 .. versionchanged:: 1.1.0
     :func:`addImportPath` will automatically strip a leading
     ``file://`` from the path, so you can use :func:`Qt.resolvedUrl()`
     without having to manually strip the leading ``file://`` in QML.
+
+.. versionchanged:: 1.3.0
+    Starting with QML API version 1.3 (``import io.thp.pyotherside 1.3``),
+    :func:`addImportPath` now also accepts ``qrc:/`` URLs. The first time
+    a ``qrc:/`` path is added, a new import handler will be installed,
+    which will enable Python to transparently import modules from it.
 
 .. function:: importModule(string name, function callback(success) {})
 
@@ -104,7 +117,7 @@ path and then importing the module asynchronously:
     Previously, this function didn't work correctly for importing
     modules with dots in their name. Starting with the API version 1.2
     (``import io.thp.pyotherside 1.2``), this behavior is now fixed,
-    and ``importModule('x.y.z, ...)`` behaves like ``import x.y.z``.
+    and ``importModule('x.y.z', ...)`` behaves like ``import x.y.z``.
 
 .. versionchanged:: 1.2.0
     If a JavaScript exception occurs in the callback, the :func:`error`
@@ -152,7 +165,7 @@ plugin and Python interpreter.
 .. note::
     This is not necessarily the same as the QML API version currently in use.
     The QML API version is decided by the QML import statement, so even if
-    :func:`pluginVersion`` returns 1.2.0, if the plugin has been imported as
+    :func:`pluginVersion` returns 1.2.0, if the plugin has been imported as
     ``import io.thp.pyotherside 1.0``, the API version used would be 1.0.
 
 .. versionadded:: 1.1.0
@@ -406,6 +419,12 @@ walking the whole resource tree, printing out directory names and file sizes:
     walk('/')
 
 
+Importing Python modules from Qt Resources also works starting with QML API 1.3
+using :func:`Qt.resolvedUrl` from within a QML file in Qt Resources. As an
+alternative, ``addImportPath('qrc:/')`` will add the root directory of the Qt
+Resources to Python's module search path.
+
+
 Cookbook
 ========
 
@@ -597,7 +616,7 @@ Using this function from QML is straightforward:
 .. code-block:: javascript
 
     import QtQuick 2.0
-    import io.thp.pyotherside 1.2
+    import io.thp.pyotherside 1.3
 
     Rectangle {
         color: 'black'
@@ -693,7 +712,7 @@ This module can now be imported in QML and used as ``source`` in the QML
 .. code-block:: javascript
 
     import QtQuick 2.0
-    import io.thp.pyotherside 1.2
+    import io.thp.pyotherside 1.3
 
     Image {
         id: image
@@ -784,6 +803,7 @@ Version 1.3.0 (UNRELEASED)
 --------------------------
 
 * Access to the `Qt Resource System`_ from Python (see `Qt Resource Access`_).
+* QML API 1.3: Import from Qt Resources (:func:`addImportPath` with ``qrc:/``).
 
 Version 1.2.0 (2014-02-16)
 --------------------------

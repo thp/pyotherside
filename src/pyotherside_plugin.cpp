@@ -60,4 +60,5 @@ PyOtherSideExtensionPlugin::registerTypes(const char *uri)
     qmlRegisterType<QPython10>(uri, 1, 0, PYOTHERSIDE_QPYTHON_NAME);
     // There is no PyOtherSide 1.1 import, as it's the same as 1.0
     qmlRegisterType<QPython12>(uri, 1, 2, PYOTHERSIDE_QPYTHON_NAME);
+    qmlRegisterType<QPython13>(uri, 1, 3, PYOTHERSIDE_QPYTHON_NAME);
 }

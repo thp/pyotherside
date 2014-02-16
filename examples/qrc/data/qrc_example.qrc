@@ -3,5 +3,6 @@
   <qresource>
     <file>qrc_example.qml</file>
     <file>qrc_example.py</file>
+    <file>below/qrc_example_below.py</file>
   </qresource>
 </RCC>

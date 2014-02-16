@@ -379,3 +379,49 @@ QPythonPriv::instance()
 {
     return priv;
 }
+
+QString
+QPythonPriv::importFromQRC(const char *module, const QString &filename)
+{
+    PyObject *sys_modules = PySys_GetObject((char *)"modules");
+    if (!PyMapping_Check(sys_modules)) {
+        return QString("sys.modules is not a mapping object");
+    }
+
+    PyObject *qrc_importer = PyMapping_GetItemString(sys_modules,
+            (char *)module);
+
+    if (qrc_importer == NULL) {
+        PyErr_Clear();
+
+        QFile qrc_importer_code(":" + filename);
+        if (!qrc_importer_code.open(QIODevice::ReadOnly)) {
+            return QString("Cannot load qrc importer source");
+        }
+
+        QByteArray ba = qrc_importer_code.readAll();
+        QByteArray fn = QString("qrc:/" + filename).toUtf8();
+
+        PyObject *co = Py_CompileString(ba.constData(), fn.constData(),
+                Py_file_input);
+        if (co == NULL) {
+            QString result = QString("Cannot compile qrc importer: %1")
+                .arg(formatExc());
+            PyErr_Clear();
+            return result;
+        }
+
+        qrc_importer = PyImport_ExecCodeModule((char *)module, co);
+        if (qrc_importer == NULL) {
+            QString result = QString("Cannot exec qrc importer: %1")
+                    .arg(formatExc());
+            PyErr_Clear();
+            return result;
+        }
+        Py_XDECREF(co);
+    }
+
+    Py_XDECREF(qrc_importer);
+
+    return QString();
+}

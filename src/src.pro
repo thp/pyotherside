@@ -28,6 +28,9 @@ HEADERS += pyotherside_plugin.h
 SOURCES += qpython_imageprovider.cpp
 HEADERS += qpython_imageprovider.h
 
+# Importer from Qt Resources
+RESOURCES += qrc_importer.qrc
+
 # Python QML Object
 SOURCES += qpython.cpp
 HEADERS += qpython.h
