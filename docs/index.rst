@@ -713,8 +713,8 @@ BB10), the QML plugins folder can be deployed with the .bar file.
 ChangeLog
 =========
 
-Version 1.2.0dev (UNRELEASED)
------------------------------
+Version 1.2.0 (2014-02-16)
+--------------------------
 
 * Introduced versioned QML imports for API change.
 * QML API 1.2: Change :func:`importModule` behavior for imports with dots.

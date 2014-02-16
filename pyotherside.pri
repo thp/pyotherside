@@ -1,2 +1,2 @@
 PROJECTNAME = pyotherside
-VERSION = 1.2.0dev
+VERSION = 1.2.0
