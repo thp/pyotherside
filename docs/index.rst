@@ -13,7 +13,7 @@ At its core, PyOtherSide is basically a simple layer that converts Qt (QML)
 objects to Python objects and vice versa, with focus on asynchronous events
 and continuation-passing style function calls.
 
-While PyOtherSide once worked with Qt 4.x, and still works with Python 2.7, its
+While legacy versions of PyOtherSide worked with Qt 4.x and Python 2.x, its
 focus now lies on Python 3.x and Qt 5. Python 3 has been out for several years,
 and offers some nice language features and clean-ups, while Qt 5 supports most
 mobile platforms well, and has an improved QML engine and a faster renderer (Qt
@@ -762,11 +762,7 @@ pass a suitable ``python-config`` to ``qmake`` at configure time:
 Alternatively, you can edit ``python.pri`` manually and specify the compiler
 flags for compiling and linking against Python on your system.
 
-As of version 1.1.0, PyOtherSide still builds against Python 2.x (tested with
-Python 2.7, use ``qmake PYTHON_CONFIG=python2.7-config``), but future point
-releases of PyOtherSide might drop support for Python 2.x. However, only one
-version of PyOtherSide can be installed/active at one time. It is highly
-recommended that you do not use Python 2 support except on legacy platforms.
+As of version 1.3.0, PyOtherSide does not build against Python 2.x anymore.
 
 Building for Blackberry 10
 --------------------------

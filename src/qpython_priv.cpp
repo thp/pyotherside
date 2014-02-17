@@ -161,7 +161,6 @@ static PyMethodDef PyOtherSideMethods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-#ifdef PY3K
 static struct PyModuleDef PyOtherSideModule = {
     PyModuleDef_HEAD_INIT,
     "pyotherside",   /* name of module */
@@ -192,7 +191,6 @@ PyOtherSide_init()
 
     return pyotherside;
 }
-#endif
 
 QPythonPriv::QPythonPriv()
     : locals(NULL)
@@ -203,9 +201,7 @@ QPythonPriv::QPythonPriv()
     , traceback_mod(NULL)
     , mutex()
 {
-#ifdef PY3K
     PyImport_AppendInittab("pyotherside", PyOtherSide_init);
-#endif
 
     Py_Initialize();
     PyEval_InitThreads();
@@ -218,10 +214,6 @@ QPythonPriv::QPythonPriv()
 
     traceback_mod = PyImport_ImportModule("traceback");
     assert(traceback_mod != NULL);
-
-#ifndef PY3K
-    Py_InitModule("pyotherside", PyOtherSideMethods);
-#endif
 
     priv = this;
 

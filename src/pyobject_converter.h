@@ -24,9 +24,6 @@
 #include "Python.h"
 #include "datetime.h"
 
-#if PY_MAJOR_VERSION >= 3
-#  define PY3K
-#endif
 
 class PyObjectListBuilder : public ListBuilder<PyObject *> {
     public:
@@ -131,13 +128,8 @@ class PyObjectConverter : public Converter<PyObject *> {
         virtual enum Type type(PyObject *&o) {
             if (PyBool_Check(o)) {
                 return BOOLEAN;
-#ifdef PY3K
             } else if (PyLong_Check(o)) {
                 return INTEGER;
-#else
-            } else if (PyLong_Check(o) || PyInt_Check(o)) {
-                return INTEGER;
-#endif
             } else if (PyFloat_Check(o)) {
                 return FLOATING;
             } else if (PyUnicode_Check(o) || PyBytes_Check(o)) {
@@ -165,17 +157,7 @@ class PyObjectConverter : public Converter<PyObject *> {
             return NONE;
         }
 
-        virtual long long integer(PyObject *&o) {
-#ifdef PY3K
-            return PyLong_AsLong(o);
-#else
-            if (PyInt_Check(o)) {
-                return PyInt_AsLong(o);
-            } else {
-                return PyLong_AsLong(o);
-            }
-#endif
-        }
+        virtual long long integer(PyObject *&o) { return PyLong_AsLong(o); }
         virtual double floating(PyObject *&o) { return PyFloat_AsDouble(o); }
         virtual bool boolean(PyObject *&o) { return (o == Py_True); }
         virtual const char *string(PyObject *&o) {
