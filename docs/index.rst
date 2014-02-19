@@ -289,6 +289,14 @@ These constants are used in the return value of a `image provider`_ function:
 **pyotherside.format_data**
     Encoded image file data (e.g. PNG/JPEG data).
 
+.. versionadded:: 1.3.0
+
+The following constants have been added in PyOtherSide 1.3:
+
+**pyotherside.version**
+    Version of PyOtherSide as string.
+
+
 
 Data Type Mapping
 =================
@@ -800,6 +808,7 @@ Version 1.3.0 (UNRELEASED)
 
 * Access to the `Qt Resource System`_ from Python (see `Qt Resource Access`_).
 * QML API 1.3: Import from Qt Resources (:func:`addImportPath` with ``qrc:/``).
+* Add ``pyotherside.version`` constant to access version from Python as string.
 
 Version 1.2.0 (2014-02-16)
 --------------------------

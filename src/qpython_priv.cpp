@@ -189,6 +189,9 @@ PyOtherSide_init()
     // Custom constant - pixels are to be interpreted as encoded image file data
     PyModule_AddIntConstant(pyotherside, "format_data", -1);
 
+    // Version of PyOtherSide (new in 1.3)
+    PyModule_AddStringConstant(pyotherside, "version", PYOTHERSIDE_VERSION);
+
     return pyotherside;
 }
 

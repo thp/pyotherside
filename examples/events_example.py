@@ -5,6 +5,8 @@ import pyotherside
 import threading
 import time
 
+print('Using PyOtherSide version', pyotherside.version)
+
 COLORS = ['red', 'green', 'blue']
 
 def thread_func():
