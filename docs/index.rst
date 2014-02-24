@@ -799,6 +799,66 @@ Python 3.2.2 headers (with ``pyconfig.h`` from the device):
 After installing PyOtherSide in the locally-build Qt 5 (cross-compiled for
 BB10), the QML plugins folder can be deployed with the .bar file.
 
+Building for Windows
+--------------------
+
+On Windows (tested versions: Windows 7), you need to download:
+
+1. Qt 5 (VS 2010) from `qt-project.org downloads`_ (tested: 5.2.1)
+2. `Visual C++ 2010 Express`_
+3. Python 3 from `python.org Windows downloads`_ (tested: 3.3.4)
+
+We use VS 2010 instead of MinGW, because the MinGW version of Qt depends on
+working OpenGL driver, whereas the non-OpenGL version uses Direct3D via ANGLE.
+Also, Python is built with Visual C++ 2010 Express (see `Compiling Python on
+Windows`_), so using the same toolchain when linking all three components (Qt,
+Python and PyOtherSide) together makes sense.
+
+The necessary customizations for building PyOtherSide successfully on Windows
+have been integrated recently, and are available since PyOtherSide 1.3.0.
+
+.. _qt-project.org downloads: http://qt-project.org/downloads
+.. _Visual C++ 2010 Express: http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_4
+.. _python.org Windows downloads: http://python.org/downloads/windows/
+.. _Compiling Python on Windows: http://docs.python.org/devguide/setup.html#windows-compiling
+
+Once these pre-requisites are installed, you need to make some customizations
+to the build setup:
+
+1. In ``src/qmldir``: Change ``plugin pyothersideplugin`` to ``plugin
+   pyothersideplugin1``. This is needed, because on Windows, the library
+   version gets encoded into the library name.
+
+2. In ``python.pri``: Modify it so that the Python 3 ``libs/`` folder is
+   added to the linker path, and link against ``-lpython33``. Also, modify
+   it so that the Python 3 ``include/`` folder is added to the compiler flags.
+
+Example ``python.pri`` file for a standard Python 3.3 installation on Windows:
+
+.. code-block:: qmake
+
+    QMAKE_LIBS += -LC:\Python33\libs -lpython33
+    QMAKE_CXXFLAGS += -IC:\Python33\include\
+
+With the updated ``qmldir`` and ``python.pri`` files in place, simply open
+the ``pyotherside.pro`` project file in Qt Creator, and build the project.
+Configure a **Release Build**, and *disable* **Shadow Builds**.
+
+To install PyOtherSide into your Qt installation, so that the QML import works
+from other projects:
+
+1. Make sure the PyOtherSide project is opened in Qt Creator
+2. In the left column, select **Projects**
+3. Make sure the **Run** tab (Run Settings) of your project is selected
+4. In **Deployment**, click **Add Deploy Step** and select **Make**
+5. In the **Make arguments:** field, type ``install``
+6. Hit **Run** to install PyOtherSide in your local Qt folder
+7. Dismiss the "Custom Executable" dialog that pops up
+
+Known Problems:
+
+* **Qt Resource System** importing might not fully work on Windows
+
 
 ChangeLog
 =========
@@ -809,6 +869,7 @@ Version 1.3.0 (UNRELEASED)
 * Access to the `Qt Resource System`_ from Python (see `Qt Resource Access`_).
 * QML API 1.3: Import from Qt Resources (:func:`addImportPath` with ``qrc:/``).
 * Add ``pyotherside.version`` constant to access version from Python as string.
+* Support for building on Windows, build instructions for Windows builds.
 
 Version 1.2.0 (2014-02-16)
 --------------------------

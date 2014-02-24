@@ -80,7 +80,13 @@ QPython::addImportPath(QString path)
 
     // Strip leading "file://" (for use with Qt.resolvedUrl())
     if (path.startsWith("file://")) {
+#ifdef WIN32
+        // On Windows, path would be "file:///C:\...", so strip 8 chars to get
+        // a Windows-compatible absolute filename to be used as import path
+        path = path.mid(8);
+#else
         path = path.mid(7);
+#endif
     }
 
     if (SINCE_API_VERSION(1, 3) && path.startsWith("qrc:")) {
