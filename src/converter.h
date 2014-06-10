@@ -73,7 +73,6 @@ class ListIterator {
         ListIterator() {}
         virtual ~ListIterator() {}
 
-        virtual int count() = 0;
         virtual bool next(V*) = 0;
 };
 

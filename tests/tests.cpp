@@ -71,7 +71,6 @@ test_converter_for(Converter<V> *conv)
     v = builder->value();
     delete builder;
     ListIterator<V> *iterator = conv->list(v);
-    QVERIFY(iterator->count() == 2);
     QVERIFY(iterator->next(&w));
     QVERIFY(conv->type(w) == Converter<V>::INTEGER);
     QVERIFY(conv->integer(w) == 444);
@@ -157,4 +156,42 @@ TestPyOtherSide::testEvaluate()
     // PyOtherSide API 1.3
     QPython13 py13;
     testEvaluateWith(&py13);
+}
+
+void
+TestPyOtherSide::testSetToList()
+{
+    // Test if a Python set is converted to a list
+    PyObject *set = PySet_New(NULL);
+    QVERIFY(set != NULL);
+    PyObject *o = NULL;
+
+    o = PyLong_FromLong(123);
+    QVERIFY(o != NULL);
+    QVERIFY(PySet_Add(set, o) == 0);
+
+    o = PyLong_FromLong(321);
+    QVERIFY(o != NULL);
+    QVERIFY(PySet_Add(set, o) == 0);
+
+    o = PyLong_FromLong(444);
+    QVERIFY(o != NULL);
+    QVERIFY(PySet_Add(set, o) == 0);
+
+    // This will not be added (no duplicates in a set)
+    o = PyLong_FromLong(123);
+    QVERIFY(o != NULL);
+    QVERIFY(PySet_Add(set, o) == 0);
+
+    // At this point, we should have 3 items (123, 321 and 444)
+    QVERIFY(PySet_Size(set) == 3);
+
+    QVariant v = convertPyObjectToQVariant(set);
+    QVERIFY(v.canConvert(QMetaType::QVariantList));
+
+    QList<QVariant> l = v.toList();
+    QVERIFY(l.size() == 3);
+    QVERIFY(l.contains(123));
+    QVERIFY(l.contains(321));
+    QVERIFY(l.contains(444));
 }

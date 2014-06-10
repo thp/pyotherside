@@ -66,12 +66,8 @@ class QVariantListIterator : public ListIterator<QVariant> {
         QVariantListIterator(QVariant &v) : list(v.toList()), pos(0) {}
         virtual ~QVariantListIterator() {}
 
-        virtual int count() {
-            return list.size();
-        }
-
         virtual bool next(QVariant *v) {
-            if (pos == count()) {
+            if (pos == list.size()) {
                 return false;
             }
 

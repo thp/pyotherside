@@ -62,35 +62,46 @@ class PyObjectDictBuilder : public DictBuilder<PyObject *> {
 
 class PyObjectListIterator : public ListIterator<PyObject *> {
     public:
-        PyObjectListIterator(PyObject *&v) : list(v), pos(0) {}
-        virtual ~PyObjectListIterator() {}
+        PyObjectListIterator(PyObject *&v)
+            : list(v)
+            , iter(PyObject_GetIter(list))
+            , ref(NULL)
+        {
+            if (iter == NULL) {
+                // TODO: Handle error
+            }
+        }
 
-        virtual int count() {
-            if (PyList_Check(list)) {
-                return PyList_Size(list);
-            } else {
-                return PyTuple_Size(list);
+        virtual ~PyObjectListIterator()
+        {
+            Py_XDECREF(ref);
+            Py_XDECREF(iter);
+
+            if (PyErr_Occurred()) {
+                // TODO: Handle error
             }
         }
 
         virtual bool next(PyObject **v) {
-            if (pos == count()) {
+            if (!iter) {
                 return false;
             }
 
-            if (PyList_Check(list)) {
-                *v = PyList_GetItem(list, pos);
-            } else {
-                *v = PyTuple_GetItem(list, pos);
+            Py_XDECREF(ref);
+            ref = PyIter_Next(iter);
+
+            if (ref) {
+                *v = ref;
+                return true;
             }
 
-            pos++;
-            return true;
+            return false;
         }
 
     private:
         PyObject *list;
-        int pos;
+        PyObject *iter;
+        PyObject *ref;
 };
 
 class PyObjectDictIterator : public DictIterator<PyObject *> {
@@ -142,7 +153,7 @@ class PyObjectConverter : public Converter<PyObject *> {
                 return DATE;
             } else if (PyTime_Check(o)) {
                 return TIME;
-            } else if (PyList_Check(o) || PyTuple_Check(o)) {
+            } else if (PyList_Check(o) || PyTuple_Check(o) || PySet_Check(o) || PyIter_Check(o)) {
                 return LIST;
             } else if (PyDict_Check(o)) {
                 return DICT;

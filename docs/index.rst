@@ -317,10 +317,10 @@ between Python and QML (and vice versa):
 +--------------------+------------+-----------------------------+
 | str                | string     |                             |
 +--------------------+------------+-----------------------------+
-| list               | JS Array   |                             |
+| list               | JS Array   | JS Arrays are always        |
+|                    |            | converted to Python lists.  |
 +--------------------+------------+-----------------------------+
-| tuple              | JS Array   | JS Arrays are converted to  |
-|                    |            | lists, not tuples           |
+| tuple              | JS Array   |                             |
 +--------------------+------------+-----------------------------+
 | dict               | JS Object  | Keys must be strings        |
 +--------------------+------------+-----------------------------+
@@ -329,6 +329,10 @@ between Python and QML (and vice versa):
 | datetime.time      | QML time   | since PyOtherSide 1.2.0     |
 +--------------------+------------+-----------------------------+
 | datetime.datetime  | JS Date    | since PyOtherSide 1.2.0     |
++--------------------+------------+-----------------------------+
+| set                | JS Array   | since PyOtherSide 1.3.0     |
++--------------------+------------+-----------------------------+
+| iterable           | JS Array   | since PyOtherSide 1.3.0     |
 +--------------------+------------+-----------------------------+
 
 Trying to pass in other types than the ones listed here is undefined
@@ -870,6 +874,8 @@ Version 1.3.0 (UNRELEASED)
 * QML API 1.3: Import from Qt Resources (:func:`addImportPath` with ``qrc:/``).
 * Add ``pyotherside.version`` constant to access version from Python as string.
 * Support for building on Windows, build instructions for Windows builds.
+* New data type conversions: Python ``set`` and iterable types (e.g. generator
+  expressions and generators) are converted to JS ``Array``.
 
 Version 1.2.0 (2014-02-16)
 --------------------------
