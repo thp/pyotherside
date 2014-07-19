@@ -479,6 +479,36 @@ scroll and move around in the UI) while the Python code can process requests.
 
 .. _Continuation-passing style: https://en.wikipedia.org/wiki/Continuation-passing_style
 
+To avoid what's called `callback hell`_ in JavaScript, you can pull out the
+anonymous functions you give as callbacks, give them names and pass them to
+the API functions via name, e.g. the above example would turn into a shallow
+structure (of course, in this example, splitting everything out does not make
+too much sense, as the functions are very simple to begin with, but it's here
+to demonstrate how splitting a callback hell pyramid basically works):
+
+.. _callback hell: http://callbackhell.com/
+
+.. code-block:: javascript
+
+    Python {
+        Component.onCompleted: {
+            function changedCwd(result) {
+                console.log('Working directory changed.');
+            }
+
+            function gotCwd(result) {
+                console.log('Working directory: ' + result);
+                call('os.chdir', ['/'], changedCwd);
+            }
+
+            function withOs() {
+                call('os.getcwd', [], gotCwd);
+            }
+
+            importModule('os', withOs);
+        }
+    }
+
 Evaluating Python expressions in QML
 ````````````````````````````````````
 
