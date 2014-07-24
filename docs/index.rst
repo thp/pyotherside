@@ -897,7 +897,7 @@ Known Problems:
 ChangeLog
 =========
 
-Version 1.3.0 (UNRELEASED)
+Version 1.3.0 (2014-07-24)
 --------------------------
 
 * Access to the `Qt Resource System`_ from Python (see `Qt Resource Access`_).
