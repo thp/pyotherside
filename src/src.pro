@@ -43,6 +43,10 @@ HEADERS += qpython_priv.h
 SOURCES += global_libpython_loader.cpp
 HEADERS += global_libpython_loader.h
 
+# Reference-counting PyObject wrapper class
+SOURCES += pyobject_ref.cpp
+HEADERS += pyobject_ref.h
+
 # Type System Conversion Logic
 HEADERS += converter.h
 HEADERS += qvariant_converter.h

@@ -20,6 +20,7 @@
 #define PYOTHERSIDE_QVARIANT_CONVERTER_H
 
 #include "converter.h"
+#include "pyobject_ref.h"
 
 #include <QVariant>
 #include <QTime>
@@ -139,8 +140,13 @@ class QVariantConverter : public Converter<QVariant> {
                 case QMetaType::UnknownType:
                     return NONE;
                 default:
-                    qDebug() << "Cannot convert:" << v;
-                    return NONE;
+                    int userType = v.userType();
+                    if (userType == qMetaTypeId<PyObjectRef>()) {
+                        return PYOBJECT;
+                    } else {
+                        qDebug() << "Cannot convert:" << v;
+                        return NONE;
+                    }
             }
         }
 
@@ -187,6 +193,10 @@ class QVariantConverter : public Converter<QVariant> {
             return stringstorage.constData();
         }
 
+        virtual PyObject *pyObject(QVariant &v) {
+            return v.value<PyObjectRef>().newRef();
+        }
+
         virtual ListBuilder<QVariant> *newList() {
             return new QVariantListBuilder;
         }
@@ -205,6 +215,13 @@ class QVariantConverter : public Converter<QVariant> {
             QDate d(v.y, v.m, v.d);
             QTime t(v.time.h, v.time.m, v.time.s, v.time.ms);
             return QVariant(QDateTime(d, t));
+        }
+        virtual QVariant fromPyObject(PyObject *pyobj) {
+            QVariant v = QVariant::fromValue(PyObjectRef(pyobj));
+            // We consume the reference that was passed, mirroring
+            // PyObjectConverter::pyObject.
+            Py_CLEAR(pyobj);
+            return v;
         }
         virtual QVariant none() { return QVariant(); };
 

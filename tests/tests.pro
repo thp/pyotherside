@@ -10,6 +10,7 @@ HEADERS += tests.h
 SOURCES += ../src/qpython.cpp
 SOURCES += ../src/qpython_worker.cpp
 SOURCES += ../src/qpython_priv.cpp
+SOURCES += ../src/pyobject_ref.cpp
 
 HEADERS += ../src/qpython.h
 HEADERS += ../src/qpython_worker.h

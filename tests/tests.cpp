@@ -93,6 +93,13 @@ test_converter_for(Converter<V> *conv)
     QVERIFY(conv->boolean(x) == true);
     delete iterator2;
 
+    /* Convert from/to generic PyObject */
+    PyObject *obj = PyCapsule_New(conv, "test", NULL);
+    v = conv->fromPyObject(obj);
+    QVERIFY(conv->type(v) == Converter<V>::PYOBJECT);
+    QVERIFY(conv->pyObject(v) == obj);
+    Py_CLEAR(obj);
+
     delete conv;
 }
 

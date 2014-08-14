@@ -19,6 +19,8 @@
 #ifndef PYOTHERSIDE_CONVERTER_H
 #define PYOTHERSIDE_CONVERTER_H
 
+typedef struct _object PyObject;
+
 struct ConverterDate {
     ConverterDate(int y, int m, int d)
         : y(y), m(m), d(d)
@@ -102,6 +104,7 @@ class Converter {
             DATE,
             TIME,
             DATETIME,
+            PYOBJECT,
         };
 
         virtual enum Type type(V&) = 0;
@@ -114,6 +117,8 @@ class Converter {
         virtual ConverterDate date(V&) = 0;
         virtual ConverterTime time(V&) = 0;
         virtual ConverterDateTime dateTime(V&) = 0;
+        // `pyObject` must return a new reference to the object.
+        virtual PyObject *pyObject(V&) = 0;
 
         virtual V fromInteger(long long v) = 0;
         virtual V fromFloating(double v) = 0;
@@ -122,6 +127,8 @@ class Converter {
         virtual V fromDate(ConverterDate date) = 0;
         virtual V fromTime(ConverterTime time) = 0;
         virtual V fromDateTime(ConverterDateTime dateTime) = 0;
+        // `fromPyObject` must keep the object's reference count constant.
+        virtual V fromPyObject(PyObject *pyobj) = 0;
         virtual ListBuilder<V> *newList() = 0;
         virtual DictBuilder<V> *newDict() = 0;
         virtual V none() = 0;
@@ -186,6 +193,8 @@ convert(F from)
             return tconv.fromTime(fconv.time(from));
         case FC::DATETIME:
             return tconv.fromDateTime(fconv.dateTime(from));
+        case FC::PYOBJECT:
+            return tconv.fromPyObject(fconv.pyObject(from));
     }
 
     return tconv.none();

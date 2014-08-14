@@ -160,13 +160,9 @@ class PyObjectConverter : public Converter<PyObject *> {
                 return DICT;
             } else if (o == Py_None) {
                 return NONE;
+            } else {
+                return PYOBJECT;
             }
-
-            fprintf(stderr, "Warning: Cannot convert:");
-            PyObject_Print(o, stderr, 0);
-            fprintf(stderr, "\n");
-
-            return NONE;
         }
 
         virtual long long integer(PyObject *&o) { return PyLong_AsLong(o); }
@@ -206,6 +202,10 @@ class PyObjectConverter : public Converter<PyObject *> {
                     PyDateTime_DATE_GET_SECOND(o),
                     PyDateTime_DATE_GET_MICROSECOND(o) / 1000);
         }
+        virtual PyObject *pyObject(PyObject *&o) {
+            Py_XINCREF(o);
+            return o;
+        }
 
         virtual PyObject * fromInteger(long long v) { return PyLong_FromLong((long)v); }
         virtual PyObject * fromFloating(double v) { return PyFloat_FromDouble(v); }
@@ -216,6 +216,7 @@ class PyObjectConverter : public Converter<PyObject *> {
         virtual PyObject * fromDateTime(ConverterDateTime v) {
             return PyDateTime_FromDateAndTime(v.y, v.m, v.d, v.time.h, v.time.m, v.time.s, v.time.ms * 1000);
         }
+        virtual PyObject * fromPyObject(PyObject *pyobj) { return pyobj; }
         virtual ListBuilder<PyObject *> *newList() { return new PyObjectListBuilder(); }
         virtual DictBuilder<PyObject *> *newDict() { return new PyObjectDictBuilder(); }
         virtual PyObject * none() { Py_RETURN_NONE; }
