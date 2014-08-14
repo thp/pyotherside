@@ -48,7 +48,7 @@ class QPythonPriv : public QObject {
 
         PyObject *locals;
         PyObject *globals;
-        PyThreadState *state;
+        PyGILState_STATE gil_state;
         PyObject *atexit_callback;
         PyObject *image_provider;
         PyObject *traceback_mod;

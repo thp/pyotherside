@@ -198,7 +198,7 @@ PyOtherSide_init()
 QPythonPriv::QPythonPriv()
     : locals(NULL)
     , globals(NULL)
-    , state(NULL)
+    , gil_state()
     , atexit_callback(NULL)
     , image_provider(NULL)
     , traceback_mod(NULL)
@@ -245,16 +245,13 @@ void
 QPythonPriv::enter()
 {
     mutex.lock();
-    assert(state != NULL);
-    PyEval_RestoreThread(state);
-    state = NULL;
+    gil_state = PyGILState_Ensure();
 }
 
 void
 QPythonPriv::leave()
 {
-    assert(state == NULL);
-    state = PyEval_SaveThread();
+    PyGILState_Release(gil_state);
     mutex.unlock();
 }
 
