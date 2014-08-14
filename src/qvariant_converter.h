@@ -112,31 +112,31 @@ class QVariantConverter : public Converter<QVariant> {
         virtual ~QVariantConverter() {}
 
         virtual enum Type type(QVariant &v) {
-            QVariant::Type t = v.type();
+            QMetaType::Type t = (QMetaType::Type)v.type();
             switch (t) {
-                case QVariant::Bool:
+                case QMetaType::Bool:
                     return BOOLEAN;
-                case QVariant::Int:
-                case QVariant::LongLong:
-                case QVariant::UInt:
-                case QVariant::ULongLong:
+                case QMetaType::Int:
+                case QMetaType::LongLong:
+                case QMetaType::UInt:
+                case QMetaType::ULongLong:
                     return INTEGER;
-                case QVariant::Double:
+                case QMetaType::Double:
                     return FLOATING;
-                case QVariant::String:
+                case QMetaType::QString:
                     return STRING;
-                case QVariant::Date:
+                case QMetaType::QDate:
                     return DATE;
-                case QVariant::Time:
+                case QMetaType::QTime:
                     return TIME;
-                case QVariant::DateTime:
+                case QMetaType::QDateTime:
                     return DATETIME;
-                case QVariant::List:
-                case QVariant::StringList:
+                case QMetaType::QVariantList:
+                case QMetaType::QStringList:
                     return LIST;
-                case QVariant::Map:
+                case QMetaType::QVariantMap:
                     return DICT;
-                case QVariant::Invalid:
+                case QMetaType::UnknownType:
                     return NONE;
                 default:
                     qDebug() << "Cannot convert:" << v;
