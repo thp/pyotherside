@@ -161,6 +161,7 @@ QPython::importModule_sync(QString name)
     }
 
     PyDict_SetItemString(priv->globals, moduleName, module);
+    Py_CLEAR(module);
     priv->leave();
     return true;
 }
