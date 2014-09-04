@@ -1,7 +1,7 @@
 
 /**
  * PyOtherSide: Asynchronous Python 3 Bindings for Qt 5
- * Copyright (c) 2011, 2013, 2014, Thomas Perl <m@thp.io>
+ * Copyright (c) 2014, Dennis Tomas <den.t@gmx.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,27 +16,39 @@
  * PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef PYOTHERSIDE_PLUGIN_H
-#define PYOTHERSIDE_PLUGIN_H
+#ifndef PYOTHERSIDE_PYGLRENDERER_H
+#define PYOTHERSIDE_PYGLRENDERER_H
 
-#include <QtQml>
-#include <QQmlExtensionPlugin>
+#include "Python.h"
 
-#define PYOTHERSIDE_PLUGIN_ID "io.thp.pyotherside"
-#define PYOTHERSIDE_IMAGEPROVIDER_ID "python"
-#define PYOTHERSIDE_QPYTHON_NAME "Python"
-#define PYOTHERSIDE_QPYGLAREA_NAME "PyGLArea"
+#include <QtCore/QObject>
+#include <QString>
+#include <QRect>
 
-class Q_DECL_EXPORT PyOtherSideExtensionPlugin : public QQmlExtensionPlugin {
+
+class PyGLRenderer : public QObject {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID PYOTHERSIDE_PLUGIN_ID)
 
-    public:
-        PyOtherSideExtensionPlugin();
-        ~PyOtherSideExtensionPlugin();
+public:
+    PyGLRenderer();
+    ~PyGLRenderer();
 
-        virtual void initializeEngine(QQmlEngine *engine, const char *uri);
-        virtual void registerTypes(const char *uri);
+    void init();
+    void paint();
+    void cleanup();
+
+    void setInitGL(QString initGL);
+    void setPaintGL(QString paintGL);
+    void setCleanupGL(QString cleanupGL);
+    void setRect(QRect rect);
+
+private:
+    QRect m_rect;
+    PyObject *m_paintGLCallable;
+    bool m_initialized;
+    QString m_initGL;
+    QString m_paintGL;
+    QString m_cleanupGL;
 };
 
-#endif /* PYOTHERSIDE_PLUGIN_H */
+#endif /* PYOTHERSIDE_PYGLRENDERER_H */

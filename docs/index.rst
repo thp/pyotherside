@@ -864,6 +864,67 @@ This module can now be imported in QML and used as ``source`` in the QML
         }
     }
 
+OpenGL rendering in Python
+==========================
+
+You can render directly to Qt's OpenGL context in your Python code (i.e. via
+PyOpenGL or vispy.gloo) using a ``PyGLArea`` item and supplying ``paintGL``
+and optional ``initGL`` and ``cleanupGL`` functions. The ``before`` property
+controls whether to render before or after the QML scene is rendered.
+
+**rendergl.qml**
+
+.. code-block:: javascript
+
+    import QtQuick 2.0
+    import io.thp.pyotherside 1.3
+
+    Item {
+        width: 800
+        height: 600
+
+        PyGLArea {
+            id: glArea
+            anchors.fill: parent
+            before: true
+        }
+
+        Text {
+            x: 100
+            y: 100
+            text: "Hello World!"
+        }
+
+        Python {
+            Component.onCompleted: {
+            importModule('myrenderer', function () {
+                glArea.initGL = 'myrenderer.initGL';
+                glArea.paintGL = 'myrenderer.paintGL';
+                glArea.cleanupGL = 'myrenderer.cleanupGL';
+            });
+        }
+    }
+
+**myrenderer.py**
+
+.. code-block:: python
+
+    def initGL():
+        """Initialize OpenGL stuff like textures, FBOs etc..."""
+
+    def paintGL(x, y, width, height):
+        """
+        Render to the OpenGL context.
+
+        (x, y, width, height) indicates the area to render on.
+
+        The coordinate system's origin is at the bottom left corner of the
+        window.
+        """
+
+    def cleanupGL():
+        """Clean up OpenGL stuff initialized in initGL()."""
+
 Building PyOtherSide
 ====================
 
