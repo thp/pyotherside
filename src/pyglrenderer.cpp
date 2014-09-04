@@ -19,6 +19,8 @@
 #include "qpython_priv.h"
 #include "pyglrenderer.h"
 
+#include <QDebug>
+
 
 PyGLRenderer::PyGLRenderer()
     : m_paintGLCallable(0)
@@ -72,20 +74,26 @@ void PyGLRenderer::setRect(QRect rect) {
 }
 
 void PyGLRenderer::init() {
-    if (!m_initialized) {
-        if (!m_initGL.isEmpty()) {
-            QPythonPriv *priv = QPythonPriv::instance();
-            priv->enter();
-            PyObject *initGLCallable = priv->eval(m_initGL);
-            PyObject *args = PyTuple_New(0);
-            PyObject *o = PyObject_Call(initGLCallable, args, NULL);
-            if (o) Py_DECREF(o); else PyErr_PrintEx(0);
-            Py_DECREF(args);
-            Py_DECREF(initGLCallable);
+    if (m_initialized)
+        return;
+
+    if (!m_initGL.isEmpty()) {
+        QPythonPriv *priv = QPythonPriv::instance();
+        priv->enter();
+        PyObject *initGLCallable = priv->eval(m_initGL);
+        if (!initGLCallable) {
+            qWarning() << "Init callback " << m_initGL << " not defined.";
             priv->leave();
+            return;
         }
-        m_initialized = true;
+        PyObject *args = PyTuple_New(0);
+        PyObject *o = PyObject_Call(initGLCallable, args, NULL);
+        if (o) Py_DECREF(o); else PyErr_PrintEx(0);
+        Py_DECREF(args);
+        Py_DECREF(initGLCallable);
+        priv->leave();
     }
+    m_initialized = true;
 }
 
 
@@ -96,8 +104,15 @@ void PyGLRenderer::paint()
 
     QPythonPriv *priv = QPythonPriv::instance();
     priv->enter();
-    if (!m_paintGLCallable)
+
+    if (!m_paintGLCallable) {
         m_paintGLCallable = priv->eval(m_paintGL);
+        if (!m_paintGLCallable) {
+            qWarning() << "Paint callback " << m_paintGL << " not defined.";
+            priv->leave();
+            return;
+        }
+    }
 
     // Call the paintGL callback with arguments x, y, width, height.
     // These are the boundaries in which the callback should render,
@@ -122,16 +137,22 @@ void PyGLRenderer::paint()
 
 void PyGLRenderer::cleanup()
 {
-    if (!m_cleanupGL.isEmpty()) {
-        QPythonPriv *priv = QPythonPriv::instance();
-        priv->enter();
-        PyObject *cleanupGLCallable = priv->eval(m_cleanupGL);
-        PyObject *args = PyTuple_New(0);
-        PyObject *o = PyObject_Call(cleanupGLCallable, args, NULL);
-        if (o) Py_DECREF(o); else PyErr_PrintEx(0);
-        m_initialized = true;
-        Py_DECREF(args);
-        Py_DECREF(cleanupGLCallable);
+    if (m_cleanupGL.isEmpty())
+        return;
+
+    QPythonPriv *priv = QPythonPriv::instance();
+    priv->enter();
+    PyObject *cleanupGLCallable = priv->eval(m_cleanupGL);
+    if (!cleanupGLCallable) {
+        qWarning() << "Cleanup callback " << m_cleanupGL << " not defined.";
         priv->leave();
+        return;
     }
+    PyObject *args = PyTuple_New(0);
+    PyObject *o = PyObject_Call(cleanupGLCallable, args, NULL);
+    if (o) Py_DECREF(o); else PyErr_PrintEx(0);
+    m_initialized = true;
+    Py_DECREF(args);
+    Py_DECREF(cleanupGLCallable);
+    priv->leave();
 }
