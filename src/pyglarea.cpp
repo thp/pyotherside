@@ -43,10 +43,9 @@ void PyGLArea::setInitGL(QString initGL)
 {
     if (initGL == m_initGL)
         return;
-    m_renderer->setInitGL(initGL);
     m_initGL = initGL;
-    if (window())
-        window()->update();
+    delete m_renderer;
+    m_renderer = 0;
 }
 
 void PyGLArea::setPaintGL(QString paintGL)
@@ -54,9 +53,8 @@ void PyGLArea::setPaintGL(QString paintGL)
     if (paintGL == m_paintGL)
         return;
     m_paintGL = paintGL;
-    m_renderer->setPaintGL(paintGL);
-    if (window())
-        window()->update();
+    delete m_renderer;
+    m_renderer = 0;
 }
 
 void PyGLArea::setCleanupGL(QString cleanupGL)
@@ -64,9 +62,8 @@ void PyGLArea::setCleanupGL(QString cleanupGL)
     if (cleanupGL == m_cleanupGL)
         return;
     m_cleanupGL = cleanupGL;
-    m_renderer->setCleanupGL(cleanupGL);
-    if (window())
-        window()->update();
+    delete m_renderer;
+    m_renderer = 0;
 }
 
 void PyGLArea::setBefore(bool before)
@@ -74,6 +71,8 @@ void PyGLArea::setBefore(bool before)
     if (before == m_before)
         return;
     m_before = before;
+    delete m_renderer;
+    m_renderer = 0;
 }
 
 void PyGLArea::setT(qreal t)
@@ -82,8 +81,6 @@ void PyGLArea::setT(qreal t)
         return;
     m_t = t;
     emit tChanged();
-    if (window())
-        window()->update();
 }
 
 void PyGLArea::handleWindowChanged(QQuickWindow *win)
@@ -98,13 +95,19 @@ void PyGLArea::handleWindowChanged(QQuickWindow *win)
 }
 
 void PyGLArea::update() {
-    window()->update();
+    if (window())
+        window()->update();
 }
 
 void PyGLArea::sync()
 {
     if (!m_renderer) {
+        disconnect(window(), SIGNAL(beforeRendering()), this, SLOT(paint()));
+        disconnect(window(), SIGNAL(afterRendering()), this, SLOT(paint()));
         m_renderer = new PyGLRenderer();
+        m_renderer->setInitGL(m_initGL);
+        m_renderer->setPaintGL(m_paintGL);
+        m_renderer->setCleanupGL(m_cleanupGL);
         if (m_before)
             connect(window(), SIGNAL(beforeRendering()), this, SLOT(paint()), Qt::DirectConnection);
         else
