@@ -1,3 +1,21 @@
+
+/**
+ * PyOtherSide: Asynchronous Python 3 Bindings for Qt 5
+ * Copyright (c) 2014, Dennis Tomas <den.t@gmx.de>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+ * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ **/
+
 #include "qpython_priv.h"
 #include "pyglrenderer.h"
 
@@ -61,7 +79,7 @@ void PyGLRenderer::init() {
             PyObject *initGLCallable = priv->eval(m_initGL);
             PyObject *args = PyTuple_New(0);
             PyObject *o = PyObject_Call(initGLCallable, args, NULL);
-            if (o) Py_DECREF(o);
+            if (o) Py_DECREF(o); else PyErr_PrintEx(0);
             Py_DECREF(args);
             Py_DECREF(initGLCallable);
             priv->leave();
@@ -93,7 +111,7 @@ void PyGLRenderer::paint()
     PyObject *height = PyLong_FromLong(m_rect.height());
     PyObject *args = PyTuple_Pack(4, x, y, width, height);
     PyObject *o = PyObject_Call(m_paintGLCallable, args, NULL);
-    if (o) Py_DECREF(o);
+    if (o) Py_DECREF(o); else PyErr_PrintEx(0);
     Py_DECREF(x);
     Py_DECREF(y);
     Py_DECREF(width);
@@ -110,7 +128,7 @@ void PyGLRenderer::cleanup()
         PyObject *cleanupGLCallable = priv->eval(m_cleanupGL);
         PyObject *args = PyTuple_New(0);
         PyObject *o = PyObject_Call(cleanupGLCallable, args, NULL);
-        if (o) Py_DECREF(o);
+        if (o) Py_DECREF(o); else PyErr_PrintEx(0);
         m_initialized = true;
         Py_DECREF(args);
         Py_DECREF(cleanupGLCallable);
