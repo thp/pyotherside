@@ -65,8 +65,6 @@ private slots:
 
 private:
     qreal m_t;
-    PyObject *m_paintGLCallable;
-    bool m_initialized;
     QString m_initGL;
     QString m_paintGL;
     QString m_cleanupGL;
