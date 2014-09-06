@@ -21,34 +21,34 @@
 
 #include "Python.h"
 
-#include <QtCore/QObject>
+#include <QVariant>
 #include <QString>
 #include <QRect>
+#include <QtCore/QObject>
 
 
 class PyGLRenderer : public QObject {
     Q_OBJECT
 
 public:
-    PyGLRenderer();
+    PyGLRenderer(QVariant pyRenderer);
     ~PyGLRenderer();
 
     void init();
-    void paint();
+    void render();
     void cleanup();
 
-    void setInitGL(QString initGL);
-    void setPaintGL(QString paintGL);
-    void setCleanupGL(QString cleanupGL);
     void setRect(QRect rect);
 
 private:
     QRect m_rect;
-    PyObject *m_paintGLCallable;
+    QVariant m_pyRenderer;
+    PyObject *m_pyRendererObject;
+    PyObject *m_renderMethod;
     bool m_initialized;
-    QString m_initGL;
-    QString m_paintGL;
-    QString m_cleanupGL;
+
+    PyObject *getPyRendererObject();
+    PyObject *getRenderMethod();
 };
 
 #endif /* PYOTHERSIDE_PYGLRENDERER_H */

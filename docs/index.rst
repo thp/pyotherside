@@ -868,9 +868,11 @@ OpenGL rendering in Python
 ==========================
 
 You can render directly to Qt's OpenGL context in your Python code (i.e. via
-PyOpenGL or vispy.gloo) using a ``PyGLArea`` item and supplying ``paintGL``
-and optional ``initGL`` and ``cleanupGL`` functions. The ``before`` property
-controls whether to render before or after the QML scene is rendered.
+PyOpenGL or vispy.gloo) using a ``PyGLArea`` item and supplying a ``renderer``
+which must provide a ``render()`` method and may optionally provide ``init()``
+and ``cleanup()`` methods.
+The ``before`` property controls whether to render before or after the QML
+scene is rendered.
 
 **rendergl.qml**
 
@@ -898,9 +900,9 @@ controls whether to render before or after the QML scene is rendered.
         Python {
             Component.onCompleted: {
             importModule('myrenderer', function () {
-                glArea.initGL = 'myrenderer.initGL';
-                glArea.paintGL = 'myrenderer.paintGL';
-                glArea.cleanupGL = 'myrenderer.cleanupGL';
+                call('myrenderer.Renderer', [], function (renderer) {
+                    glArea.renderer = renderer;
+                });
             });
         }
     }
@@ -909,21 +911,23 @@ controls whether to render before or after the QML scene is rendered.
 
 .. code-block:: python
 
-    def initGL():
-        """Initialize OpenGL stuff like textures, FBOs etc..."""
+    class Renderer(object):
 
-    def paintGL(x, y, width, height):
-        """
-        Render to the OpenGL context.
+        def init(self):
+            """Initialize OpenGL stuff like textures, FBOs etc..."""
 
-        (x, y, width, height) indicates the area to render on.
+        def render(self, x, y, width, height):
+            """
+            Render to the OpenGL context.
 
-        The coordinate system's origin is at the bottom left corner of the
-        window.
-        """
+            (x, y, width, height) indicates the area to render on.
 
-    def cleanupGL():
-        """Clean up OpenGL stuff initialized in initGL()."""
+            The coordinate system's origin is at the bottom left corner of the
+            window.
+            """
+
+        def cleanup(self):
+            """Clean up OpenGL stuff initialized in initGL()."""
 
 Building PyOtherSide
 ====================

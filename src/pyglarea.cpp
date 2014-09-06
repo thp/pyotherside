@@ -36,34 +36,21 @@ PyGLArea::PyGLArea()
 
 PyGLArea::~PyGLArea()
 {
-    delete m_renderer;
+    if (m_renderer) {
+        delete m_renderer;
+        m_renderer = 0;
+    }
 }
 
-void PyGLArea::setInitGL(QString initGL)
+void PyGLArea::setRenderer(QVariant renderer)
 {
-    if (initGL == m_initGL)
+    if (renderer == m_pyRenderer)
         return;
-    m_initGL = initGL;
-    delete m_renderer;
-    m_renderer = 0;
-}
-
-void PyGLArea::setPaintGL(QString paintGL)
-{
-    if (paintGL == m_paintGL)
-        return;
-    m_paintGL = paintGL;
-    delete m_renderer;
-    m_renderer = 0;
-}
-
-void PyGLArea::setCleanupGL(QString cleanupGL)
-{
-    if (cleanupGL == m_cleanupGL)
-        return;
-    m_cleanupGL = cleanupGL;
-    delete m_renderer;
-    m_renderer = 0;
+    m_pyRenderer = renderer;
+    if (m_renderer) {
+        delete m_renderer;
+        m_renderer = 0;
+    }
 }
 
 void PyGLArea::setBefore(bool before)
@@ -71,8 +58,10 @@ void PyGLArea::setBefore(bool before)
     if (before == m_before)
         return;
     m_before = before;
-    delete m_renderer;
-    m_renderer = 0;
+    if (m_renderer) {
+        delete m_renderer;
+        m_renderer = 0;
+    }
 }
 
 void PyGLArea::setT(qreal t)
@@ -101,21 +90,21 @@ void PyGLArea::update() {
 
 void PyGLArea::sync()
 {
-    if (!m_renderer) {
-        disconnect(window(), SIGNAL(beforeRendering()), this, SLOT(paint()));
-        disconnect(window(), SIGNAL(afterRendering()), this, SLOT(paint()));
-        m_renderer = new PyGLRenderer();
-        m_renderer->setInitGL(m_initGL);
+    if (!m_renderer && !m_pyRenderer.isNull()) {
+        disconnect(window(), SIGNAL(beforeRendering()), this, SLOT(render()));
+        disconnect(window(), SIGNAL(afterRendering()), this, SLOT(render()));
+        m_renderer = new PyGLRenderer(m_pyRenderer);
+        /*m_renderer->setInitGL(m_initGL);
         m_renderer->setPaintGL(m_paintGL);
-        m_renderer->setCleanupGL(m_cleanupGL);
+        m_renderer->setCleanupGL(m_cleanupGL);*/
         if (m_before)
-            connect(window(), SIGNAL(beforeRendering()), this, SLOT(paint()), Qt::DirectConnection);
+            connect(window(), SIGNAL(beforeRendering()), this, SLOT(render()), Qt::DirectConnection);
         else
-            connect(window(), SIGNAL(afterRendering()), this, SLOT(paint()), Qt::DirectConnection);
+            connect(window(), SIGNAL(afterRendering()), this, SLOT(render()), Qt::DirectConnection);
     }
 }
 
-void PyGLArea::paint()
+void PyGLArea::render()
 {
     QPointF pos = mapToScene(QPointF(.0, .0));
     m_renderer->setRect(
@@ -125,7 +114,7 @@ void PyGLArea::paint()
         )
     );
     m_renderer->init();
-    m_renderer->paint();
+    m_renderer->render();
     window()->resetOpenGLState();
 }
 

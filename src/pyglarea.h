@@ -22,7 +22,10 @@
 #include "Python.h"
 
 #include <QString>
+#include <QVariant>
 #include <QtQuick/QQuickItem>
+
+#include "pyobject_ref.h"
 
 #include "pyglrenderer.h"
 
@@ -30,9 +33,7 @@
 class PyGLArea : public QQuickItem
 {
     Q_OBJECT
-    Q_PROPERTY(QString initGL READ initGL WRITE setInitGL)
-    Q_PROPERTY(QString paintGL READ paintGL WRITE setPaintGL)
-    Q_PROPERTY(QString cleanupGL READ cleanupGL WRITE setCleanupGL)
+    Q_PROPERTY(QVariant renderer READ renderer WRITE setRenderer)
     Q_PROPERTY(bool before READ before WRITE setBefore)
     Q_PROPERTY(qreal t READ t WRITE setT NOTIFY tChanged)
 
@@ -40,13 +41,9 @@ public:
     PyGLArea();
     ~PyGLArea();
 
-    QString initGL() const { return m_initGL; };
-    QString paintGL() const { return m_paintGL; };
-    QString cleanupGL() const { return m_paintGL; };
+    QVariant renderer() const { return m_pyRenderer; };
     bool before() { return m_before; };
-    void setInitGL(QString initGL);
-    void setPaintGL(QString paintGL);
-    void setCleanupGL(QString cleanupGL);
+    void setRenderer(QVariant renderer);
     void setBefore(bool before);
     qreal t() const { return m_t; }
     void setT(qreal t);
@@ -60,14 +57,12 @@ public slots:
 
 private slots:
     void handleWindowChanged(QQuickWindow *win);
-    void paint();
+    void render();
     void cleanup();
 
 private:
     qreal m_t;
-    QString m_initGL;
-    QString m_paintGL;
-    QString m_cleanupGL;
+    QVariant m_pyRenderer;
     bool m_before;
     PyGLRenderer *m_renderer;
 };
