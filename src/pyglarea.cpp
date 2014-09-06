@@ -51,6 +51,7 @@ void PyGLArea::setRenderer(QVariant renderer)
         delete m_renderer;
         m_renderer = 0;
     }
+    update();
 }
 
 void PyGLArea::setBefore(bool before)
@@ -62,6 +63,7 @@ void PyGLArea::setBefore(bool before)
         delete m_renderer;
         m_renderer = 0;
     }
+    update();
 }
 
 void PyGLArea::setT(qreal t)
@@ -94,9 +96,6 @@ void PyGLArea::sync()
         disconnect(window(), SIGNAL(beforeRendering()), this, SLOT(render()));
         disconnect(window(), SIGNAL(afterRendering()), this, SLOT(render()));
         m_renderer = new PyGLRenderer(m_pyRenderer);
-        /*m_renderer->setInitGL(m_initGL);
-        m_renderer->setPaintGL(m_paintGL);
-        m_renderer->setCleanupGL(m_cleanupGL);*/
         if (m_before)
             connect(window(), SIGNAL(beforeRendering()), this, SLOT(render()), Qt::DirectConnection);
         else
