@@ -41,6 +41,15 @@ QPythonWorker::process(QString func, QVariant args, QJSValue *callback)
 }
 
 void
+QPythonWorker::processMethod(QVariant obj, QString method, QVariant args, QJSValue *callback)
+{
+    QVariant result = qpython->callMethod_sync(obj, method, args);
+    if (callback) {
+        emit finished(result, callback);
+    }
+}
+
+void
 QPythonWorker::import(QString name, QJSValue *callback)
 {
     bool result = qpython->importModule_sync(name);

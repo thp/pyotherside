@@ -139,6 +139,17 @@ imported modules using:
     signal is emitted with ``traceback`` containing the exception info
     (QML API version 1.2 and newer).
 
+.. function:: callMethod(obj, string method, args=[], function callback(result) {})
+
+    Call the Python method ``method`` on object ``obj`` with ``args``
+    asynchronously.
+    If ``args`` is omitted, ``method`` will be called without arguments.
+    If ``callback`` is a callable, it will be called with the Python
+    method result as single argument when the call has succeeded.
+
+    If a JavaScript exception occurs in the callback, the :func:`error`
+    signal is emitted with ``traceback`` containing the exception info.
+
 For some of these methods, there also exist synchronous variants, but it is
 highly recommended to use the asynchronous variants instead to avoid blocking
 the QML UI thread:
@@ -154,6 +165,10 @@ the QML UI thread:
 .. function:: call_sync(string func, var args=[]) -> var
 
     Call a Python function. Returns the return value of the Python function.
+
+.. function:: callMethod_sync(obj, string method, var args=[]) -> var
+
+    Call a Python method. Returns the return value of the Python method.
 
 The following functions allow access to the version of the running PyOtherSide
 plugin and Python interpreter.

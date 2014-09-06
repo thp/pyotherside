@@ -53,6 +53,8 @@ QPython::QPython(QObject *parent, int api_version_major, int api_version_minor)
 
     QObject::connect(this, SIGNAL(process(QString,QVariant,QJSValue *)),
                      worker, SLOT(process(QString,QVariant,QJSValue *)));
+    QObject::connect(this, SIGNAL(processMethod(QVariant,QString,QVariant,QJSValue *)),
+                     worker, SLOT(processMethod(QVariant,QString,QVariant,QJSValue *)));
     QObject::connect(worker, SIGNAL(finished(QVariant,QJSValue *)),
                      this, SLOT(finished(QVariant,QJSValue *)));
 
@@ -245,40 +247,57 @@ QPython::call_sync(QString func, QVariant args)
         return QVariant();
     }
 
-    if (PyCallable_Check(callable)) {
-        QVariant v;
-
-        PyObject *argl = convertQVariantToPyObject(args);
-        if (!PyList_Check(argl)) {
-            Py_DECREF(callable);
-            Py_XDECREF(argl);
-            emit error(QString("Not a parameter list in call to %1: %2")
-                    .arg(func).arg(args.toString()));
-            priv->leave();
-            return QVariant();
-        }
-
-        PyObject *argt = PyList_AsTuple(argl);
-        Py_DECREF(argl);
-        PyObject *o = PyObject_Call(callable, argt, NULL);
-        Py_DECREF(argt);
-
-        if (o == NULL) {
-            emit error(QString("Return value of PyObject call is NULL: %1").arg(priv->formatExc()));
-        } else {
-            v = convertPyObjectToQVariant(o);
-            Py_DECREF(o);
-        }
-
-        Py_DECREF(callable);
-        priv->leave();
-        return v;
+    QVariant v;
+    QString errorMessage = priv->call(callable, func, args, &v);
+    if (!errorMessage.isNull()) {
+        emit error(errorMessage);
     }
-
-    emit error(QString("Not a callable: %1").arg(func));
     Py_DECREF(callable);
     priv->leave();
-    return QVariant();
+    return v;
+}
+
+void
+QPython::callMethod(QVariant obj, QString method, QVariant args, QJSValue callback)
+{
+    QJSValue *cb = 0;
+    if (!callback.isNull() && !callback.isUndefined() && callback.isCallable()) {
+        cb = new QJSValue(callback);
+    }
+    emit processMethod(obj, method, args, cb);
+}
+
+QVariant
+QPython::callMethod_sync(QVariant obj, QString method, QVariant args)
+{
+    priv->enter();
+    PyObject *pyobj = convertQVariantToPyObject(obj);
+
+    if (pyobj == NULL) {
+        emit error(QString("Failed to convert %1 to python object: '%1' (%2)").arg(obj.toString()).arg(priv->formatExc()));
+        priv->leave();
+        return QVariant();
+    }
+
+    QByteArray byteArray = method.toUtf8();
+    const char *methodStr = byteArray.data();
+
+    PyObject *callable = PyObject_GetAttrString(pyobj, methodStr);
+
+    if (callable == NULL) {
+        emit error(QString("Method not found: '%1' (%2)").arg(method).arg(priv->formatExc()));
+        priv->leave();
+        return QVariant();
+    }
+
+    QVariant v;
+    QString errorMessage = priv->call(callable, method, args, &v);
+    if (!errorMessage.isNull()) {
+        emit error(errorMessage);
+    }
+    Py_DECREF(callable);
+    priv->leave();
+    return v;
 }
 
 void

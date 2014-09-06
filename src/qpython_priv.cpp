@@ -410,3 +410,33 @@ QPythonPriv::importFromQRC(const char *module, const QString &filename)
 
     return QString();
 }
+
+QString
+QPythonPriv::call(PyObject *callable, QString name, QVariant args, QVariant *v)
+{
+    if (!PyCallable_Check(callable)) {
+        return QString("Not a callable: %1").arg(name);
+    }
+
+    PyObject *argl = convertQVariantToPyObject(args);
+    if (!PyList_Check(argl)) {
+        Py_XDECREF(argl);
+        return QString("Not a parameter list in call to %1: %2")
+                .arg(name).arg(args.toString());
+    }
+
+    PyObject *argt = PyList_AsTuple(argl);
+    Py_DECREF(argl);
+    PyObject *o = PyObject_Call(callable, argt, NULL);
+    Py_DECREF(argt);
+
+    if (o == NULL) {
+        return QString("Return value of PyObject call is NULL: %1").arg(priv->formatExc());
+    } else {
+        if (v != NULL) {
+            *v = convertPyObjectToQVariant(o);
+        }
+        Py_DECREF(o);
+    }
+    return QString();
+}
