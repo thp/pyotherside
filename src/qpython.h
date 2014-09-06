@@ -308,6 +308,27 @@ class QPython : public QObject {
             QString func,
             QVariant args=QVariantList());
 
+        /**
+         * \brief Get an attribute value of a Python object synchronously
+         *
+         * \code
+         * Python {
+         *     Component.onCompleted: {
+         *         importModule('datetime', function() {
+         *             call('datetime.datetime.now', [], function(dt) {
+         *                 console.log('Year: ' + getattr(dt, 'year'));
+         *             });
+         *         });
+         *     }
+         * }
+         * \endcode
+         *
+         * \arg obj The Python object
+         * \arg attr The attribute to get
+         * \result The attribute value
+         **/
+        Q_INVOKABLE QVariant
+        getattr(QVariant obj, QString attr);
 
         /**
          * \brief Get the PyOtherSide version

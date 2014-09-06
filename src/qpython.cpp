@@ -300,6 +300,34 @@ QPython::callMethod_sync(QVariant obj, QString method, QVariant args)
     return v;
 }
 
+QVariant
+QPython::getattr(QVariant obj, QString attr) {
+    priv->enter();
+    PyObject *pyobj = convertQVariantToPyObject(obj);
+
+    if (pyobj == NULL) {
+        emit error(QString("Failed to convert %1 to python object: '%1' (%2)").arg(obj.toString()).arg(priv->formatExc()));
+        priv->leave();
+        return QVariant();
+    }
+
+    QByteArray byteArray = attr.toUtf8();
+    const char *attrStr = byteArray.data();
+
+    PyObject *o = PyObject_GetAttrString(pyobj, attrStr);
+
+    if (o == NULL) {
+        emit error(QString("Attribute not found: '%1' (%2)").arg(attr).arg(priv->formatExc()));
+        priv->leave();
+        return QVariant();
+    }
+
+    QVariant v = convertPyObjectToQVariant(o);
+    Py_DECREF(o);
+    priv->leave();
+    return v;
+}
+
 void
 QPython::finished(QVariant result, QJSValue *callback)
 {

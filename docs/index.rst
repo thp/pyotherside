@@ -150,6 +150,12 @@ imported modules using:
     If a JavaScript exception occurs in the callback, the :func:`error`
     signal is emitted with ``traceback`` containing the exception info.
 
+Attributes on Python objects can be accessed using :func:`getattr`:
+
+.. function:: getattr(obj, string attr) -> var
+
+    Get the attribute ``attr`` of the Python object ``obj``.
+
 For some of these methods, there also exist synchronous variants, but it is
 highly recommended to use the asynchronous variants instead to avoid blocking
 the QML UI thread:
