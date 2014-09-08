@@ -525,6 +525,40 @@ deleted (there's no way for PyOtherSide to prevent referenced QObjects from
 being deleted, but PyOtherSide tries hard to detect the deletion of objects
 and give meaningful error messages in case the reference is accessed).
 
+OpenGL rendering in Python
+==========================
+
+You can render directly to a QML application's OpenGL context in your Python
+code (i.e. via PyOpenGL or vispy.gloo) by using a ``PyGLArea`` item with the
+following properties:
+
+**before**
+    Whether to draw the ``PyGLArea`` before (under) or after (over) the scene.
+    Defaults to ``false``.
+
+**renderer**
+    Reference to a python object providing the ``IRenderer`` interface:
+
+.. function:: IRenderer.init()
+
+    Initialize OpenGL resources required for rendering.
+    This method is optional.
+
+.. function:: IRenderer.render(x, y, width, height)
+
+    Render within the given area.
+    It is the renderer's responsibility to confine itself to that area.
+    Also, it must unbind any used resources to leave the context in a clean
+    state.
+
+    ``(x, y)`` is the position of the bottom left corner of the area, in
+    window coordinates, e.g. (0, 0) is the bottom left corner of the window.
+
+.. function:: IRenderer.cleanup()
+
+    Free any resources allocated by :func:`IRenderer.init`.
+    This method is optional.
+
 
 Cookbook
 ========
@@ -864,17 +898,94 @@ This module can now be imported in QML and used as ``source`` in the QML
         }
     }
 
-OpenGL rendering in Python
-==========================
+Rendering with PyOpenGL
+-----------------------
 
-You can render directly to Qt's OpenGL context in your Python code (i.e. via
-PyOpenGL or vispy.gloo) using a ``PyGLArea`` item and supplying a ``renderer``
-which must provide a ``render()`` method and may optionally provide ``init()``
-and ``cleanup()`` methods.
-The ``before`` property controls whether to render before or after the QML
-scene is rendered.
+The example below shows how to do raw OpenGL rendering in PyOpenGL using a
+PyGLArea. It has been adapted from the tutorial in the Qt documentation at
+http://qt-project.org/doc/qt-5/qtquick-scenegraph-openglunderqml-example.html.
 
-**rendergl.qml**
+**pyglarea.py**
+
+.. code-block:: python
+
+    import numpy
+
+    from OpenGL.GL import *
+    from OpenGL.GL.shaders import compileShader, compileProgram
+
+    VERTEX_SHADER = """#version 130
+    attribute highp vec4 vertices;
+    varying highp vec2 coords;
+
+    void main() {
+        gl_Position = vertices;
+        coords = vertices.xy;
+    }
+    """
+
+    FRAGMENT_SHADER = """#version 130
+    uniform lowp float t;
+    varying highp vec2 coords;
+    void main() {
+        lowp float i = 1. - (pow(abs(coords.x), 4.) + pow(abs(coords.y), 4.));
+        i = smoothstep(t - 0.8, t + 0.8, i);
+        i = floor(i * 20.) / 20.;
+        gl_FragColor = vec4(coords * .5 + .5, i, i);
+    }
+    """
+
+    class Renderer(object):
+
+        def __init__(self):
+            self.t = 0.0
+            self.values = numpy.array([
+                -1.0, -1.0,
+                1.0, -1.0,
+                -1.0, 1.0,
+                1.0, 1.0
+            ], dtype=numpy.float32)
+
+        def set_t(self, t):
+            self.t = t
+
+        def init(self):
+            self.vertexbuffer = glGenBuffers(1)
+            vertex_shader = compileShader(VERTEX_SHADER, GL_VERTEX_SHADER)
+            fragment_shader = compileShader(FRAGMENT_SHADER, GL_FRAGMENT_SHADER)
+            self.program = compileProgram(vertex_shader, fragment_shader)
+            self.vertices_attr = glGetAttribLocation(self.program, b'vertices')
+            self.t_attr = glGetUniformLocation(self.program, b't')
+
+        def render(self, x, y, width, height):
+            glMatrixMode(GL_PROJECTION)
+            glLoadIdentity()
+            glViewport(x, y, width, height)
+            glUseProgram(self.program)
+            try:
+                glDisable(GL_DEPTH_TEST)
+                glClearColor(0, 0, 0, 1)
+                glClear(GL_COLOR_BUFFER_BIT)
+                glEnable(GL_BLEND)
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE)
+
+                glBindBuffer(GL_ARRAY_BUFFER, self.vertexbuffer)
+                glEnableVertexAttribArray(self.vertices_attr)
+                glBufferData(GL_ARRAY_BUFFER, self.values, GL_STATIC_DRAW)
+                glVertexAttribPointer(self.vertices_attr, 2, GL_FLOAT, GL_FALSE, 0, None)
+                glUniform1f(self.t_attr, self.t)
+
+                glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
+            finally:
+                glDisableVertexAttribArray(0)
+                glBindBuffer(GL_ARRAY_BUFFER, 0)
+                glUseProgram(0)
+
+        def cleanup(self):
+            glDeleteProgram(self.program)
+            glDeleteBuffers(1, [self.vertexbuffer])
+
+**pyglarea.qml**
 
 .. code-block:: javascript
 
@@ -882,52 +993,65 @@ scene is rendered.
     import io.thp.pyotherside 1.3
 
     Item {
-        width: 800
-        height: 600
+        width: 320
+        height: 480
 
         PyGLArea {
             id: glArea
             anchors.fill: parent
             before: true
+            property var t: 0
+
+            SequentialAnimation on t {
+                NumberAnimation { to: 1; duration: 2500; easing.type: Easing.InQuad }
+                NumberAnimation { to: 0; duration: 2500; easing.type: Easing.OutQuad }
+                loops: Animation.Infinite
+                running: true
+            }
+
+            onTChanged: {
+                if (renderer) {
+                    py.callMethod(renderer, 'set_t', [t], update);
+                }
+            }
+        }
+
+        Rectangle {
+            color: Qt.rgba(1, 1, 1, 0.7)
+            radius: 10
+            border.width: 1
+            border.color: "white"
+            anchors.fill: label
+            anchors.margins: -10
         }
 
         Text {
-            x: 100
-            y: 100
-            text: "Hello World!"
+            id: label
+            color: "black"
+            wrapMode: Text.WordWrap
+            text: "The background here is a squircle rendered with raw OpenGL using a PyGLArea. This text label and its border is rendered using QML"
+            anchors.right: parent.right
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+            anchors.margins: 20
         }
 
         Python {
+            id: py
+
             Component.onCompleted: {
-            importModule('myrenderer', function () {
-                call('myrenderer.Renderer', [], function (renderer) {
-                    glArea.renderer = renderer;
+                addImportPath(Qt.resolvedUrl('.'));
+                importModule('pyglarea', function () {
+                    call('pyglarea.Renderer', [], function (renderer) {
+                        glArea.renderer = renderer;
+                    });
                 });
-            });
+            }
+
+            onError: console.log(traceback);
         }
     }
 
-**myrenderer.py**
-
-.. code-block:: python
-
-    class Renderer(object):
-
-        def init(self):
-            """Initialize OpenGL stuff like textures, FBOs etc..."""
-
-        def render(self, x, y, width, height):
-            """
-            Render to the OpenGL context.
-
-            (x, y, width, height) indicates the area to render on.
-
-            The coordinate system's origin is at the bottom left corner of the
-            window.
-            """
-
-        def cleanup(self):
-            """Clean up OpenGL stuff initialized in initGL()."""
 
 Building PyOtherSide
 ====================
