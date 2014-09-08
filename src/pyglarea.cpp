@@ -27,8 +27,7 @@
 
 
 PyGLArea::PyGLArea()
-    : m_t(0)
-    , m_before(false)
+    : m_before(false)
     , m_renderer(0)
 {
     connect(this, SIGNAL(windowChanged(QQuickWindow*)), this, SLOT(handleWindowChanged(QQuickWindow*)));
@@ -64,14 +63,6 @@ void PyGLArea::setBefore(bool before)
         m_renderer = 0;
     }
     update();
-}
-
-void PyGLArea::setT(qreal t)
-{
-    if (t == m_t)
-        return;
-    m_t = t;
-    emit tChanged();
 }
 
 void PyGLArea::handleWindowChanged(QQuickWindow *win)

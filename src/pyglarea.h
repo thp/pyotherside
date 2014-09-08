@@ -35,7 +35,6 @@ class PyGLArea : public QQuickItem
     Q_OBJECT
     Q_PROPERTY(QVariant renderer READ renderer WRITE setRenderer)
     Q_PROPERTY(bool before READ before WRITE setBefore)
-    Q_PROPERTY(qreal t READ t WRITE setT NOTIFY tChanged)
 
 public:
     PyGLArea();
@@ -45,11 +44,6 @@ public:
     bool before() { return m_before; };
     void setRenderer(QVariant renderer);
     void setBefore(bool before);
-    qreal t() const { return m_t; }
-    void setT(qreal t);
-
-signals:
-    void tChanged();
 
 public slots:
     void sync();
@@ -61,7 +55,6 @@ private slots:
     void cleanup();
 
 private:
-    qreal m_t;
     QVariant m_pyRenderer;
     bool m_before;
     PyGLRenderer *m_renderer;
