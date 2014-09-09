@@ -70,9 +70,6 @@ void PyGLArea::handleWindowChanged(QQuickWindow *win)
     if (win) {
         connect(win, SIGNAL(beforeSynchronizing()), this, SLOT(sync()), Qt::DirectConnection);
         connect(win, SIGNAL(sceneGraphInvalidated()), this, SLOT(cleanup()), Qt::DirectConnection);
-        // If we allow QML to do the clearing, they would clear what we paint
-        // and nothing would show.
-        win->setClearBeforeRendering(false);
     }
 }
 
@@ -87,10 +84,15 @@ void PyGLArea::sync()
         disconnect(window(), SIGNAL(beforeRendering()), this, SLOT(render()));
         disconnect(window(), SIGNAL(afterRendering()), this, SLOT(render()));
         m_renderer = new PyGLRenderer(m_pyRenderer);
-        if (m_before)
+        if (m_before) {
+            // If we allow QML to do the clearing, they would clear what we paint
+            // and nothing would show.
+            window()->setClearBeforeRendering(false);
             connect(window(), SIGNAL(beforeRendering()), this, SLOT(render()), Qt::DirectConnection);
-        else
+        } else {
+            window()->setClearBeforeRendering(true);
             connect(window(), SIGNAL(afterRendering()), this, SLOT(render()), Qt::DirectConnection);
+        }
     }
 }
 
