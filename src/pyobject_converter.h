@@ -32,6 +32,7 @@ class PyObjectListBuilder : public ListBuilder<PyObject *> {
 
         virtual void append(PyObject *o) {
             PyList_Append(list, o);
+            Py_DECREF(o);
         }
 
         virtual PyObject * value() {
