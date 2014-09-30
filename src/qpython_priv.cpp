@@ -202,7 +202,6 @@ QPythonPriv::QPythonPriv()
     , atexit_callback(NULL)
     , image_provider(NULL)
     , traceback_mod(NULL)
-    , mutex()
 {
     PyImport_AppendInittab("pyotherside", PyOtherSide_init);
 
@@ -225,10 +224,6 @@ QPythonPriv::QPythonPriv()
                 PyEval_GetBuiltins());
     }
 
-    // Need to lock mutex here, as it will always be unlocked
-    // by leave(). If we don't do that, it will be unlocked
-    // once too often resulting in undefined behavior.
-    mutex.lock();
     leave();
 }
 
@@ -244,7 +239,6 @@ QPythonPriv::~QPythonPriv()
 void
 QPythonPriv::enter()
 {
-    mutex.lock();
     gil_state = PyGILState_Ensure();
 }
 
@@ -252,7 +246,6 @@ void
 QPythonPriv::leave()
 {
     PyGILState_Release(gil_state);
-    mutex.unlock();
 }
 
 void

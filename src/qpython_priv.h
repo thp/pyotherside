@@ -24,7 +24,6 @@
 #include <QObject>
 #include <QVariant>
 #include <QString>
-#include <QMutex>
 
 class QPythonPriv : public QObject {
     Q_OBJECT
@@ -52,8 +51,6 @@ class QPythonPriv : public QObject {
         PyObject *atexit_callback;
         PyObject *image_provider;
         PyObject *traceback_mod;
-
-        QMutex mutex;
 
     signals:
         void receive(QVariant data);
