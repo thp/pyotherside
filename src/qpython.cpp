@@ -286,6 +286,7 @@ QPython::callMethod_sync(QVariant obj, QString method, QVariant args)
 
     if (callable == NULL) {
         emit error(QString("Method not found: '%1' (%2)").arg(method).arg(priv->formatExc()));
+        Py_DECREF(pyobj);
         priv->leave();
         return QVariant();
     }
@@ -296,6 +297,7 @@ QPython::callMethod_sync(QVariant obj, QString method, QVariant args)
         emit error(errorMessage);
     }
     Py_DECREF(callable);
+    Py_DECREF(pyobj);
     priv->leave();
     return v;
 }
@@ -318,12 +320,14 @@ QPython::getattr(QVariant obj, QString attr) {
 
     if (o == NULL) {
         emit error(QString("Attribute not found: '%1' (%2)").arg(attr).arg(priv->formatExc()));
+        Py_DECREF(pyobj);
         priv->leave();
         return QVariant();
     }
 
     QVariant v = convertPyObjectToQVariant(o);
     Py_DECREF(o);
+    Py_DECREF(pyobj);
     priv->leave();
     return v;
 }
