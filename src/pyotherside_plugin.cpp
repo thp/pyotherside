@@ -19,6 +19,7 @@
 #include "qpython_priv.h"
 #include "qpython.h"
 #include "pyglarea.h"
+#include "pyfbo.h"
 #include "qpython_imageprovider.h"
 #include "global_libpython_loader.h"
 #include "pythonlib_loader.h"
@@ -68,4 +69,5 @@ PyOtherSideExtensionPlugin::registerTypes(const char *uri)
     qmlRegisterType<QPython13>(uri, 1, 3, PYOTHERSIDE_QPYTHON_NAME);
     qmlRegisterType<QPython14>(uri, 1, 4, PYOTHERSIDE_QPYTHON_NAME);
     qmlRegisterType<PyGLArea>(uri, 1, 5, PYOTHERSIDE_QPYGLAREA_NAME);
+    qmlRegisterType<PyFbo>(uri, 1, 5, PYOTHERSIDE_PYFBO_NAME);
 }

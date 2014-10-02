@@ -31,7 +31,7 @@ class PyGLRenderer : public QObject {
     Q_OBJECT
 
 public:
-    PyGLRenderer(QVariant pyRenderer);
+    PyGLRenderer(QVariant pyRenderer, bool useRect=true);
     ~PyGLRenderer();
 
     void init();
@@ -46,6 +46,7 @@ private:
     PyObject *m_pyRendererObject;
     PyObject *m_renderMethod;
     bool m_initialized;
+    bool m_useRect;
 
     PyObject *getPyRendererObject();
     PyObject *getRenderMethod();

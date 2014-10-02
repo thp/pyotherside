@@ -25,12 +25,13 @@
 #include <QMetaType>
 
 
-PyGLRenderer::PyGLRenderer(QVariant pyRenderer)
+PyGLRenderer::PyGLRenderer(QVariant pyRenderer, bool useRect)
     : m_pyRendererObject(0)
     , m_renderMethod(0)
     , m_initialized(false)
 {
     m_pyRenderer = pyRenderer;
+    m_useRect = useRect;
 }
 
 PyGLRenderer::~PyGLRenderer()
@@ -105,24 +106,31 @@ void PyGLRenderer::render()
         return;
     }
 
-    // Call the paintGL callback with arguments x, y, width, height.
-    // These are the boundaries in which the callback should render,
-    // though it may choose to ignore them and simply paint anywhere over
-    // (or below) the QML scene.
-    // (x, y) is the bottom left corner.
-    // (x + width, y + height) is the top right corner.
-    PyObject *x = PyLong_FromLong(m_rect.x());
-    PyObject *y = PyLong_FromLong(m_rect.y());
-    PyObject *width = PyLong_FromLong(m_rect.width());
-    PyObject *height = PyLong_FromLong(m_rect.height());
-    PyObject *args = PyTuple_Pack(4, x, y, width, height);
-    PyObject *o = PyObject_Call(renderMethod, args, NULL);
+    PyObject *o = NULL;
+    if (m_useRect) {
+        // Call the paintGL callback with arguments x, y, width, height.
+        // These are the boundaries in which the callback should render,
+        // though it may choose to ignore them and simply paint anywhere over
+        // (or below) the QML scene.
+        // (x, y) is the bottom left corner.
+        // (x + width, y + height) is the top right corner.
+        PyObject *x = PyLong_FromLong(m_rect.x());
+        PyObject *y = PyLong_FromLong(m_rect.y());
+        PyObject *width = PyLong_FromLong(m_rect.width());
+        PyObject *height = PyLong_FromLong(m_rect.height());
+        PyObject *args = PyTuple_Pack(4, x, y, width, height);
+        o = PyObject_Call(renderMethod, args, NULL);
+        Py_DECREF(x);
+        Py_DECREF(y);
+        Py_DECREF(width);
+        Py_DECREF(height);
+        Py_DECREF(args);
+    } else {
+        PyObject *args = PyTuple_New(0);
+        o = PyObject_Call(renderMethod, args, NULL);
+        Py_DECREF(args);
+    }
     if (o) Py_DECREF(o); else PyErr_PrintEx(0);
-    Py_DECREF(x);
-    Py_DECREF(y);
-    Py_DECREF(width);
-    Py_DECREF(height);
-    Py_DECREF(args);
     priv->leave();
 }
 

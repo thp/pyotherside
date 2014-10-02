@@ -32,6 +32,10 @@ HEADERS += qpython_imageprovider.h
 SOURCES += pyglarea.cpp pyglrenderer.cpp
 HEADERS += pyglarea.h pyglrenderer.h
 
+# PyGLFbo
+SOURCES += pyfbo.cpp
+HEADERS += pyfbo.h
+
 # Importer from Qt Resources
 RESOURCES += qrc_importer.qrc
 
