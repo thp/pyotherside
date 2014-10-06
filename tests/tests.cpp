@@ -103,6 +103,46 @@ test_converter_for(Converter<V> *conv)
     delete conv;
 }
 
+void destruct(PyObject *obj) {
+    bool *destructor_called = (bool *)PyCapsule_GetPointer(obj, "test");
+    *destructor_called = true;
+}
+
+void
+TestPyOtherSide::testPyObjectRefRoundTrip()
+{
+    // Simulate a complete round-trip of a PyObject reference, from PyOtherSide
+    // to QML and back.
+
+    // Create a Python object, i.e. in a Python function.
+    bool destructor_called = false;
+    PyObject *o = PyCapsule_New(&destructor_called, "test", destruct);
+    QVERIFY(o->ob_refcnt == 1);
+
+    // Convert the object to a QVariant and increment its refcount.
+    QVariant v = convertPyObjectToQVariant(o);
+
+    // Decrement refcount and pass QVariant to QML.
+    Py_DECREF(o);
+    QVERIFY(o->ob_refcnt == 1);
+
+    // Pass QVariant back to PyOtherSide, which converts it to a PyObject,
+    // incrementing its refcount.
+    PyObject *o2 = convertQVariantToPyObject(v);
+    QVERIFY(o->ob_refcnt == 2);
+
+    // Do something with the object, then decrement its refcount.
+    Py_DECREF(o2);
+    QVERIFY(o->ob_refcnt == 1);
+
+    // The QVariant is deleted, i.e. by a JS variable falling out of scope.
+    // This deletes the PyObjectRef and thus decrements the object's refcount.
+    v = QVariant();
+
+    // There are no references left, so the capsule's destructor is called.
+    QVERIFY(destructor_called);
+}
+
 void
 TestPyOtherSide::testQVariantConverter()
 {

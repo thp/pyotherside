@@ -34,6 +34,7 @@ class TestPyOtherSide : public QObject {
         void testEvaluate();
         void testQVariantConverter();
         void testPyObjectConverter();
+        void testPyObjectRefRoundTrip();
         void testConvertToPythonAndBack();
         void testSetToList();
 };
