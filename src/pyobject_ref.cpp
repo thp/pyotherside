@@ -55,3 +55,7 @@ PyObject *PyObjectRef::newRef() const {
     Py_XINCREF(pyobject);
     return pyobject;
 }
+
+PyObject *PyObjectRef::getPyObject() const {
+    return pyobject;
+}

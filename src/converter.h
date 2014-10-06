@@ -117,7 +117,7 @@ class Converter {
         virtual ConverterDate date(V&) = 0;
         virtual ConverterTime time(V&) = 0;
         virtual ConverterDateTime dateTime(V&) = 0;
-        // `pyObject` must return a new reference to the object.
+        // `pyObject` must keep the object's reference count constant.
         virtual PyObject *pyObject(V&) = 0;
 
         virtual V fromInteger(long long v) = 0;
@@ -127,7 +127,7 @@ class Converter {
         virtual V fromDate(ConverterDate date) = 0;
         virtual V fromTime(ConverterTime time) = 0;
         virtual V fromDateTime(ConverterDateTime dateTime) = 0;
-        // `fromPyObject` must keep the object's reference count constant.
+        // `fromPyObject` must return a new reference to the object.
         virtual V fromPyObject(PyObject *pyobj) = 0;
         virtual ListBuilder<V> *newList() = 0;
         virtual DictBuilder<V> *newDict() = 0;

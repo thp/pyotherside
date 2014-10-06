@@ -194,7 +194,7 @@ class QVariantConverter : public Converter<QVariant> {
         }
 
         virtual PyObject *pyObject(QVariant &v) {
-            return v.value<PyObjectRef>().newRef();
+            return v.value<PyObjectRef>().getPyObject();
         }
 
         virtual ListBuilder<QVariant> *newList() {
@@ -217,11 +217,7 @@ class QVariantConverter : public Converter<QVariant> {
             return QVariant(QDateTime(d, t));
         }
         virtual QVariant fromPyObject(PyObject *pyobj) {
-            QVariant v = QVariant::fromValue(PyObjectRef(pyobj));
-            // We consume the reference that was passed, mirroring
-            // PyObjectConverter::pyObject.
-            Py_CLEAR(pyobj);
-            return v;
+            return QVariant::fromValue(PyObjectRef(pyobj));
         }
         virtual QVariant none() { return QVariant(); };
 

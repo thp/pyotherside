@@ -29,6 +29,7 @@ class PyObjectRef {
         PyObjectRef(const PyObjectRef &other);
         virtual ~PyObjectRef();
         PyObject *newRef() const;
+        PyObject *getPyObject() const;
     private:
         PyObject *pyobject;
 };
