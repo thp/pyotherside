@@ -1,7 +1,8 @@
 
 /**
  * PyOtherSide: Asynchronous Python 3 Bindings for Qt 5
- * Copyright (c) 2011, 2013, Thomas Perl <m@thp.io>
+ * Copyright (c) 2014, Felix Krull <f_krull@gmx.de>
+ * Copyright (c) 2014, Thomas Perl <m@thp.io>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,28 +17,16 @@
  * PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef PYOTHERSIDE_TESTS_H
-#define PYOTHERSIDE_TESTS_H
+#include "Python.h"
 
-#include <QtTest>
-
-#include <QObject>
-#include <QDebug>
-
-class TestPyOtherSide : public QObject {
-    Q_OBJECT
-
+class EnsureGILState {
     public:
-        TestPyOtherSide();
+        EnsureGILState() : gil_state(PyGILState_Ensure()) { }
+        ~EnsureGILState() { PyGILState_Release(gil_state); }
 
-    private slots:
-        void testEvaluate();
-        void testQVariantConverter();
-        void testPyObjectConverter();
-        void testPyObjectRefRoundTrip();
-        void testPyObjectRefAssignment();
-        void testConvertToPythonAndBack();
-        void testSetToList();
+    private:
+        PyGILState_STATE gil_state;
 };
 
-#endif /* PYOTHERSIDE_TESTS_H */
+#define ENSURE_GIL_STATE EnsureGILState _ensure; Q_UNUSED(_ensure)
+

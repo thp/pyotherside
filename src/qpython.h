@@ -19,6 +19,8 @@
 #ifndef PYOTHERSIDE_QPYTHON_H
 #define PYOTHERSIDE_QPYTHON_H
 
+#include "Python.h"
+
 #include <QVariant>
 #include <QObject>
 #include <QString>
@@ -240,6 +242,95 @@ class QPython : public QObject {
 
 
         /**
+         * \brief Asynchronously call a Python method
+         *
+         * Call a method of a Python object asynchronously and call back
+         * into QML when the result is available:
+         *
+         * \code
+         * Python {
+         *     Component.onCompleted: {
+         *         importModule('datetime', function() {
+         *             call('datetime.datetime.now', [], function(dt) {
+         *                 console.log(dt);
+         *                 callMethod(dt, 'strftime', ['%Y-%m-%d'], function(result) {
+         *                     console.log(result);
+         *                 });
+         *             });
+         *         });
+         *     }
+         * }
+         * \endcode
+         *
+         * \arg obj The Python object
+         * \arg method The method to call
+         * \arg args A list of arguments, or \c [] for no arguments
+         * \arg callback A callback that receives the function call result
+         **/
+        Q_INVOKABLE void
+        callMethod(
+            QVariant obj,
+            QString func,
+            QVariant args=QVariantList(),
+            QJSValue callback=QJSValue());
+
+
+        /**
+         * \brief Synchronously call a Python method
+         *
+         * This is the synchronous variant of callMethod(). In general, you
+         * should use callMethod() instead of this function to avoid blocking
+         * the QML UI thread. Example usage:
+         *
+         * \code
+         * Python {
+         *     Component.onCompleted: {
+         *         importModule('datetime', function() {
+         *             call('datetime.datetime.now', [], function(dt) {
+         *                 console.log(dt);
+         *                 console.log(
+         *                     callMethod_sync(dt, 'strftime', ['%Y-%m-%d'])
+         *                 );
+         *             });
+         *         });
+         *     }
+         * }
+         * \endcode
+         *
+         * \arg obj The Python object
+         * \arg method The method to call
+         * \arg args A list of arguments, or \c [] for no arguments
+         * \result The return value of the Python call as Qt data type
+         **/
+        Q_INVOKABLE QVariant
+        callMethod_sync(
+            QVariant obj,
+            QString func,
+            QVariant args=QVariantList());
+
+        /**
+         * \brief Get an attribute value of a Python object synchronously
+         *
+         * \code
+         * Python {
+         *     Component.onCompleted: {
+         *         importModule('datetime', function() {
+         *             call('datetime.datetime.now', [], function(dt) {
+         *                 console.log('Year: ' + getattr(dt, 'year'));
+         *             });
+         *         });
+         *     }
+         * }
+         * \endcode
+         *
+         * \arg obj The Python object
+         * \arg attr The attribute to get
+         * \result The attribute value
+         **/
+        Q_INVOKABLE QVariant
+        getattr(QVariant obj, QString attr);
+
+        /**
          * \brief Get the PyOtherSide version
          *
          * \result The running version of PyOtherSide
@@ -280,6 +371,7 @@ class QPython : public QObject {
 
         /* For internal use only */
         void process(QString func, QVariant args, QJSValue *callback);
+        void processMethod(QVariant obj, QString method, QVariant args, QJSValue *callback);
         void import(QString name, QJSValue *callback);
 
     private slots:
@@ -322,6 +414,15 @@ Q_OBJECT
 public:
     QPython13(QObject *parent=0)
         : QPython(parent, 1, 3)
+    {
+    }
+};
+
+class QPython14 : public QPython {
+Q_OBJECT
+public:
+    QPython14(QObject *parent=0)
+        : QPython(parent, 1, 4)
     {
     }
 };

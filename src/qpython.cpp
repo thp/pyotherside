@@ -22,6 +22,8 @@
 #include "qpython_priv.h"
 #include "qpython_worker.h"
 
+#include "ensure_gil_state.h"
+
 #include <QDebug>
 
 #include <QJSEngine>
@@ -53,6 +55,8 @@ QPython::QPython(QObject *parent, int api_version_major, int api_version_minor)
 
     QObject::connect(this, SIGNAL(process(QString,QVariant,QJSValue *)),
                      worker, SLOT(process(QString,QVariant,QJSValue *)));
+    QObject::connect(this, SIGNAL(processMethod(QVariant,QString,QVariant,QJSValue *)),
+                     worker, SLOT(processMethod(QVariant,QString,QVariant,QJSValue *)));
     QObject::connect(worker, SIGNAL(finished(QVariant,QJSValue *)),
                      this, SLOT(finished(QVariant,QJSValue *)));
 
@@ -76,7 +80,7 @@ QPython::~QPython()
 void
 QPython::addImportPath(QString path)
 {
-    priv->enter();
+    ENSURE_GIL_STATE;
 
     // Strip leading "file://" (for use with Qt.resolvedUrl())
     if (path.startsWith("file://")) {
@@ -105,7 +109,6 @@ QPython::addImportPath(QString path)
     PyObject *cwd = PyUnicode_FromString(utf8bytes.constData());
     PyList_Insert(sys_path, 0, cwd);
     Py_DECREF(cwd);
-    priv->leave();
 }
 
 void
@@ -128,7 +131,7 @@ QPython::importModule_sync(QString name)
     QByteArray utf8bytes = name.toUtf8();
     const char *moduleName = utf8bytes.constData();
 
-    priv->enter();
+    ENSURE_GIL_STATE;
 
     bool use_api_10 = (api_version_major == 1 && api_version_minor == 0);
 
@@ -146,7 +149,6 @@ QPython::importModule_sync(QString name)
 
     if (module == NULL) {
         emit error(QString("Cannot import module: %1 (%2)").arg(name).arg(priv->formatExc()));
-        priv->leave();
         return false;
     }
 
@@ -162,7 +164,6 @@ QPython::importModule_sync(QString name)
 
     PyDict_SetItemString(priv->globals, moduleName, module);
     Py_CLEAR(module);
-    priv->leave();
     return true;
 }
 
@@ -209,17 +210,16 @@ QPython::setHandler(QString event, QJSValue callback)
 QVariant
 QPython::evaluate(QString expr)
 {
-    priv->enter();
+    ENSURE_GIL_STATE;
+
     PyObject *o = priv->eval(expr);
     if (o == NULL) {
         emit error(QString("Cannot evaluate '%1' (%2)").arg(expr).arg(priv->formatExc()));
-        priv->leave();
         return QVariant();
     }
 
     QVariant v = convertPyObjectToQVariant(o);
     Py_DECREF(o);
-    priv->leave();
     return v;
 }
 
@@ -236,49 +236,108 @@ QPython::call(QString func, QVariant args, QJSValue callback)
 QVariant
 QPython::call_sync(QString func, QVariant args)
 {
-    priv->enter();
+    ENSURE_GIL_STATE;
+
     PyObject *callable = priv->eval(func);
 
     if (callable == NULL) {
         emit error(QString("Function not found: '%1' (%2)").arg(func).arg(priv->formatExc()));
-        priv->leave();
         return QVariant();
     }
 
-    if (PyCallable_Check(callable)) {
-        QVariant v;
+    QVariant v;
+    QString errorMessage = priv->call(callable, func, args, &v);
+    if (!errorMessage.isNull()) {
+        emit error(errorMessage);
+    }
+    Py_DECREF(callable);
+    return v;
+}
 
-        PyObject *argl = convertQVariantToPyObject(args);
-        if (!PyList_Check(argl)) {
-            Py_DECREF(callable);
-            Py_XDECREF(argl);
-            emit error(QString("Not a parameter list in call to %1: %2")
-                    .arg(func).arg(args.toString()));
-            priv->leave();
-            return QVariant();
-        }
-
-        PyObject *argt = PyList_AsTuple(argl);
-        Py_DECREF(argl);
-        PyObject *o = PyObject_Call(callable, argt, NULL);
-        Py_DECREF(argt);
-
-        if (o == NULL) {
-            emit error(QString("Return value of PyObject call is NULL: %1").arg(priv->formatExc()));
-        } else {
-            v = convertPyObjectToQVariant(o);
-            Py_DECREF(o);
-        }
-
-        Py_DECREF(callable);
-        priv->leave();
-        return v;
+void
+QPython::callMethod(QVariant obj, QString method, QVariant args, QJSValue callback)
+{
+    if (!SINCE_API_VERSION(1, 4)) {
+        emit error(QString("Import PyOtherSide 1.4 or newer to use callMethod()"));
+        return;
     }
 
-    emit error(QString("Not a callable: %1").arg(func));
+    QJSValue *cb = 0;
+    if (!callback.isNull() && !callback.isUndefined() && callback.isCallable()) {
+        cb = new QJSValue(callback);
+    }
+    emit processMethod(obj, method, args, cb);
+}
+
+QVariant
+QPython::callMethod_sync(QVariant obj, QString method, QVariant args)
+{
+    if (!SINCE_API_VERSION(1, 4)) {
+        emit error(QString("Import PyOtherSide 1.4 or newer to use callMethod_sync()"));
+        return QVariant();
+    }
+
+    ENSURE_GIL_STATE;
+
+    PyObject *pyobj = convertQVariantToPyObject(obj);
+
+    if (pyobj == NULL) {
+        emit error(QString("Failed to convert %1 to python object: '%1' (%2)").arg(obj.toString()).arg(priv->formatExc()));
+        return QVariant();
+    }
+
+    QByteArray byteArray = method.toUtf8();
+    const char *methodStr = byteArray.data();
+
+    PyObject *callable = PyObject_GetAttrString(pyobj, methodStr);
+
+    if (callable == NULL) {
+        emit error(QString("Method not found: '%1' (%2)").arg(method).arg(priv->formatExc()));
+        Py_DECREF(pyobj);
+        return QVariant();
+    }
+
+    QVariant v;
+    QString errorMessage = priv->call(callable, method, args, &v);
+    if (!errorMessage.isNull()) {
+        emit error(errorMessage);
+    }
     Py_DECREF(callable);
-    priv->leave();
-    return QVariant();
+    Py_DECREF(pyobj);
+    return v;
+}
+
+QVariant
+QPython::getattr(QVariant obj, QString attr) {
+    if (!SINCE_API_VERSION(1, 4)) {
+        emit error(QString("Import PyOtherSide 1.4 or newer to use getattr()"));
+        return QVariant();
+    }
+
+    ENSURE_GIL_STATE;
+
+    PyObject *pyobj = convertQVariantToPyObject(obj);
+
+    if (pyobj == NULL) {
+        emit error(QString("Failed to convert %1 to python object: '%1' (%2)").arg(obj.toString()).arg(priv->formatExc()));
+        return QVariant();
+    }
+
+    QByteArray byteArray = attr.toUtf8();
+    const char *attrStr = byteArray.data();
+
+    PyObject *o = PyObject_GetAttrString(pyobj, attrStr);
+
+    if (o == NULL) {
+        emit error(QString("Attribute not found: '%1' (%2)").arg(attr).arg(priv->formatExc()));
+        Py_DECREF(pyobj);
+        return QVariant();
+    }
+
+    QVariant v = convertPyObjectToQVariant(o);
+    Py_DECREF(o);
+    Py_DECREF(pyobj);
+    return v;
 }
 
 void

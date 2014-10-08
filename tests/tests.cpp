@@ -93,7 +93,133 @@ test_converter_for(Converter<V> *conv)
     QVERIFY(conv->boolean(x) == true);
     delete iterator2;
 
+    /* Convert from/to generic PyObject */
+    PyObject *obj = PyCapsule_New(conv, "test", NULL);
+    v = conv->fromPyObject(PyObjectRef(obj));
+    QVERIFY(conv->type(v) == Converter<V>::PYOBJECT);
+
+    // Check if getting a new reference works
+    PyObject *o = conv->pyObject(v).newRef();
+    QVERIFY(o == obj);
+    Py_DECREF(o);
+
+    Py_CLEAR(obj);
+
     delete conv;
+}
+
+void destruct(PyObject *obj) {
+    bool *destructor_called = (bool *)PyCapsule_GetPointer(obj, "test");
+    *destructor_called = true;
+}
+
+void TestPyOtherSide::testPyObjectRefAssignment()
+{
+    // Test assignment operator of PyObjectRef
+    bool destructor_called_foo = false;
+    PyObject *foo = PyCapsule_New(&destructor_called_foo, "test", destruct);
+
+    bool destructor_called_bar = false;
+    PyObject *bar = PyCapsule_New(&destructor_called_bar, "test", destruct);
+
+    QVERIFY(foo);
+    QVERIFY(foo->ob_refcnt == 1);
+
+    QVERIFY(bar);
+    QVERIFY(bar->ob_refcnt == 1);
+
+    {
+        PyObjectRef a(foo);
+        PyObjectRef b(bar);
+        PyObjectRef c; // empty
+
+        // foo got a new reference in a
+        QVERIFY(foo->ob_refcnt == 2);
+        // bar got a new reference in b
+        QVERIFY(bar->ob_refcnt == 2);
+
+        // Overwrite empty reference with reference to bar
+        c = b;
+        // bar got a new reference in c
+        QVERIFY(bar->ob_refcnt == 3);
+        // reference count for foo is unchanged
+        QVERIFY(foo->ob_refcnt == 2);
+
+        // Overwrite reference to bar with reference to foo
+        b = a;
+        // bar lost a reference in b
+        QVERIFY(bar->ob_refcnt == 2);
+        // foo got a new reference in b
+        QVERIFY(foo->ob_refcnt == 3);
+
+        // Overwrite reference to foo with empty reference
+        a = PyObjectRef();
+        // foo lost a reference in a
+        QVERIFY(foo->ob_refcnt == 2);
+
+        Py_DECREF(foo);
+
+        // there is still a reference to foo in b
+        QVERIFY(foo->ob_refcnt == 1);
+        QVERIFY(!destructor_called_foo);
+
+        // a falls out of scope (but is empty)
+        // b falls out of scope, foo loses a reference
+        // c falls out of scope, bar loses a reference
+    }
+
+    // Now that b fell out of scope, foo was destroyed
+    QVERIFY(destructor_called_foo);
+
+    // But we still have a single reference to bar
+    QVERIFY(!destructor_called_bar);
+    QVERIFY(bar->ob_refcnt == 1);
+    Py_CLEAR(bar);
+
+    // Now bar is also gone
+    QVERIFY(destructor_called_bar);
+}
+
+void
+TestPyOtherSide::testPyObjectRefRoundTrip()
+{
+    // Simulate a complete round-trip of a PyObject reference, from PyOtherSide
+    // to QML and back.
+
+    // Create a Python object, i.e. in a Python function.
+    bool destructor_called = false;
+    PyObject *o = PyCapsule_New(&destructor_called, "test", destruct);
+    QVERIFY(o->ob_refcnt == 1);
+
+    // Convert the object to a QVariant and increment its refcount.
+    QVariant v = convertPyObjectToQVariant(o);
+
+    // Decrement refcount and pass QVariant to QML.
+    QVERIFY(o->ob_refcnt == 2);
+    Py_DECREF(o);
+    QVERIFY(o->ob_refcnt == 1);
+
+    // Pass QVariant back to PyOtherSide, which converts it to a PyObject,
+    // incrementing its refcount.
+    PyObject *o2 = convertQVariantToPyObject(v);
+    QVERIFY(o->ob_refcnt == 2);
+
+    // The QVariant is deleted, i.e. by a JS variable falling out of scope.
+    // This deletes the PyObjectRef and thus decrements the object's refcount.
+    v = QVariant();
+
+    // At this point, we only have one reference (the one from o2)
+    QVERIFY(o->ob_refcnt == 1);
+
+    // There's still a reference, so the destructor must not have been called
+    QVERIFY(!destructor_called);
+
+    // Now, at this point, the last remaining reference is removed, which
+    // will cause the destructor to be called
+    Py_DECREF(o2);
+
+    // There are no references left, so the capsule's destructor is called.
+    QVERIFY(destructor_called);
 }
 
 void

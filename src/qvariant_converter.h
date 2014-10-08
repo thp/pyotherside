@@ -112,35 +112,40 @@ class QVariantConverter : public Converter<QVariant> {
         virtual ~QVariantConverter() {}
 
         virtual enum Type type(QVariant &v) {
-            QVariant::Type t = v.type();
+            QMetaType::Type t = (QMetaType::Type)v.type();
             switch (t) {
-                case QVariant::Bool:
+                case QMetaType::Bool:
                     return BOOLEAN;
-                case QVariant::Int:
-                case QVariant::LongLong:
-                case QVariant::UInt:
-                case QVariant::ULongLong:
+                case QMetaType::Int:
+                case QMetaType::LongLong:
+                case QMetaType::UInt:
+                case QMetaType::ULongLong:
                     return INTEGER;
-                case QVariant::Double:
+                case QMetaType::Double:
                     return FLOATING;
-                case QVariant::String:
+                case QMetaType::QString:
                     return STRING;
-                case QVariant::Date:
+                case QMetaType::QDate:
                     return DATE;
-                case QVariant::Time:
+                case QMetaType::QTime:
                     return TIME;
-                case QVariant::DateTime:
+                case QMetaType::QDateTime:
                     return DATETIME;
-                case QVariant::List:
-                case QVariant::StringList:
+                case QMetaType::QVariantList:
+                case QMetaType::QStringList:
                     return LIST;
-                case QVariant::Map:
+                case QMetaType::QVariantMap:
                     return DICT;
-                case QVariant::Invalid:
+                case QMetaType::UnknownType:
                     return NONE;
                 default:
-                    qDebug() << "Cannot convert:" << v;
-                    return NONE;
+                    int userType = v.userType();
+                    if (userType == qMetaTypeId<PyObjectRef>()) {
+                        return PYOBJECT;
+                    } else {
+                        qDebug() << "Cannot convert:" << v;
+                        return NONE;
+                    }
             }
         }
 
@@ -187,6 +192,10 @@ class QVariantConverter : public Converter<QVariant> {
             return stringstorage.constData();
         }
 
+        virtual PyObjectRef pyObject(QVariant &v) {
+            return v.value<PyObjectRef>();
+        }
+
         virtual ListBuilder<QVariant> *newList() {
             return new QVariantListBuilder;
         }
@@ -205,6 +214,9 @@ class QVariantConverter : public Converter<QVariant> {
             QDate d(v.y, v.m, v.d);
             QTime t(v.time.h, v.time.m, v.time.s, v.time.ms);
             return QVariant(QDateTime(d, t));
+        }
+        virtual QVariant fromPyObject(const PyObjectRef &pyobj) {
+            return QVariant::fromValue(pyobj);
         }
         virtual QVariant none() { return QVariant(); };
 

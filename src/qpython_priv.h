@@ -24,7 +24,6 @@
 #include <QObject>
 #include <QVariant>
 #include <QString>
-#include <QMutex>
 
 class QPythonPriv : public QObject {
     Q_OBJECT
@@ -35,10 +34,8 @@ class QPythonPriv : public QObject {
 
         PyObject *eval(QString expr);
 
-        void enter();
-        void leave();
-
         QString importFromQRC(const char *module, const QString &filename);
+        QString call(PyObject *callable, QString name, QVariant args, QVariant *v);
 
         void receiveObject(PyObject *o);
         static void closing();
@@ -48,12 +45,10 @@ class QPythonPriv : public QObject {
 
         PyObject *locals;
         PyObject *globals;
-        PyThreadState *state;
         PyObject *atexit_callback;
         PyObject *image_provider;
         PyObject *traceback_mod;
-
-        QMutex mutex;
+        PyThreadState *thread_state;
 
     signals:
         void receive(QVariant data);

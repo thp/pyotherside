@@ -28,7 +28,7 @@ This section describes the QML API exposed by the *PyOtherSide* QML Plugin.
 Import Versions
 ---------------
 
-The current QML API version of PyOtherSide is 1.3. When new features are
+The current QML API version of PyOtherSide is 1.4. When new features are
 introduced, or behavior is changed, the API version will be bumped and
 documented here.
 
@@ -67,7 +67,7 @@ To use the ``Python`` element in a QML file, you have to import the plugin using
 
 .. code-block:: javascript
 
-    import io.thp.pyotherside 1.3
+    import io.thp.pyotherside 1.4
 
 Signals
 ```````
@@ -139,6 +139,27 @@ imported modules using:
     signal is emitted with ``traceback`` containing the exception info
     (QML API version 1.2 and newer).
 
+.. function:: callMethod(obj, string method, args=[], function callback(result) {})
+
+    Call the Python method ``method`` on object ``obj`` with ``args``
+    asynchronously.
+    If ``args`` is omitted, ``method`` will be called without arguments.
+    If ``callback`` is a callable, it will be called with the Python
+    method result as single argument when the call has succeeded.
+
+    If a JavaScript exception occurs in the callback, the :func:`error`
+    signal is emitted with ``traceback`` containing the exception info.
+
+.. versionadded:: 1.4.0
+
+Attributes on Python objects can be accessed using :func:`getattr`:
+
+.. function:: getattr(obj, string attr) -> var
+
+    Get the attribute ``attr`` of the Python object ``obj``.
+
+.. versionadded:: 1.4.0
+
 For some of these methods, there also exist synchronous variants, but it is
 highly recommended to use the asynchronous variants instead to avoid blocking
 the QML UI thread:
@@ -154,6 +175,12 @@ the QML UI thread:
 .. function:: call_sync(string func, var args=[]) -> var
 
     Call a Python function. Returns the return value of the Python function.
+
+.. function:: callMethod_sync(obj, string method, var args=[]) -> var
+
+    Call a Python method. Returns the return value of the Python method.
+
+.. versionadded:: 1.4.0
 
 The following functions allow access to the version of the running PyOtherSide
 plugin and Python interpreter.
@@ -333,6 +360,8 @@ between Python and QML (and vice versa):
 | set                | JS Array   | since PyOtherSide 1.3.0     |
 +--------------------+------------+-----------------------------+
 | iterable           | JS Array   | since PyOtherSide 1.3.0     |
++--------------------+------------+-----------------------------+
+| object             | (opaque)   | since PyOtherSide 1.4.0     |
 +--------------------+------------+-----------------------------+
 
 Trying to pass in other types than the ones listed here is undefined
@@ -658,7 +687,7 @@ Using this function from QML is straightforward:
 .. code-block:: javascript
 
     import QtQuick 2.0
-    import io.thp.pyotherside 1.3
+    import io.thp.pyotherside 1.4
 
     Rectangle {
         color: 'black'
@@ -754,7 +783,7 @@ This module can now be imported in QML and used as ``source`` in the QML
 .. code-block:: javascript
 
     import QtQuick 2.0
-    import io.thp.pyotherside 1.3
+    import io.thp.pyotherside 1.4
 
     Image {
         id: image
@@ -896,6 +925,12 @@ Known Problems:
 
 ChangeLog
 =========
+
+Version 1.4.0 (UNRELEASED)
+--------------------------
+
+* Support for passing Python objects to QML and keeping references there
+* Add :func:`callMethod`, :func:`callMethod_sync` and :func:`getattr`
 
 Version 1.3.0 (2014-07-24)
 --------------------------

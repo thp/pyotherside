@@ -20,6 +20,8 @@
 
 #include "qpython_priv.h"
 
+#include "ensure_gil_state.h"
+
 #include <QImage>
 #include <QDebug>
 #include <QResource>
@@ -198,11 +200,10 @@ PyOtherSide_init()
 QPythonPriv::QPythonPriv()
     : locals(NULL)
     , globals(NULL)
-    , state(NULL)
     , atexit_callback(NULL)
     , image_provider(NULL)
     , traceback_mod(NULL)
-    , mutex()
+    , thread_state(NULL)
 {
     PyImport_AppendInittab("pyotherside", PyOtherSide_init);
 
@@ -225,37 +226,19 @@ QPythonPriv::QPythonPriv()
                 PyEval_GetBuiltins());
     }
 
-    // Need to lock mutex here, as it will always be unlocked
-    // by leave(). If we don't do that, it will be unlocked
-    // once too often resulting in undefined behavior.
-    mutex.lock();
-    leave();
+    // Release the GIL
+    thread_state = PyEval_SaveThread();
 }
 
 QPythonPriv::~QPythonPriv()
 {
-    enter();
+    // Re-acquire the previously-released GIL
+    PyEval_RestoreThread(thread_state);
+
     Py_DECREF(traceback_mod);
     Py_DECREF(globals);
     Py_DECREF(locals);
     Py_Finalize();
-}
-
-void
-QPythonPriv::enter()
-{
-    mutex.lock();
-    assert(state != NULL);
-    PyEval_RestoreThread(state);
-    state = NULL;
-}
-
-void
-QPythonPriv::leave()
-{
-    assert(state == NULL);
-    state = PyEval_SaveThread();
-    mutex.unlock();
 }
 
 void
@@ -352,7 +335,8 @@ QPythonPriv::closing()
         return;
     }
 
-    priv->enter();
+    ENSURE_GIL_STATE;
+
     if (priv->atexit_callback != NULL) {
         PyObject *args = PyTuple_New(0);
         PyObject *result = PyObject_Call(priv->atexit_callback, args, NULL);
@@ -366,7 +350,6 @@ QPythonPriv::closing()
         Py_DECREF(priv->image_provider);
         priv->image_provider = NULL;
     }
-    priv->leave();
 }
 
 QPythonPriv *
@@ -418,5 +401,35 @@ QPythonPriv::importFromQRC(const char *module, const QString &filename)
 
     Py_XDECREF(qrc_importer);
 
+    return QString();
+}
+
+QString
+QPythonPriv::call(PyObject *callable, QString name, QVariant args, QVariant *v)
+{
+    if (!PyCallable_Check(callable)) {
+        return QString("Not a callable: %1").arg(name);
+    }
+
+    PyObject *argl = convertQVariantToPyObject(args);
+    if (!PyList_Check(argl)) {
+        Py_XDECREF(argl);
+        return QString("Not a parameter list in call to %1: %2")
+                .arg(name).arg(args.toString());
+    }
+
+    PyObject *argt = PyList_AsTuple(argl);
+    Py_DECREF(argl);
+    PyObject *o = PyObject_Call(callable, argt, NULL);
+    Py_DECREF(argt);
+
+    if (o == NULL) {
+        return QString("Return value of PyObject call is NULL: %1").arg(priv->formatExc());
+    } else {
+        if (v != NULL) {
+            *v = convertPyObjectToQVariant(o);
+        }
+        Py_DECREF(o);
+    }
     return QString();
 }
