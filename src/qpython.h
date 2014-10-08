@@ -204,12 +204,12 @@ class QPython : public QObject {
          * }
          * \endcode
          *
-         * \arg func The Python function to call
+         * \arg func The Python function to call (string or Python callable)
          * \arg args A list of arguments, or \c [] for no arguments
          * \arg callback A callback that receives the function call result
          **/
         Q_INVOKABLE void
-        call(QString func,
+        call(QVariant func,
              QVariant args=QVariantList(),
              QJSValue callback=QJSValue());
 
@@ -233,80 +233,12 @@ class QPython : public QObject {
          * }
          * \endcode
          *
-         * \arg func The Python function to call
+         * \arg func The Python function to call (string or Python callable)
          * \arg args A list of arguments, or \c [] for no arguments
          * \result The return value of the Python call as Qt data type
          **/
         Q_INVOKABLE QVariant
-        call_sync(QString func, QVariant args=QVariantList());
-
-
-        /**
-         * \brief Asynchronously call a Python method
-         *
-         * Call a method of a Python object asynchronously and call back
-         * into QML when the result is available:
-         *
-         * \code
-         * Python {
-         *     Component.onCompleted: {
-         *         importModule('datetime', function() {
-         *             call('datetime.datetime.now', [], function(dt) {
-         *                 console.log(dt);
-         *                 callMethod(dt, 'strftime', ['%Y-%m-%d'], function(result) {
-         *                     console.log(result);
-         *                 });
-         *             });
-         *         });
-         *     }
-         * }
-         * \endcode
-         *
-         * \arg obj The Python object
-         * \arg method The method to call
-         * \arg args A list of arguments, or \c [] for no arguments
-         * \arg callback A callback that receives the function call result
-         **/
-        Q_INVOKABLE void
-        callMethod(
-            QVariant obj,
-            QString func,
-            QVariant args=QVariantList(),
-            QJSValue callback=QJSValue());
-
-
-        /**
-         * \brief Synchronously call a Python method
-         *
-         * This is the synchronous variant of callMethod(). In general, you
-         * should use callMethod() instead of this function to avoid blocking
-         * the QML UI thread. Example usage:
-         *
-         * \code
-         * Python {
-         *     Component.onCompleted: {
-         *         importModule('datetime', function() {
-         *             call('datetime.datetime.now', [], function(dt) {
-         *                 console.log(dt);
-         *                 console.log(
-         *                     callMethod_sync(dt, 'strftime', ['%Y-%m-%d'])
-         *                 );
-         *             });
-         *         });
-         *     }
-         * }
-         * \endcode
-         *
-         * \arg obj The Python object
-         * \arg method The method to call
-         * \arg args A list of arguments, or \c [] for no arguments
-         * \result The return value of the Python call as Qt data type
-         **/
-        Q_INVOKABLE QVariant
-        callMethod_sync(
-            QVariant obj,
-            QString func,
-            QVariant args=QVariantList());
+        call_sync(QVariant func, QVariant args=QVariantList());
 
         /**
          * \brief Get an attribute value of a Python object synchronously
@@ -370,8 +302,7 @@ class QPython : public QObject {
         void error(QString traceback);
 
         /* For internal use only */
-        void process(QString func, QVariant args, QJSValue *callback);
-        void processMethod(QVariant obj, QString method, QVariant args, QJSValue *callback);
+        void process(QVariant func, QVariant args, QJSValue *callback);
         void import(QString name, QJSValue *callback);
 
     private slots:

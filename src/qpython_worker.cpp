@@ -32,18 +32,9 @@ QPythonWorker::~QPythonWorker()
 }
 
 void
-QPythonWorker::process(QString func, QVariant args, QJSValue *callback)
+QPythonWorker::process(QVariant func, QVariant args, QJSValue *callback)
 {
     QVariant result = qpython->call_sync(func, args);
-    if (callback) {
-        emit finished(result, callback);
-    }
-}
-
-void
-QPythonWorker::processMethod(QVariant obj, QString method, QVariant args, QJSValue *callback)
-{
-    QVariant result = qpython->callMethod_sync(obj, method, args);
     if (callback) {
         emit finished(result, callback);
     }

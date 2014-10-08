@@ -53,10 +53,8 @@ QPython::QPython(QObject *parent, int api_version_major, int api_version_minor)
     QObject::connect(priv, SIGNAL(receive(QVariant)),
                      this, SLOT(receive(QVariant)));
 
-    QObject::connect(this, SIGNAL(process(QString,QVariant,QJSValue *)),
-                     worker, SLOT(process(QString,QVariant,QJSValue *)));
-    QObject::connect(this, SIGNAL(processMethod(QVariant,QString,QVariant,QJSValue *)),
-                     worker, SLOT(processMethod(QVariant,QString,QVariant,QJSValue *)));
+    QObject::connect(this, SIGNAL(process(QVariant,QVariant,QJSValue *)),
+                     worker, SLOT(process(QVariant,QVariant,QJSValue *)));
     QObject::connect(worker, SIGNAL(finished(QVariant,QJSValue *)),
                      this, SLOT(finished(QVariant,QJSValue *)));
 
@@ -224,7 +222,7 @@ QPython::evaluate(QString expr)
 }
 
 void
-QPython::call(QString func, QVariant args, QJSValue callback)
+QPython::call(QVariant func, QVariant args, QJSValue callback)
 {
     QJSValue *cb = 0;
     if (!callback.isNull() && !callback.isUndefined() && callback.isCallable()) {
@@ -234,76 +232,36 @@ QPython::call(QString func, QVariant args, QJSValue callback)
 }
 
 QVariant
-QPython::call_sync(QString func, QVariant args)
+QPython::call_sync(QVariant func, QVariant args)
 {
     ENSURE_GIL_STATE;
 
-    PyObject *callable = priv->eval(func);
+    PyObject *callable = NULL;
+
+    if (SINCE_API_VERSION(1, 4)) {
+        if (static_cast<QMetaType::Type>(func.type()) == QMetaType::QString) {
+            // Using version >= 1.4, but func is a string
+            callable = priv->eval(func.toString());
+        } else {
+            // Try to interpret "func" as a Python object
+            callable = convertQVariantToPyObject(func);
+        }
+    } else {
+        // Versions before 1.4 only support func as a string
+        callable = priv->eval(func.toString());
+    }
 
     if (callable == NULL) {
-        emit error(QString("Function not found: '%1' (%2)").arg(func).arg(priv->formatExc()));
+        emit error(QString("Function not found: '%1' (%2)").arg(func.toString()).arg(priv->formatExc()));
         return QVariant();
     }
 
     QVariant v;
-    QString errorMessage = priv->call(callable, func, args, &v);
+    QString errorMessage = priv->call(callable, func.toString(), args, &v);
     if (!errorMessage.isNull()) {
         emit error(errorMessage);
     }
     Py_DECREF(callable);
-    return v;
-}
-
-void
-QPython::callMethod(QVariant obj, QString method, QVariant args, QJSValue callback)
-{
-    if (!SINCE_API_VERSION(1, 4)) {
-        emit error(QString("Import PyOtherSide 1.4 or newer to use callMethod()"));
-        return;
-    }
-
-    QJSValue *cb = 0;
-    if (!callback.isNull() && !callback.isUndefined() && callback.isCallable()) {
-        cb = new QJSValue(callback);
-    }
-    emit processMethod(obj, method, args, cb);
-}
-
-QVariant
-QPython::callMethod_sync(QVariant obj, QString method, QVariant args)
-{
-    if (!SINCE_API_VERSION(1, 4)) {
-        emit error(QString("Import PyOtherSide 1.4 or newer to use callMethod_sync()"));
-        return QVariant();
-    }
-
-    ENSURE_GIL_STATE;
-
-    PyObject *pyobj = convertQVariantToPyObject(obj);
-
-    if (pyobj == NULL) {
-        emit error(QString("Failed to convert %1 to python object: '%1' (%2)").arg(obj.toString()).arg(priv->formatExc()));
-        return QVariant();
-    }
-
-    QByteArray byteArray = method.toUtf8();
-    const char *methodStr = byteArray.data();
-
-    PyObject *callable = PyObject_GetAttrString(pyobj, methodStr);
-
-    if (callable == NULL) {
-        emit error(QString("Method not found: '%1' (%2)").arg(method).arg(priv->formatExc()));
-        Py_DECREF(pyobj);
-        return QVariant();
-    }
-
-    QVariant v;
-    QString errorMessage = priv->call(callable, method, args, &v);
-    if (!errorMessage.isNull()) {
-        emit error(errorMessage);
-    }
-    Py_DECREF(callable);
-    Py_DECREF(pyobj);
     return v;
 }
 

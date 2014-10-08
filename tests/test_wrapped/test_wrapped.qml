@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import io.thp.pyotherside 1.0
+import io.thp.pyotherside 1.4
 
 Rectangle {
     id: page
@@ -18,9 +18,14 @@ Rectangle {
 
                 console.log('attribute bar of foo: ' + getattr(foo, 'bar'));
 
-                callMethod(foo, 'methodman', ['the pain'], function (result) {
+                var func = getattr(foo, 'methodman');
+
+                call(func, ['the pain'], function (result) {
                     console.log('methodman() result: ' + result);
                 });
+
+                var mmr = call_sync(func, ['the pain']);
+                console.log('methodman() sync result: ' + mmr);
 
                 var result = call_sync('test_wrapped.set_foo', [foo]);
                 console.log('got result: ' + result);

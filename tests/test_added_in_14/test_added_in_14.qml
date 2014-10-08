@@ -9,11 +9,13 @@ Python {
         // qml: Received error: Import PyOtherSide 1.4 or newer to use getattr()
         getattr(foo, 'test');
 
-        // qml: Received error: Import PyOtherSide 1.4 or newer to use callMethod()
-        callMethod(foo, 'something', [], function (result) {});
+        var func = eval('[]');
 
-        // qml: Received error: Import PyOtherSide 1.4 or newer to use callMethod_sync()
-        var result = callMethod_sync(foo, 'something', []);
+        // qml: Received error: Function not found: '' (unexpected EOF while parsing (<string>, line 0))
+        call(func, [], function (result) {});
+
+        // qml: Received error: Function not found: '' (unexpected EOF while parsing (<string>, line 0))
+        var result = call_sync(func, []);
 
         Qt.quit();
     }

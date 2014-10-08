@@ -55,6 +55,15 @@ io.thp.pyotherside 1.3
   your Python files are embedded as Qt Resources, relative to your QML files
   (use :func:`Qt.resolvedUrl` from the QML file).
 
+io.thp.pyotherside 1.4
+``````````````````````
+
+* Added :func:`getattr`
+
+* :func:`call` and :func:`call_sync` now accept a Python callable object
+  for the first parameter (previously, only strings were supported)
+
+
 QML ``Python`` Element
 ----------------------
 
@@ -127,7 +136,7 @@ path and then importing the module asynchronously:
 Once modules are imported, Python function can be called on the
 imported modules using:
 
-.. function:: call(string func, args=[], function callback(result) {})
+.. function:: call(var func, args=[], function callback(result) {})
 
     Call the Python function ``func`` with ``args`` asynchronously.
     If ``args`` is omitted, ``func`` will be called without arguments.
@@ -139,18 +148,8 @@ imported modules using:
     signal is emitted with ``traceback`` containing the exception info
     (QML API version 1.2 and newer).
 
-.. function:: callMethod(obj, string method, args=[], function callback(result) {})
-
-    Call the Python method ``method`` on object ``obj`` with ``args``
-    asynchronously.
-    If ``args`` is omitted, ``method`` will be called without arguments.
-    If ``callback`` is a callable, it will be called with the Python
-    method result as single argument when the call has succeeded.
-
-    If a JavaScript exception occurs in the callback, the :func:`error`
-    signal is emitted with ``traceback`` containing the exception info.
-
-.. versionadded:: 1.4.0
+.. versionchanged:: 1.4.0
+    ``func`` can also be a Python callable object, not just a string.
 
 Attributes on Python objects can be accessed using :func:`getattr`:
 
@@ -172,15 +171,12 @@ the QML UI thread:
 
     Import a Python module. Returns ``true`` on success, ``false`` otherwise.
 
-.. function:: call_sync(string func, var args=[]) -> var
+.. function:: call_sync(var func, var args=[]) -> var
 
     Call a Python function. Returns the return value of the Python function.
 
-.. function:: callMethod_sync(obj, string method, var args=[]) -> var
-
-    Call a Python method. Returns the return value of the Python method.
-
-.. versionadded:: 1.4.0
+.. versionchanged:: 1.4.0
+    ``func`` can also be a Python callable object, not just a string.
 
 The following functions allow access to the version of the running PyOtherSide
 plugin and Python interpreter.
@@ -930,7 +926,9 @@ Version 1.4.0 (UNRELEASED)
 --------------------------
 
 * Support for passing Python objects to QML and keeping references there
-* Add :func:`callMethod`, :func:`callMethod_sync` and :func:`getattr`
+* Add :func:`getattr` to get an attribute from a Python object
+* :func:`call` and :func:`call_sync` now also accept a Python callable as
+  first argument
 
 Version 1.3.0 (2014-07-24)
 --------------------------
