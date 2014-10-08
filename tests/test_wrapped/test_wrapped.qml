@@ -16,6 +16,12 @@ Rectangle {
                 var foo = call_sync('test_wrapped.get_foo', []);
                 console.log('got foo: ' + foo);
 
+                console.log('attribute bar of foo: ' + getattr(foo, 'bar'));
+
+                callMethod(foo, 'methodman', ['the pain'], function (result) {
+                    console.log('methodman() result: ' + result);
+                });
+
                 var result = call_sync('test_wrapped.set_foo', [foo]);
                 console.log('got result: ' + result);
             });
