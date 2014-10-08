@@ -95,9 +95,14 @@ test_converter_for(Converter<V> *conv)
 
     /* Convert from/to generic PyObject */
     PyObject *obj = PyCapsule_New(conv, "test", NULL);
-    v = conv->fromPyObject(obj);
+    v = conv->fromPyObject(PyObjectRef(obj));
     QVERIFY(conv->type(v) == Converter<V>::PYOBJECT);
-    QVERIFY(conv->pyObject(v) == obj);
+
+    // Check if getting a new reference works
+    PyObject *o = conv->pyObject(v).newRef();
+    QVERIFY(o == obj);
+    Py_DECREF(o);
+
     Py_CLEAR(obj);
 
     delete conv;
@@ -123,6 +128,7 @@ TestPyOtherSide::testPyObjectRefRoundTrip()
     QVariant v = convertPyObjectToQVariant(o);
 
     // Decrement refcount and pass QVariant to QML.
+    QVERIFY(o->ob_refcnt == 2);
     Py_DECREF(o);
     QVERIFY(o->ob_refcnt == 1);
 
@@ -131,13 +137,19 @@ TestPyOtherSide::testPyObjectRefRoundTrip()
     PyObject *o2 = convertQVariantToPyObject(v);
     QVERIFY(o->ob_refcnt == 2);
 
-    // Do something with the object, then decrement its refcount.
-    Py_DECREF(o2);
-    QVERIFY(o->ob_refcnt == 1);
-
     // The QVariant is deleted, i.e. by a JS variable falling out of scope.
     // This deletes the PyObjectRef and thus decrements the object's refcount.
     v = QVariant();
+
+    // At this point, we only have one reference (the one from o2)
+    QVERIFY(o->ob_refcnt == 1);
+
+    // There's still a reference, so the destructor must not have been called
+    QVERIFY(!destructor_called);
+
+    // Now, at this point, the last remaining reference is removed, which
+    // will cause the destructor to be called
+    Py_DECREF(o2);
 
     // There are no references left, so the capsule's destructor is called.
     QVERIFY(destructor_called);

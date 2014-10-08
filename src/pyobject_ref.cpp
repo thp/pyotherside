@@ -2,6 +2,7 @@
 /**
  * PyOtherSide: Asynchronous Python 3 Bindings for Qt 5
  * Copyright (c) 2014, Felix Krull <f_krull@gmx.de>
+ * Copyright (c) 2014, Thomas Perl <m@thp.io>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,44 +19,50 @@
 
 #include "pyobject_ref.h"
 
-class PyGIL {
+class EnsureGILState {
     public:
-        PyGIL(bool condition = true) : acquired(condition) {
-            if (acquired) { gil_state = PyGILState_Ensure(); }
-        }
-        ~PyGIL() {
-            if (acquired) { PyGILState_Release(gil_state); }
-        }
+        EnsureGILState() : gil_state(PyGILState_Ensure()) { }
+        ~EnsureGILState() { PyGILState_Release(gil_state); }
+
     private:
         PyGILState_STATE gil_state;
-        bool acquired;
 };
 
-PyObjectRef::PyObjectRef(PyObject *obj) : pyobject(obj) {
-    PyGIL gil(pyobject != NULL);
-    Q_UNUSED(gil);
-    Py_XINCREF(pyobject);
+#define ENSURE_GIL_STATE EnsureGILState _ensure; Q_UNUSED(_ensure)
+
+PyObjectRef::PyObjectRef(PyObject *obj)
+    : pyobject(obj)
+{
+    if (pyobject) {
+        ENSURE_GIL_STATE;
+        Py_INCREF(pyobject);
+    }
 }
 
-PyObjectRef::PyObjectRef(const PyObjectRef &other) : pyobject(other.pyobject) {
-    PyGIL gil(pyobject != NULL);
-    Q_UNUSED(gil);
-    Py_XINCREF(pyobject);
+PyObjectRef::PyObjectRef(const PyObjectRef &other)
+    : pyobject(other.pyobject)
+{
+    if (pyobject) {
+        ENSURE_GIL_STATE;
+        Py_INCREF(pyobject);
+    }
 }
 
-PyObjectRef::~PyObjectRef() {
-    PyGIL gil(pyobject != NULL);
-    Q_UNUSED(gil);
-    Py_CLEAR(pyobject);
+PyObjectRef::~PyObjectRef()
+{
+    if (pyobject) {
+        ENSURE_GIL_STATE;
+        Py_CLEAR(pyobject);
+    }
 }
 
-PyObject *PyObjectRef::newRef() const {
-    PyGIL gil(pyobject != NULL);
-    Q_UNUSED(gil);
-    Py_XINCREF(pyobject);
-    return pyobject;
-}
+PyObject *
+PyObjectRef::newRef() const
+{
+    if (pyobject) {
+        ENSURE_GIL_STATE;
+        Py_INCREF(pyobject);
+    }
 
-PyObject *PyObjectRef::getPyObject() const {
     return pyobject;
 }

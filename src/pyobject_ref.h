@@ -2,6 +2,7 @@
 /**
  * PyOtherSide: Asynchronous Python 3 Bindings for Qt 5
  * Copyright (c) 2014, Felix Krull <f_krull@gmx.de>
+ * Copyright (c) 2014, Thomas Perl <m@thp.io>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,11 +26,12 @@
 
 class PyObjectRef {
     public:
-        explicit PyObjectRef(PyObject *obj = NULL);
+        explicit PyObjectRef(PyObject *obj=0);
         PyObjectRef(const PyObjectRef &other);
         virtual ~PyObjectRef();
+
         PyObject *newRef() const;
-        PyObject *getPyObject() const;
+
     private:
         PyObject *pyobject;
 };

@@ -202,7 +202,7 @@ class PyObjectConverter : public Converter<PyObject *> {
                     PyDateTime_DATE_GET_SECOND(o),
                     PyDateTime_DATE_GET_MICROSECOND(o) / 1000);
         }
-        virtual PyObject *pyObject(PyObject *&o) { return o; }
+        virtual PyObjectRef pyObject(PyObject *&o) { return PyObjectRef(o); }
 
         virtual PyObject * fromInteger(long long v) { return PyLong_FromLong((long)v); }
         virtual PyObject * fromFloating(double v) { return PyFloat_FromDouble(v); }
@@ -213,10 +213,7 @@ class PyObjectConverter : public Converter<PyObject *> {
         virtual PyObject * fromDateTime(ConverterDateTime v) {
             return PyDateTime_FromDateAndTime(v.y, v.m, v.d, v.time.h, v.time.m, v.time.s, v.time.ms * 1000);
         }
-        virtual PyObject * fromPyObject(PyObject *pyobj) {
-            Py_XINCREF(pyobj);
-            return pyobj;
-        }
+        virtual PyObject * fromPyObject(const PyObjectRef &pyobj) { return pyobj.newRef(); }
         virtual ListBuilder<PyObject *> *newList() { return new PyObjectListBuilder(); }
         virtual DictBuilder<PyObject *> *newDict() { return new PyObjectDictBuilder(); }
         virtual PyObject * none() { Py_RETURN_NONE; }

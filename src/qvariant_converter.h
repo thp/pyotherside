@@ -20,7 +20,6 @@
 #define PYOTHERSIDE_QVARIANT_CONVERTER_H
 
 #include "converter.h"
-#include "pyobject_ref.h"
 
 #include <QVariant>
 #include <QTime>
@@ -193,8 +192,8 @@ class QVariantConverter : public Converter<QVariant> {
             return stringstorage.constData();
         }
 
-        virtual PyObject *pyObject(QVariant &v) {
-            return v.value<PyObjectRef>().getPyObject();
+        virtual PyObjectRef pyObject(QVariant &v) {
+            return v.value<PyObjectRef>();
         }
 
         virtual ListBuilder<QVariant> *newList() {
@@ -216,8 +215,8 @@ class QVariantConverter : public Converter<QVariant> {
             QTime t(v.time.h, v.time.m, v.time.s, v.time.ms);
             return QVariant(QDateTime(d, t));
         }
-        virtual QVariant fromPyObject(PyObject *pyobj) {
-            return QVariant::fromValue(PyObjectRef(pyobj));
+        virtual QVariant fromPyObject(const PyObjectRef &pyobj) {
+            return QVariant::fromValue(pyobj);
         }
         virtual QVariant none() { return QVariant(); };
 
