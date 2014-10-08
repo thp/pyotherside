@@ -113,6 +113,73 @@ void destruct(PyObject *obj) {
     *destructor_called = true;
 }
 
+void TestPyOtherSide::testPyObjectRefAssignment()
+{
+    // Test assignment operator of PyObjectRef
+    bool destructor_called_foo = false;
+    PyObject *foo = PyCapsule_New(&destructor_called_foo, "test", destruct);
+
+    bool destructor_called_bar = false;
+    PyObject *bar = PyCapsule_New(&destructor_called_bar, "test", destruct);
+
+    QVERIFY(foo);
+    QVERIFY(foo->ob_refcnt == 1);
+
+    QVERIFY(bar);
+    QVERIFY(bar->ob_refcnt == 1);
+
+    {
+        PyObjectRef a(foo);
+        PyObjectRef b(bar);
+        PyObjectRef c; // empty
+
+        // foo got a new reference in a
+        QVERIFY(foo->ob_refcnt == 2);
+        // bar got a new reference in b
+        QVERIFY(bar->ob_refcnt == 2);
+
+        // Overwrite empty reference with reference to bar
+        c = b;
+        // bar got a new reference in c
+        QVERIFY(bar->ob_refcnt == 3);
+        // reference count for foo is unchanged
+        QVERIFY(foo->ob_refcnt == 2);
+
+        // Overwrite reference to bar with reference to foo
+        b = a;
+        // bar lost a reference in b
+        QVERIFY(bar->ob_refcnt == 2);
+        // foo got a new reference in b
+        QVERIFY(foo->ob_refcnt == 3);
+
+        // Overwrite reference to foo with empty reference
+        a = PyObjectRef();
+        // foo lost a reference in a
+        QVERIFY(foo->ob_refcnt == 2);
+
+        Py_DECREF(foo);
+
+        // there is still a reference to foo in b
+        QVERIFY(foo->ob_refcnt == 1);
+        QVERIFY(!destructor_called_foo);
+
+        // a falls out of scope (but is empty)
+        // b falls out of scope, foo loses a reference
+        // c falls out of scope, bar loses a reference
+    }
+
+    // Now that b fell out of scope, foo was destroyed
+    QVERIFY(destructor_called_foo);
+
+    // But we still have a single reference to bar
+    QVERIFY(!destructor_called_bar);
+    QVERIFY(bar->ob_refcnt == 1);
+    Py_CLEAR(bar);
+
+    // Now bar is also gone
+    QVERIFY(destructor_called_bar);
+}
+
 void
 TestPyOtherSide::testPyObjectRefRoundTrip()
 {

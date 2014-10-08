@@ -29,6 +29,7 @@ class PyObjectRef {
         explicit PyObjectRef(PyObject *obj=0);
         PyObjectRef(const PyObjectRef &other);
         virtual ~PyObjectRef();
+        PyObjectRef &operator=(const PyObjectRef &other);
 
         PyObject *newRef() const;
 

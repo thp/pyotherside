@@ -56,6 +56,27 @@ PyObjectRef::~PyObjectRef()
     }
 }
 
+PyObjectRef &
+PyObjectRef::operator=(const PyObjectRef &other)
+{
+    if (this != &other) {
+        if (pyobject || other.pyobject) {
+            ENSURE_GIL_STATE;
+
+            if (pyobject) {
+                Py_CLEAR(pyobject);
+            }
+
+            if (other.pyobject) {
+                pyobject = other.pyobject;
+                Py_INCREF(pyobject);
+            }
+        }
+    }
+
+    return *this;
+}
+
 PyObject *
 PyObjectRef::newRef() const
 {
