@@ -257,6 +257,11 @@ QPython::call_sync(QString func, QVariant args)
 void
 QPython::callMethod(QVariant obj, QString method, QVariant args, QJSValue callback)
 {
+    if (!SINCE_API_VERSION(1, 4)) {
+        emit error(QString("Import PyOtherSide 1.4 or newer to use callMethod()"));
+        return;
+    }
+
     QJSValue *cb = 0;
     if (!callback.isNull() && !callback.isUndefined() && callback.isCallable()) {
         cb = new QJSValue(callback);
@@ -267,6 +272,11 @@ QPython::callMethod(QVariant obj, QString method, QVariant args, QJSValue callba
 QVariant
 QPython::callMethod_sync(QVariant obj, QString method, QVariant args)
 {
+    if (!SINCE_API_VERSION(1, 4)) {
+        emit error(QString("Import PyOtherSide 1.4 or newer to use callMethod_sync()"));
+        return QVariant();
+    }
+
     ENSURE_GIL_STATE;
 
     PyObject *pyobj = convertQVariantToPyObject(obj);
@@ -299,6 +309,11 @@ QPython::callMethod_sync(QVariant obj, QString method, QVariant args)
 
 QVariant
 QPython::getattr(QVariant obj, QString attr) {
+    if (!SINCE_API_VERSION(1, 4)) {
+        emit error(QString("Import PyOtherSide 1.4 or newer to use getattr()"));
+        return QVariant();
+    }
+
     ENSURE_GIL_STATE;
 
     PyObject *pyobj = convertQVariantToPyObject(obj);
