@@ -86,19 +86,18 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
 
     ENSURE_GIL_STATE;
 
-    PyObject *args = Py_BuildValue("(N(ii))",
+    PyObjectRef args(Py_BuildValue("(N(ii))",
             PyUnicode_FromString(id_utf8.constData()),
-            requestedSize.width(), requestedSize.height());
-    PyObject *result = PyObject_Call(priv->image_provider, args, NULL);
-    Py_DECREF(args);
+            requestedSize.width(), requestedSize.height()), true);
+    PyObjectRef result(PyObject_Call(priv->image_provider.borrow(), args.borrow(), NULL), true);
 
-    if (result == NULL) {
+    if (!result) {
         qDebug() << "Error while calling the image provider";
         PyErr_Print();
         goto cleanup;
     }
 
-    if (!PyArg_ParseTuple(result, "O(ii)i", &pixels, &width, &height, &format)) {
+    if (!PyArg_ParseTuple(result.borrow(), "O(ii)i", &pixels, &width, &height, &format)) {
         PyErr_Clear();
         qDebug() << "Image provider must return (pixels, (width, height), format)";
         goto cleanup;
@@ -181,7 +180,6 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
     }
 
 cleanup:
-    Py_XDECREF(result);
 
     *size = img.size();
     return img;

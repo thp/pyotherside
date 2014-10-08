@@ -21,6 +21,8 @@
 
 #include "Python.h"
 
+#include "pyobject_ref.h"
+
 #include <QObject>
 #include <QVariant>
 #include <QString>
@@ -43,11 +45,11 @@ class QPythonPriv : public QObject {
 
         QString formatExc();
 
-        PyObject *locals;
-        PyObject *globals;
-        PyObject *atexit_callback;
-        PyObject *image_provider;
-        PyObject *traceback_mod;
+        PyObjectRef locals;
+        PyObjectRef globals;
+        PyObjectRef atexit_callback;
+        PyObjectRef image_provider;
+        PyObjectRef traceback_mod;
         PyThreadState *thread_state;
 
     signals:

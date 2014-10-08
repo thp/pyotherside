@@ -104,9 +104,8 @@ QPython::addImportPath(QString path)
 
     PyObject *sys_path = PySys_GetObject((char*)"path");
 
-    PyObject *cwd = PyUnicode_FromString(utf8bytes.constData());
-    PyList_Insert(sys_path, 0, cwd);
-    Py_DECREF(cwd);
+    PyObjectRef cwd(PyUnicode_FromString(utf8bytes.constData()), true);
+    PyList_Insert(sys_path, 0, cwd.borrow());
 }
 
 void
@@ -133,19 +132,19 @@ QPython::importModule_sync(QString name)
 
     bool use_api_10 = (api_version_major == 1 && api_version_minor == 0);
 
-    PyObject *module = NULL;
+    PyObjectRef module;
 
     if (use_api_10) {
         // PyOtherSide API 1.0 behavior (star import)
-        module = PyImport_ImportModule(moduleName);
+        module = PyObjectRef(PyImport_ImportModule(moduleName), true);
     } else {
         // PyOtherSide API 1.2 behavior: "import x.y.z"
-        PyObject *fromList = PyList_New(0);
-        module = PyImport_ImportModuleEx(const_cast<char *>(moduleName), NULL, NULL, fromList);
-        Py_XDECREF(fromList);
+        PyObjectRef fromList(PyList_New(0), true);
+        module = PyObjectRef(PyImport_ImportModuleEx(const_cast<char *>(moduleName),
+                    NULL, NULL, fromList.borrow()), true);
     }
 
-    if (module == NULL) {
+    if (!module) {
         emit error(QString("Cannot import module: %1 (%2)").arg(name).arg(priv->formatExc()));
         return false;
     }
@@ -160,8 +159,7 @@ QPython::importModule_sync(QString name)
         }
     }
 
-    PyDict_SetItemString(priv->globals, moduleName, module);
-    Py_CLEAR(module);
+    PyDict_SetItemString(priv->globals.borrow(), moduleName, module.borrow());
     return true;
 }
 
@@ -210,15 +208,13 @@ QPython::evaluate(QString expr)
 {
     ENSURE_GIL_STATE;
 
-    PyObject *o = priv->eval(expr);
-    if (o == NULL) {
+    PyObjectRef o(priv->eval(expr), true);
+    if (!o) {
         emit error(QString("Cannot evaluate '%1' (%2)").arg(expr).arg(priv->formatExc()));
         return QVariant();
     }
 
-    QVariant v = convertPyObjectToQVariant(o);
-    Py_DECREF(o);
-    return v;
+    return convertPyObjectToQVariant(o.borrow());
 }
 
 void
@@ -236,32 +232,31 @@ QPython::call_sync(QVariant func, QVariant args)
 {
     ENSURE_GIL_STATE;
 
-    PyObject *callable = NULL;
+    PyObjectRef callable;
 
     if (SINCE_API_VERSION(1, 4)) {
         if (static_cast<QMetaType::Type>(func.type()) == QMetaType::QString) {
             // Using version >= 1.4, but func is a string
-            callable = priv->eval(func.toString());
+            callable = PyObjectRef(priv->eval(func.toString()), true);
         } else {
             // Try to interpret "func" as a Python object
-            callable = convertQVariantToPyObject(func);
+            callable = PyObjectRef(convertQVariantToPyObject(func), true);
         }
     } else {
         // Versions before 1.4 only support func as a string
-        callable = priv->eval(func.toString());
+        callable = PyObjectRef(priv->eval(func.toString()), true);
     }
 
-    if (callable == NULL) {
+    if (!callable) {
         emit error(QString("Function not found: '%1' (%2)").arg(func.toString()).arg(priv->formatExc()));
         return QVariant();
     }
 
     QVariant v;
-    QString errorMessage = priv->call(callable, func.toString(), args, &v);
+    QString errorMessage = priv->call(callable.borrow(), func.toString(), args, &v);
     if (!errorMessage.isNull()) {
         emit error(errorMessage);
     }
-    Py_DECREF(callable);
     return v;
 }
 
@@ -274,9 +269,9 @@ QPython::getattr(QVariant obj, QString attr) {
 
     ENSURE_GIL_STATE;
 
-    PyObject *pyobj = convertQVariantToPyObject(obj);
+    PyObjectRef pyobj(convertQVariantToPyObject(obj), true);
 
-    if (pyobj == NULL) {
+    if (!pyobj) {
         emit error(QString("Failed to convert %1 to python object: '%1' (%2)").arg(obj.toString()).arg(priv->formatExc()));
         return QVariant();
     }
@@ -284,18 +279,14 @@ QPython::getattr(QVariant obj, QString attr) {
     QByteArray byteArray = attr.toUtf8();
     const char *attrStr = byteArray.data();
 
-    PyObject *o = PyObject_GetAttrString(pyobj, attrStr);
+    PyObjectRef o(PyObject_GetAttrString(pyobj.borrow(), attrStr), true);
 
-    if (o == NULL) {
+    if (!o) {
         emit error(QString("Attribute not found: '%1' (%2)").arg(attr).arg(priv->formatExc()));
-        Py_DECREF(pyobj);
         return QVariant();
     }
 
-    QVariant v = convertPyObjectToQVariant(o);
-    Py_DECREF(o);
-    Py_DECREF(pyobj);
-    return v;
+    return convertPyObjectToQVariant(o.borrow());
 }
 
 void

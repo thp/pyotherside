@@ -53,12 +53,7 @@ pyotherside_send(PyObject *self, PyObject *args)
 PyObject *
 pyotherside_atexit(PyObject *self, PyObject *o)
 {
-    if (priv->atexit_callback != NULL) {
-        Py_DECREF(priv->atexit_callback);
-    }
-
-    Py_INCREF(o);
-    priv->atexit_callback = o;
+    priv->atexit_callback = PyObjectRef(o);
 
     Py_RETURN_NONE;
 }
@@ -66,12 +61,7 @@ pyotherside_atexit(PyObject *self, PyObject *o)
 PyObject *
 pyotherside_set_image_provider(PyObject *self, PyObject *o)
 {
-    if (priv->image_provider != NULL) {
-        Py_DECREF(priv->image_provider);
-    }
-
-    Py_INCREF(o);
-    priv->image_provider = o;
+    priv->image_provider = PyObjectRef(o);
 
     Py_RETURN_NONE;
 }
@@ -198,11 +188,11 @@ PyOtherSide_init()
 }
 
 QPythonPriv::QPythonPriv()
-    : locals(NULL)
-    , globals(NULL)
-    , atexit_callback(NULL)
-    , image_provider(NULL)
-    , traceback_mod(NULL)
+    : locals()
+    , globals()
+    , atexit_callback()
+    , image_provider()
+    , traceback_mod()
     , thread_state(NULL)
 {
     PyImport_AppendInittab("pyotherside", PyOtherSide_init);
@@ -210,19 +200,19 @@ QPythonPriv::QPythonPriv()
     Py_Initialize();
     PyEval_InitThreads();
 
-    locals = PyDict_New();
-    assert(locals != NULL);
+    locals = PyObjectRef(PyDict_New(), true);
+    assert(locals);
 
-    globals = PyDict_New();
-    assert(globals != NULL);
+    globals = PyObjectRef(PyDict_New(), true);
+    assert(globals);
 
-    traceback_mod = PyImport_ImportModule("traceback");
-    assert(traceback_mod != NULL);
+    traceback_mod = PyObjectRef(PyImport_ImportModule("traceback"), true);
+    assert(traceback_mod);
 
     priv = this;
 
-    if (PyDict_GetItemString(globals, "__builtins__") == NULL) {
-        PyDict_SetItemString(globals, "__builtins__",
+    if (PyDict_GetItemString(globals.borrow(), "__builtins__") == NULL) {
+        PyDict_SetItemString(globals.borrow(), "__builtins__",
                 PyEval_GetBuiltins());
     }
 
@@ -235,9 +225,6 @@ QPythonPriv::~QPythonPriv()
     // Re-acquire the previously-released GIL
     PyEval_RestoreThread(thread_state);
 
-    Py_DECREF(traceback_mod);
-    Py_DECREF(globals);
-    Py_DECREF(locals);
     Py_Finalize();
 }
 
@@ -279,7 +266,7 @@ QPythonPriv::formatExc()
         goto cleanup;
     }
 
-    list = PyObject_CallMethod(traceback_mod,
+    list = PyObject_CallMethod(traceback_mod.borrow(),
             "format_exception", "OOO", type, value, traceback);
 
     if (list == NULL) {
@@ -323,7 +310,7 @@ QPythonPriv::eval(QString expr)
 {
     QByteArray utf8bytes = expr.toUtf8();
     PyObject *result = PyRun_String(utf8bytes.constData(),
-            Py_eval_input, globals, locals);
+            Py_eval_input, globals.borrow(), locals.borrow());
 
     return result;
 }
@@ -337,19 +324,14 @@ QPythonPriv::closing()
 
     ENSURE_GIL_STATE;
 
-    if (priv->atexit_callback != NULL) {
-        PyObject *args = PyTuple_New(0);
-        PyObject *result = PyObject_Call(priv->atexit_callback, args, NULL);
-        Py_DECREF(args);
-        Py_XDECREF(result);
+    if (priv->atexit_callback) {
+        PyObjectRef args(PyTuple_New(0), true);
+        PyObjectRef result(PyObject_Call(priv->atexit_callback.borrow(), args.borrow(), NULL), true);
+        Q_UNUSED(result);
+    }
 
-        Py_DECREF(priv->atexit_callback);
-        priv->atexit_callback = NULL;
-    }
-    if (priv->image_provider != NULL) {
-        Py_DECREF(priv->image_provider);
-        priv->image_provider = NULL;
-    }
+    priv->atexit_callback = PyObjectRef();
+    priv->image_provider = PyObjectRef();
 }
 
 QPythonPriv *
@@ -361,15 +343,15 @@ QPythonPriv::instance()
 QString
 QPythonPriv::importFromQRC(const char *module, const QString &filename)
 {
-    PyObject *sys_modules = PySys_GetObject((char *)"modules");
-    if (!PyMapping_Check(sys_modules)) {
+    PyObjectRef sys_modules(PySys_GetObject((char *)"modules"), true);
+    if (!PyMapping_Check(sys_modules.borrow())) {
         return QString("sys.modules is not a mapping object");
     }
 
-    PyObject *qrc_importer = PyMapping_GetItemString(sys_modules,
-            (char *)module);
+    PyObjectRef qrc_importer(PyMapping_GetItemString(sys_modules.borrow(),
+            (char *)module), true);
 
-    if (qrc_importer == NULL) {
+    if (!qrc_importer) {
         PyErr_Clear();
 
         QFile qrc_importer_code(":" + filename);
@@ -380,26 +362,23 @@ QPythonPriv::importFromQRC(const char *module, const QString &filename)
         QByteArray ba = qrc_importer_code.readAll();
         QByteArray fn = QString("qrc:/" + filename).toUtf8();
 
-        PyObject *co = Py_CompileString(ba.constData(), fn.constData(),
-                Py_file_input);
-        if (co == NULL) {
+        PyObjectRef co(Py_CompileString(ba.constData(), fn.constData(),
+                Py_file_input), true);
+        if (!co) {
             QString result = QString("Cannot compile qrc importer: %1")
                 .arg(formatExc());
             PyErr_Clear();
             return result;
         }
 
-        qrc_importer = PyImport_ExecCodeModule((char *)module, co);
-        if (qrc_importer == NULL) {
+        qrc_importer = PyObjectRef(PyImport_ExecCodeModule((char *)module, co.borrow()), true);
+        if (!qrc_importer) {
             QString result = QString("Cannot exec qrc importer: %1")
                     .arg(formatExc());
             PyErr_Clear();
             return result;
         }
-        Py_XDECREF(co);
     }
-
-    Py_XDECREF(qrc_importer);
 
     return QString();
 }
@@ -411,25 +390,21 @@ QPythonPriv::call(PyObject *callable, QString name, QVariant args, QVariant *v)
         return QString("Not a callable: %1").arg(name);
     }
 
-    PyObject *argl = convertQVariantToPyObject(args);
-    if (!PyList_Check(argl)) {
-        Py_XDECREF(argl);
+    PyObjectRef argl(convertQVariantToPyObject(args), true);
+    if (!PyList_Check(argl.borrow())) {
         return QString("Not a parameter list in call to %1: %2")
                 .arg(name).arg(args.toString());
     }
 
-    PyObject *argt = PyList_AsTuple(argl);
-    Py_DECREF(argl);
-    PyObject *o = PyObject_Call(callable, argt, NULL);
-    Py_DECREF(argt);
+    PyObjectRef argt(PyList_AsTuple(argl.borrow()), true);
+    PyObjectRef o(PyObject_Call(callable, argt.borrow(), NULL), true);
 
-    if (o == NULL) {
+    if (!o) {
         return QString("Return value of PyObject call is NULL: %1").arg(priv->formatExc());
     } else {
         if (v != NULL) {
-            *v = convertPyObjectToQVariant(o);
+            *v = convertPyObjectToQVariant(o.borrow());
         }
-        Py_DECREF(o);
     }
     return QString();
 }

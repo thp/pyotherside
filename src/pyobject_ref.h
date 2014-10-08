@@ -26,12 +26,15 @@
 
 class PyObjectRef {
     public:
-        explicit PyObjectRef(PyObject *obj=0);
+        explicit PyObjectRef(PyObject *obj=0, bool consume=false);
         PyObjectRef(const PyObjectRef &other);
         virtual ~PyObjectRef();
         PyObjectRef &operator=(const PyObjectRef &other);
 
         PyObject *newRef() const;
+
+        PyObject *borrow() const;
+        operator bool() const { return (pyobject != 0); }
 
     private:
         PyObject *pyobject;

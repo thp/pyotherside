@@ -20,10 +20,10 @@
 #include "pyobject_ref.h"
 #include "ensure_gil_state.h"
 
-PyObjectRef::PyObjectRef(PyObject *obj)
+PyObjectRef::PyObjectRef(PyObject *obj, bool consume)
     : pyobject(obj)
 {
-    if (pyobject) {
+    if (pyobject && !consume) {
         ENSURE_GIL_STATE;
         Py_INCREF(pyobject);
     }
@@ -75,5 +75,12 @@ PyObjectRef::newRef() const
         Py_INCREF(pyobject);
     }
 
+    return pyobject;
+}
+
+PyObject *
+PyObjectRef::borrow() const
+{
+    // Borrowed reference
     return pyobject;
 }
