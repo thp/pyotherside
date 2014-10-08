@@ -18,17 +18,7 @@
  **/
 
 #include "pyobject_ref.h"
-
-class EnsureGILState {
-    public:
-        EnsureGILState() : gil_state(PyGILState_Ensure()) { }
-        ~EnsureGILState() { PyGILState_Release(gil_state); }
-
-    private:
-        PyGILState_STATE gil_state;
-};
-
-#define ENSURE_GIL_STATE EnsureGILState _ensure; Q_UNUSED(_ensure)
+#include "ensure_gil_state.h"
 
 PyObjectRef::PyObjectRef(PyObject *obj)
     : pyobject(obj)

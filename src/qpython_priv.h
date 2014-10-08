@@ -34,9 +34,6 @@ class QPythonPriv : public QObject {
 
         PyObject *eval(QString expr);
 
-        void enter();
-        void leave();
-
         QString importFromQRC(const char *module, const QString &filename);
         QString call(PyObject *callable, QString name, QVariant args, QVariant *v);
 
@@ -48,10 +45,10 @@ class QPythonPriv : public QObject {
 
         PyObject *locals;
         PyObject *globals;
-        PyGILState_STATE gil_state;
         PyObject *atexit_callback;
         PyObject *image_provider;
         PyObject *traceback_mod;
+        PyThreadState *thread_state;
 
     signals:
         void receive(QVariant data);

@@ -19,6 +19,7 @@
 #include "qpython_priv.h"
 
 #include "qpython_imageprovider.h"
+#include "ensure_gil_state.h"
 
 #include <QDebug>
 
@@ -36,9 +37,9 @@ static void
 cleanup_python_qimage(void *data)
 {
     QPythonPriv *priv = QPythonPriv::instance();
-    priv->enter();
+
+    ENSURE_GIL_STATE;
     Py_XDECREF(static_cast<PyObject *>(data));
-    priv->leave();
 }
 
 QImage
@@ -83,7 +84,8 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
     //
     // pyotherside.set_image_provider(image_provider)
 
-    priv->enter();
+    ENSURE_GIL_STATE;
+
     PyObject *args = Py_BuildValue("(N(ii))",
             PyUnicode_FromString(id_utf8.constData()),
             requestedSize.width(), requestedSize.height());
@@ -180,7 +182,6 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
 
 cleanup:
     Py_XDECREF(result);
-    priv->leave();
 
     *size = img.size();
     return img;

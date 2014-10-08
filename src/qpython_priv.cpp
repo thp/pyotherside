@@ -20,6 +20,8 @@
 
 #include "qpython_priv.h"
 
+#include "ensure_gil_state.h"
+
 #include <QImage>
 #include <QDebug>
 #include <QResource>
@@ -198,10 +200,10 @@ PyOtherSide_init()
 QPythonPriv::QPythonPriv()
     : locals(NULL)
     , globals(NULL)
-    , gil_state()
     , atexit_callback(NULL)
     , image_provider(NULL)
     , traceback_mod(NULL)
+    , thread_state(NULL)
 {
     PyImport_AppendInittab("pyotherside", PyOtherSide_init);
 
@@ -224,28 +226,19 @@ QPythonPriv::QPythonPriv()
                 PyEval_GetBuiltins());
     }
 
-    leave();
+    // Release the GIL
+    thread_state = PyEval_SaveThread();
 }
 
 QPythonPriv::~QPythonPriv()
 {
-    enter();
+    // Re-acquire the previously-released GIL
+    PyEval_RestoreThread(thread_state);
+
     Py_DECREF(traceback_mod);
     Py_DECREF(globals);
     Py_DECREF(locals);
     Py_Finalize();
-}
-
-void
-QPythonPriv::enter()
-{
-    gil_state = PyGILState_Ensure();
-}
-
-void
-QPythonPriv::leave()
-{
-    PyGILState_Release(gil_state);
 }
 
 void
@@ -342,7 +335,8 @@ QPythonPriv::closing()
         return;
     }
 
-    priv->enter();
+    ENSURE_GIL_STATE;
+
     if (priv->atexit_callback != NULL) {
         PyObject *args = PyTuple_New(0);
         PyObject *result = PyObject_Call(priv->atexit_callback, args, NULL);
@@ -356,7 +350,6 @@ QPythonPriv::closing()
         Py_DECREF(priv->image_provider);
         priv->image_provider = NULL;
     }
-    priv->leave();
 }
 
 QPythonPriv *

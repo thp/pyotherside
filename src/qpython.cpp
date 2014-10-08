@@ -22,6 +22,8 @@
 #include "qpython_priv.h"
 #include "qpython_worker.h"
 
+#include "ensure_gil_state.h"
+
 #include <QDebug>
 
 #include <QJSEngine>
@@ -78,7 +80,7 @@ QPython::~QPython()
 void
 QPython::addImportPath(QString path)
 {
-    priv->enter();
+    ENSURE_GIL_STATE;
 
     // Strip leading "file://" (for use with Qt.resolvedUrl())
     if (path.startsWith("file://")) {
@@ -107,7 +109,6 @@ QPython::addImportPath(QString path)
     PyObject *cwd = PyUnicode_FromString(utf8bytes.constData());
     PyList_Insert(sys_path, 0, cwd);
     Py_DECREF(cwd);
-    priv->leave();
 }
 
 void
@@ -130,7 +131,7 @@ QPython::importModule_sync(QString name)
     QByteArray utf8bytes = name.toUtf8();
     const char *moduleName = utf8bytes.constData();
 
-    priv->enter();
+    ENSURE_GIL_STATE;
 
     bool use_api_10 = (api_version_major == 1 && api_version_minor == 0);
 
@@ -148,7 +149,6 @@ QPython::importModule_sync(QString name)
 
     if (module == NULL) {
         emit error(QString("Cannot import module: %1 (%2)").arg(name).arg(priv->formatExc()));
-        priv->leave();
         return false;
     }
 
@@ -164,7 +164,6 @@ QPython::importModule_sync(QString name)
 
     PyDict_SetItemString(priv->globals, moduleName, module);
     Py_CLEAR(module);
-    priv->leave();
     return true;
 }
 
@@ -211,17 +210,16 @@ QPython::setHandler(QString event, QJSValue callback)
 QVariant
 QPython::evaluate(QString expr)
 {
-    priv->enter();
+    ENSURE_GIL_STATE;
+
     PyObject *o = priv->eval(expr);
     if (o == NULL) {
         emit error(QString("Cannot evaluate '%1' (%2)").arg(expr).arg(priv->formatExc()));
-        priv->leave();
         return QVariant();
     }
 
     QVariant v = convertPyObjectToQVariant(o);
     Py_DECREF(o);
-    priv->leave();
     return v;
 }
 
@@ -238,12 +236,12 @@ QPython::call(QString func, QVariant args, QJSValue callback)
 QVariant
 QPython::call_sync(QString func, QVariant args)
 {
-    priv->enter();
+    ENSURE_GIL_STATE;
+
     PyObject *callable = priv->eval(func);
 
     if (callable == NULL) {
         emit error(QString("Function not found: '%1' (%2)").arg(func).arg(priv->formatExc()));
-        priv->leave();
         return QVariant();
     }
 
@@ -253,7 +251,6 @@ QPython::call_sync(QString func, QVariant args)
         emit error(errorMessage);
     }
     Py_DECREF(callable);
-    priv->leave();
     return v;
 }
 
@@ -270,12 +267,12 @@ QPython::callMethod(QVariant obj, QString method, QVariant args, QJSValue callba
 QVariant
 QPython::callMethod_sync(QVariant obj, QString method, QVariant args)
 {
-    priv->enter();
+    ENSURE_GIL_STATE;
+
     PyObject *pyobj = convertQVariantToPyObject(obj);
 
     if (pyobj == NULL) {
         emit error(QString("Failed to convert %1 to python object: '%1' (%2)").arg(obj.toString()).arg(priv->formatExc()));
-        priv->leave();
         return QVariant();
     }
 
@@ -287,7 +284,6 @@ QPython::callMethod_sync(QVariant obj, QString method, QVariant args)
     if (callable == NULL) {
         emit error(QString("Method not found: '%1' (%2)").arg(method).arg(priv->formatExc()));
         Py_DECREF(pyobj);
-        priv->leave();
         return QVariant();
     }
 
@@ -298,18 +294,17 @@ QPython::callMethod_sync(QVariant obj, QString method, QVariant args)
     }
     Py_DECREF(callable);
     Py_DECREF(pyobj);
-    priv->leave();
     return v;
 }
 
 QVariant
 QPython::getattr(QVariant obj, QString attr) {
-    priv->enter();
+    ENSURE_GIL_STATE;
+
     PyObject *pyobj = convertQVariantToPyObject(obj);
 
     if (pyobj == NULL) {
         emit error(QString("Failed to convert %1 to python object: '%1' (%2)").arg(obj.toString()).arg(priv->formatExc()));
-        priv->leave();
         return QVariant();
     }
 
@@ -321,14 +316,12 @@ QPython::getattr(QVariant obj, QString attr) {
     if (o == NULL) {
         emit error(QString("Attribute not found: '%1' (%2)").arg(attr).arg(priv->formatExc()));
         Py_DECREF(pyobj);
-        priv->leave();
         return QVariant();
     }
 
     QVariant v = convertPyObjectToQVariant(o);
     Py_DECREF(o);
     Py_DECREF(pyobj);
-    priv->leave();
     return v;
 }
 

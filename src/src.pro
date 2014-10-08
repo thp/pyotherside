@@ -47,6 +47,9 @@ HEADERS += global_libpython_loader.h
 SOURCES += pyobject_ref.cpp
 HEADERS += pyobject_ref.h
 
+# GIL helper
+HEADERS += ensure_gil_state.h
+
 # Type System Conversion Logic
 HEADERS += converter.h
 HEADERS += qvariant_converter.h
