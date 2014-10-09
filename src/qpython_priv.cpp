@@ -28,6 +28,11 @@
 #include <QFile>
 #include <QDir>
 
+#include <QMetaObject>
+#include <QMetaProperty>
+#include <QMetaMethod>
+#include <QGenericArgument>
+
 static QPythonPriv *priv = NULL;
 
 static QString
@@ -135,6 +140,159 @@ pyotherside_qrc_list_dir(PyObject *self, PyObject *dirname)
     return convertQVariantToPyObject(dir.entryList());
 }
 
+PyObject *
+pyotherside_get_attribute(PyObject *self, PyObject *args)
+{
+    // (capsule, attrname, [fallback])
+    //
+    PyObject *capsule;
+    PyObject *attrname;
+    PyObject *fallback = NULL;
+
+    if (!PyArg_UnpackTuple(args, "get_attribute", 2, 3, &capsule, &attrname, &fallback)) {
+        return NULL;
+    }
+
+    if (!PyCapsule_CheckExact(capsule)) {
+        // TODO: Exception
+        return NULL;
+    }
+
+    if (!PyUnicode_Check(attrname)) {
+        // TODO: Exception
+        return NULL;
+    }
+
+    QObjectRef *ref = static_cast<QObjectRef *>(PyCapsule_GetPointer(capsule, "QObjectRef"));
+    QObject *o = ref->value();
+
+    if (o) {
+        const QMetaObject *metaObject = o->metaObject();
+        QString attrName = convertPyObjectToQVariant(attrname).toString();
+
+        for (int i=0; i<metaObject->propertyCount(); i++) {
+            QMetaProperty property = metaObject->property(i);
+            if (attrName == property.name()) {
+                return convertQVariantToPyObject(property.read(o));
+            }
+        }
+
+        for (int i=0; i<metaObject->methodCount(); i++) {
+            QMetaMethod method = metaObject->method(i);
+            if (attrName == method.name()) {
+                return PyCapsule_New(new QObjectMethodRef(*ref, attrName), "QObjectMethodRef", NULL);
+            }
+        }
+    }
+
+    Py_RETURN_NONE;
+}
+
+PyObject *
+pyotherside_set_attribute(PyObject *self, PyObject *args)
+{
+    // (capsule, attrname, value)
+    PyObject *capsule;
+    PyObject *attrname;
+    PyObject *value;
+
+    if (!PyArg_UnpackTuple(args, "set_attribute", 3, 3, &capsule, &attrname, &value)) {
+        return NULL;
+    }
+
+    if (!PyCapsule_CheckExact(capsule)) {
+        // TODO: Exception
+        return NULL;
+    }
+
+    if (!PyUnicode_Check(attrname)) {
+        // TODO: Exception
+        return NULL;
+    }
+
+    QObjectRef *ref = static_cast<QObjectRef *>(PyCapsule_GetPointer(capsule, "QObjectRef"));
+    QObject *o = ref->value();
+
+    if (o) {
+        const QMetaObject *metaObject = o->metaObject();
+        QString attrName = convertPyObjectToQVariant(attrname).toString();
+
+        for (int i=0; i<metaObject->propertyCount(); i++) {
+            QMetaProperty property = metaObject->property(i);
+            if (attrName == property.name()) {
+                if (!property.write(o, convertPyObjectToQVariant(value))) {
+                    // TODO: Exception
+                    return NULL;
+                }
+
+                Py_RETURN_NONE;
+            }
+        }
+    }
+
+    Py_RETURN_NONE;
+}
+
+PyObject *
+pyotherside_call_method(PyObject *self, PyObject *args)
+{
+    // (capsule, args)
+    PyObject *capsule;
+    PyObject *methargs;
+
+    if (!PyArg_UnpackTuple(args, "call_method", 2, 2, &capsule, &methargs)) {
+        return NULL;
+    }
+
+    if (!PyCapsule_CheckExact(capsule)) {
+        qDebug() << "not a capsule";
+        // TODO: Exception
+        return NULL;
+    }
+
+    if (!PyTuple_Check(methargs)) {
+        qDebug() << "not a tuple";
+        // TODO: Exception
+        return NULL;
+    }
+
+    QList<QVariant> qargs = convertPyObjectToQVariant(methargs).toList();
+    QObjectMethodRef *ref = static_cast<QObjectMethodRef *>(PyCapsule_GetPointer(capsule, "QObjectMethodRef"));
+
+    QList<QGenericArgument> genericArguments;
+    for (int j=0; j<qargs.size(); j++) {
+        const QVariant& argument = qargs[j];
+        genericArguments.append(QGenericArgument(argument.typeName(), argument.constData()));
+    }
+
+    QObject *o = ref->object().value();
+    const QMetaObject *metaObject = o->metaObject();
+
+    for (int i=0; i<metaObject->methodCount(); i++) {
+        QMetaMethod method = metaObject->method(i);
+
+        if (method.name() == ref->method()) {
+            QVariant result;
+            if (method.invoke(o, Qt::DirectConnection,
+                    Q_RETURN_ARG(QVariant, result), genericArguments.value(0),
+                    genericArguments.value(1), genericArguments.value(2),
+                    genericArguments.value(3), genericArguments.value(4),
+                    genericArguments.value(5), genericArguments.value(6),
+                    genericArguments.value(7), genericArguments.value(8),
+                    genericArguments.value(9))) {
+                return convertQVariantToPyObject(result);
+            }
+
+            qDebug() << "No result";
+            Py_RETURN_NONE;
+        }
+    }
+
+    Py_RETURN_NONE;
+}
+
+
+
 static PyMethodDef PyOtherSideMethods[] = {
     /* Introduced in PyOtherSide 1.0 */
     {"send", pyotherside_send, METH_VARARGS, "Send data to Qt."},
@@ -148,6 +306,11 @@ static PyMethodDef PyOtherSideMethods[] = {
     {"qrc_is_dir", pyotherside_qrc_is_dir, METH_O, "Check if a directory exists in Qt Resources."},
     {"qrc_get_file_contents", pyotherside_qrc_get_file_contents, METH_O, "Get file contents from a Qt Resource."},
     {"qrc_list_dir", pyotherside_qrc_list_dir, METH_O, "Get directory entries from a Qt Resource."},
+
+    /* Introduced in PyOtherSide 1.4 */
+    {"get_attribute", pyotherside_get_attribute, METH_VARARGS, "Get attribute of QObject"},
+    {"set_attribute", pyotherside_set_attribute, METH_VARARGS, "Set attribute of QObject"},
+    {"call_method", pyotherside_call_method, METH_VARARGS, "Call method on QObject"},
 
     /* sentinel */
     {NULL, NULL, 0, NULL},

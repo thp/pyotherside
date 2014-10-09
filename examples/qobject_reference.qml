@@ -1,0 +1,38 @@
+
+import QtQuick 2.0
+import io.thp.pyotherside 1.4
+
+Rectangle {
+    id: root
+    width: 400
+    height: 400
+
+    Rectangle {
+        id: foo
+        x: 123
+        y: 123
+        width: 20
+        height: 20
+        color: 'blue'
+
+        function dynamicFunction(a, b, c) {
+            console.log('dynamic: ' + a + ', ' + b + ', ' + c);
+            rotation += 4;
+            return 'hello';
+        }
+    }
+
+    Python {
+        id: py
+
+        Component.onCompleted: {
+            addImportPath(Qt.resolvedUrl('.'));
+            importModule('qobject_reference', function () {
+                call('qobject_reference.foo', [foo], function (result) {
+                    console.log('got result: ' + result);
+                    result.color = 'green';
+                });
+            });
+        }
+    }
+}

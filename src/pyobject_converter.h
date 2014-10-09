@@ -23,6 +23,7 @@
 
 #include "Python.h"
 #include "datetime.h"
+#include <QDebug>
 
 
 class PyObjectListBuilder : public ListBuilder<PyObject *> {
@@ -138,7 +139,10 @@ class PyObjectConverter : public Converter<PyObject *> {
         }
 
         virtual enum Type type(PyObject *&o) {
-            if (PyBool_Check(o)) {
+            if (PyCapsule_CheckExact(o)) {
+                qDebug() << "Is a capsule";
+                return QOBJECT;
+            } else if (PyBool_Check(o)) {
                 return BOOLEAN;
             } else if (PyLong_Check(o)) {
                 return INTEGER;
@@ -203,6 +207,15 @@ class PyObjectConverter : public Converter<PyObject *> {
                     PyDateTime_DATE_GET_MICROSECOND(o) / 1000);
         }
         virtual PyObjectRef pyObject(PyObject *&o) { return PyObjectRef(o); }
+        virtual QObjectRef qObject(PyObject *&o) {
+            QObjectRef *ref = static_cast<QObjectRef *>(PyCapsule_GetPointer(o, "QObjectRef"));
+
+            if (ref) {
+                return QObjectRef(*ref);
+            }
+            
+            return QObjectRef();
+        }
 
         virtual PyObject * fromInteger(long long v) { return PyLong_FromLong((long)v); }
         virtual PyObject * fromFloating(double v) { return PyFloat_FromDouble(v); }
@@ -214,6 +227,13 @@ class PyObjectConverter : public Converter<PyObject *> {
             return PyDateTime_FromDateAndTime(v.y, v.m, v.d, v.time.h, v.time.m, v.time.s, v.time.ms * 1000);
         }
         virtual PyObject * fromPyObject(const PyObjectRef &pyobj) { return pyobj.newRef(); }
+        virtual PyObject * fromQObject(const QObjectRef &qobj) {
+            PyObject *result = PyCapsule_New(new QObjectRef(qobj), "QObjectRef", NULL);
+            //PyObject *x = PyLong_FromLong(1337);
+            //PyObject_SetAttrString(result, "x", x);
+            //Py_CLEAR(x);
+            return result;
+        }
         virtual ListBuilder<PyObject *> *newList() { return new PyObjectListBuilder(); }
         virtual DictBuilder<PyObject *> *newDict() { return new PyObjectDictBuilder(); }
         virtual PyObject * none() { Py_RETURN_NONE; }

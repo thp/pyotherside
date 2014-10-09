@@ -20,6 +20,7 @@
 #define PYOTHERSIDE_CONVERTER_H
 
 #include "pyobject_ref.h"
+#include "qobject_ref.h"
 
 struct ConverterDate {
     ConverterDate(int y, int m, int d)
@@ -105,6 +106,7 @@ class Converter {
             TIME,
             DATETIME,
             PYOBJECT,
+            QOBJECT,
         };
 
         virtual enum Type type(V&) = 0;
@@ -118,6 +120,7 @@ class Converter {
         virtual ConverterTime time(V&) = 0;
         virtual ConverterDateTime dateTime(V&) = 0;
         virtual PyObjectRef pyObject(V&) = 0;
+        virtual QObjectRef qObject(V&) = 0;
 
         virtual V fromInteger(long long v) = 0;
         virtual V fromFloating(double v) = 0;
@@ -127,6 +130,7 @@ class Converter {
         virtual V fromTime(ConverterTime time) = 0;
         virtual V fromDateTime(ConverterDateTime dateTime) = 0;
         virtual V fromPyObject(const PyObjectRef &pyobj) = 0;
+        virtual V fromQObject(const QObjectRef &qobj) = 0;
         virtual ListBuilder<V> *newList() = 0;
         virtual DictBuilder<V> *newDict() = 0;
         virtual V none() = 0;
@@ -193,6 +197,8 @@ convert(F from)
             return tconv.fromDateTime(fconv.dateTime(from));
         case FC::PYOBJECT:
             return tconv.fromPyObject(fconv.pyObject(from));
+        case FC::QOBJECT:
+            return tconv.fromQObject(fconv.qObject(from));
     }
 
     return tconv.none();

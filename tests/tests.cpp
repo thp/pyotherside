@@ -223,6 +223,19 @@ TestPyOtherSide::testPyObjectRefRoundTrip()
 }
 
 void
+TestPyOtherSide::testQObjectRef()
+{
+    QObject *o = new QObject();
+    QObjectRef ref(o);
+
+    QVERIFY(ref.value() == o);
+
+    delete o;
+
+    QVERIFY(ref.value() == NULL);
+}
+
+void
 TestPyOtherSide::testQVariantConverter()
 {
     test_converter_for<QVariant>(new QVariantConverter);
