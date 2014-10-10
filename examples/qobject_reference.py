@@ -36,6 +36,13 @@ def foo(bar, py):
     except Exception as e:
         print('Got exception (as expected):', e)
 
+    # This doesn't work yet, because we can't convert a bound
+    # member function to a Qt/QML type yet (fallback to None)
+    try:
+        bar.dynamicFunction(bar.dynamicFunction, 2, 3)
+    except Exception as e:
+        print('Got exception (as expected):', e)
+
     # Property access works just like expected
     print(bar.x, bar.color, bar.scale)
     bar.x *= 3

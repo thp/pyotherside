@@ -141,8 +141,11 @@ class PyObjectConverter : public Converter<PyObject *> {
 
         virtual enum Type type(PyObject *&o) {
             if (PyObject_TypeCheck(o, &pyotherside_QObjectType)) {
-                qDebug() << "Is a wrapped qobject";
                 return QOBJECT;
+            } else if (PyObject_TypeCheck(o, &pyotherside_QObjectMethodType)) {
+                qWarning("Cannot convert QObjectMethod yet - falling back to None");
+                // TODO: Implement passing QObjectMethod references around
+                return NONE;
             } else if (PyBool_Check(o)) {
                 return BOOLEAN;
             } else if (PyLong_Check(o)) {
