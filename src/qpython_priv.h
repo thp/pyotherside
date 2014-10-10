@@ -22,10 +22,12 @@
 #include "Python.h"
 
 #include "pyobject_ref.h"
+#include "pyqobject.h"
 
 #include <QObject>
 #include <QVariant>
 #include <QString>
+
 
 class QPythonPriv : public QObject {
     Q_OBJECT

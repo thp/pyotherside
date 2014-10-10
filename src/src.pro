@@ -50,6 +50,7 @@ HEADERS += pyobject_ref.h
 # QObject wrapper class exposed to Python
 SOURCES += qobject_ref.cpp
 HEADERS += qobject_ref.h
+HEADERS += pyqobject.h
 
 # GIL helper
 HEADERS += ensure_gil_state.h

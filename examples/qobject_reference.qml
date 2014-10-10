@@ -1,4 +1,3 @@
-
 import QtQuick 2.0
 import io.thp.pyotherside 1.4
 
@@ -16,7 +15,7 @@ Rectangle {
         color: 'blue'
 
         function dynamicFunction(a, b, c) {
-            console.log('dynamic: ' + a + ', ' + b + ', ' + c);
+            console.log('In QML, dynamicFunction got: ' + a + ', ' + b + ', ' + c);
             rotation += 4;
             return 'hello';
         }
@@ -28,8 +27,8 @@ Rectangle {
         Component.onCompleted: {
             addImportPath(Qt.resolvedUrl('.'));
             importModule('qobject_reference', function () {
-                call('qobject_reference.foo', [foo], function (result) {
-                    console.log('got result: ' + result);
+                call('qobject_reference.foo', [foo, py], function (result) {
+                    console.log('In QML, got result: ' + result);
                     result.color = 'green';
                 });
             });

@@ -20,6 +20,7 @@
 #define PYOTHERSIDE_PYOBJECT_CONVERTER_H
 
 #include "converter.h"
+#include "pyqobject.h"
 
 #include "Python.h"
 #include "datetime.h"
@@ -139,8 +140,8 @@ class PyObjectConverter : public Converter<PyObject *> {
         }
 
         virtual enum Type type(PyObject *&o) {
-            if (PyCapsule_CheckExact(o)) {
-                qDebug() << "Is a capsule";
+            if (PyObject_TypeCheck(o, &pyotherside_QObjectType)) {
+                qDebug() << "Is a wrapped qobject";
                 return QOBJECT;
             } else if (PyBool_Check(o)) {
                 return BOOLEAN;
@@ -208,12 +209,11 @@ class PyObjectConverter : public Converter<PyObject *> {
         }
         virtual PyObjectRef pyObject(PyObject *&o) { return PyObjectRef(o); }
         virtual QObjectRef qObject(PyObject *&o) {
-            QObjectRef *ref = static_cast<QObjectRef *>(PyCapsule_GetPointer(o, "QObjectRef"));
-
-            if (ref) {
-                return QObjectRef(*ref);
+            if (PyObject_TypeCheck(o, &pyotherside_QObjectType)) {
+                pyotherside_QObject *result = reinterpret_cast<pyotherside_QObject *>(o);
+                return QObjectRef(*(result->m_qobject_ref));
             }
-            
+
             return QObjectRef();
         }
 
@@ -228,11 +228,9 @@ class PyObjectConverter : public Converter<PyObject *> {
         }
         virtual PyObject * fromPyObject(const PyObjectRef &pyobj) { return pyobj.newRef(); }
         virtual PyObject * fromQObject(const QObjectRef &qobj) {
-            PyObject *result = PyCapsule_New(new QObjectRef(qobj), "QObjectRef", NULL);
-            //PyObject *x = PyLong_FromLong(1337);
-            //PyObject_SetAttrString(result, "x", x);
-            //Py_CLEAR(x);
-            return result;
+            pyotherside_QObject *result = PyObject_New(pyotherside_QObject, &pyotherside_QObjectType);
+            result->m_qobject_ref = new QObjectRef(qobj);
+            return reinterpret_cast<PyObject *>(result);
         }
         virtual ListBuilder<PyObject *> *newList() { return new PyObjectListBuilder(); }
         virtual DictBuilder<PyObject *> *newDict() { return new PyObjectDictBuilder(); }
