@@ -191,6 +191,13 @@ pyotherside_qrc_list_dir(PyObject *self, PyObject *dirname)
     return convertQVariantToPyObject(dir.entryList());
 }
 
+void
+pyotherside_QObject_dealloc(pyotherside_QObject *self)
+{
+    delete self->m_qobject_ref;
+    Py_TYPE(self)->tp_free((PyObject *)self);
+}
+
 PyObject *
 pyotherside_QObject_repr(PyObject *o)
 {
@@ -302,6 +309,13 @@ pyotherside_QObject_setattro(PyObject *o, PyObject *attr_name, PyObject *v)
     PyErr_Format(PyExc_AttributeError, "Property does not exist: %s",
             attrName.toUtf8().constData());
     return -1;
+}
+
+void
+pyotherside_QObjectMethod_dealloc(pyotherside_QObjectMethod *self)
+{
+    delete self->m_method_ref;
+    Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
 PyObject *
@@ -450,6 +464,7 @@ PyOtherSide_init()
     pyotherside_QObjectType.tp_repr = pyotherside_QObject_repr;
     pyotherside_QObjectType.tp_getattro = pyotherside_QObject_getattro;
     pyotherside_QObjectType.tp_setattro = pyotherside_QObject_setattro;
+    pyotherside_QObjectType.tp_dealloc = (destructor)pyotherside_QObject_dealloc;
     if (PyType_Ready(&pyotherside_QObjectType) < 0) {
         qFatal("Could not initialize QObjectType");
         // Not reached
@@ -461,6 +476,7 @@ PyOtherSide_init()
     pyotherside_QObjectMethodType.tp_new = PyType_GenericNew;
     pyotherside_QObjectMethodType.tp_repr = pyotherside_QObjectMethod_repr;
     pyotherside_QObjectMethodType.tp_call = pyotherside_QObjectMethod_call;
+    pyotherside_QObjectMethodType.tp_dealloc = (destructor)pyotherside_QObjectMethod_dealloc;
     if (PyType_Ready(&pyotherside_QObjectMethodType) < 0) {
         qFatal("Could not initialize QObjectMethodType");
         // Not reached
