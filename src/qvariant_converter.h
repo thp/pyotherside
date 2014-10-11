@@ -112,6 +112,10 @@ class QVariantConverter : public Converter<QVariant> {
         virtual ~QVariantConverter() {}
 
         virtual enum Type type(QVariant &v) {
+            if (v.canConvert<QObject *>()) {
+                return QOBJECT;
+            }
+
             QMetaType::Type t = (QMetaType::Type)v.type();
             switch (t) {
                 case QMetaType::Bool:
@@ -196,6 +200,10 @@ class QVariantConverter : public Converter<QVariant> {
             return v.value<PyObjectRef>();
         }
 
+        virtual QObjectRef qObject(QVariant &v) {
+            return QObjectRef(v.value<QObject *>());
+        }
+
         virtual ListBuilder<QVariant> *newList() {
             return new QVariantListBuilder;
         }
@@ -217,6 +225,9 @@ class QVariantConverter : public Converter<QVariant> {
         }
         virtual QVariant fromPyObject(const PyObjectRef &pyobj) {
             return QVariant::fromValue(pyobj);
+        }
+        virtual QVariant fromQObject(const QObjectRef &qobj) {
+            return QVariant::fromValue(qobj.value());
         }
         virtual QVariant none() { return QVariant(); };
 

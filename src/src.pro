@@ -47,6 +47,11 @@ HEADERS += global_libpython_loader.h
 SOURCES += pyobject_ref.cpp
 HEADERS += pyobject_ref.h
 
+# QObject wrapper class exposed to Python
+SOURCES += qobject_ref.cpp
+HEADERS += qobject_ref.h
+HEADERS += pyqobject.h
+
 # GIL helper
 HEADERS += ensure_gil_state.h
 

@@ -22,10 +22,12 @@
 #include "Python.h"
 
 #include "pyobject_ref.h"
+#include "pyqobject.h"
 
 #include <QObject>
 #include <QVariant>
 #include <QString>
+
 
 class QPythonPriv : public QObject {
     Q_OBJECT
@@ -50,6 +52,7 @@ class QPythonPriv : public QObject {
         PyObjectRef atexit_callback;
         PyObjectRef image_provider;
         PyObjectRef traceback_mod;
+        PyObjectRef pyotherside_mod;
         PyThreadState *thread_state;
 
     signals:

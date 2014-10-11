@@ -1,7 +1,7 @@
 
 /**
  * PyOtherSide: Asynchronous Python 3 Bindings for Qt 5
- * Copyright (c) 2011, 2013, Thomas Perl <m@thp.io>
+ * Copyright (c) 2014, Thomas Perl <m@thp.io>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,29 +16,24 @@
  * PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef PYOTHERSIDE_TESTS_H
-#define PYOTHERSIDE_TESTS_H
+#ifndef PYOTHERSIDE_PYQOBJECT_H
+#define PYOTHERSIDE_PYQOBJECT_H
 
-#include <QtTest>
+#include "Python.h"
 
-#include <QObject>
-#include <QDebug>
+#include "qobject_ref.h"
 
-class TestPyOtherSide : public QObject {
-    Q_OBJECT
+typedef struct {
+    PyObject_HEAD
+    QObjectRef *m_qobject_ref;
+} pyotherside_QObject;
 
-    public:
-        TestPyOtherSide();
+typedef struct {
+    PyObject_HEAD
+    QObjectMethodRef *m_method_ref;
+} pyotherside_QObjectMethod;
 
-    private slots:
-        void testEvaluate();
-        void testQVariantConverter();
-        void testPyObjectConverter();
-        void testPyObjectRefRoundTrip();
-        void testPyObjectRefAssignment();
-        void testQObjectRef();
-        void testConvertToPythonAndBack();
-        void testSetToList();
-};
+extern PyTypeObject pyotherside_QObjectType;
+extern PyTypeObject pyotherside_QObjectMethodType;
 
-#endif /* PYOTHERSIDE_TESTS_H */
+#endif /* PYOTHERSIDE_PYQOBJECT_H */
