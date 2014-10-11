@@ -359,6 +359,8 @@ between Python and QML (and vice versa):
 +--------------------+------------+-----------------------------+
 | object             | (opaque)   | since PyOtherSide 1.4.0     |
 +--------------------+------------+-----------------------------+
+| pyotherside.QObject| QObject    | since PyOtherSide 1.4.0     |
++--------------------+------------+-----------------------------+
 
 Trying to pass in other types than the ones listed here is undefined
 behavior and will usually result in an error.
@@ -460,6 +462,59 @@ Importing Python modules from Qt Resources also works starting with QML API 1.3
 using :func:`Qt.resolvedUrl` from within a QML file in Qt Resources. As an
 alternative, ``addImportPath('qrc:/')`` will add the root directory of the Qt
 Resources to Python's module search path.
+
+.. _qobjects in python:
+
+Accessing QObjects from Python
+==============================
+
+.. versionadded:: 1.4.0
+
+Since version 1.4, PyOtherSide allows passing QObjects from QML to Python, and
+accessing (setting / getting) properties and calling slots and dynamic methods.
+References to QObjects passed to Python can be passed back to QML transparently:
+
+.. code-block:: python
+
+    # Assume func will be called with a QObject as sole argument
+    def func(qobject):
+        # Getting properties
+        print(qobject.x)
+
+        # Setting properties
+        qobject.x = 123
+
+        # Calling slots and dynamic functions
+        print(qobject.someFunction(123, 'b'))
+
+        # Returning a QObject reference to the caller
+        return qobject
+
+It is possible to store a reference (bound method) to a method of a QObject.
+Such references cannot be passed to QML, and can only be used in Python for the
+lifetime of the QObject. If you need to pass such a bound method to QML, you
+can wrap it into a Python object (or even just a lambda) and pass that instead:
+
+.. code-block:: python
+
+    def func(qobject):
+        # Can store a reference to a bound method
+        bound_method = qobject.someFunction
+
+        # Calling the bound method
+        bound_method(123, 'b')
+
+        # If you need to return the bound method, you must wrap it
+        # in a lambda (or any other Python object), the bound method
+        # cannot be returned as-is for now
+        return lambda a, b: bound_method(a, b)
+
+It's not possible to instantiate new QObjects from within Python, and it's
+not possible to subclass QObject from within Python. Also, be aware that a
+reference to a QObject in Python will become invalid when the QObject is
+deleted (there's no way for PyOtherSide to prevent referenced QObjects from
+being deleted, but PyOtherSide tries hard to detect the deletion of objects
+and give meaningful error messages in case the reference is accessed).
 
 
 Cookbook
@@ -929,6 +984,7 @@ Version 1.4.0 (UNRELEASED)
 * Add :func:`getattr` to get an attribute from a Python object
 * :func:`call` and :func:`call_sync` now also accept a Python callable as
   first argument
+* Support for `Accessing QObjects from Python`_ (properties and slots)
 
 Version 1.3.0 (2014-07-24)
 --------------------------
