@@ -52,6 +52,7 @@ class QPythonPriv : public QObject {
         PyObjectRef atexit_callback;
         PyObjectRef image_provider;
         PyObjectRef traceback_mod;
+        PyObjectRef pyotherside_mod;
         PyThreadState *thread_state;
 
     signals:

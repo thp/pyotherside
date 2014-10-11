@@ -494,6 +494,7 @@ QPythonPriv::QPythonPriv()
     , atexit_callback()
     , image_provider()
     , traceback_mod()
+    , pyotherside_mod()
     , thread_state(NULL)
 {
     PyImport_AppendInittab("pyotherside", PyOtherSide_init);
@@ -516,6 +517,12 @@ QPythonPriv::QPythonPriv()
         PyDict_SetItemString(globals.borrow(), "__builtins__",
                 PyEval_GetBuiltins());
     }
+
+    // Need to "self-import" the pyotherside module here, so that Python code
+    // can use objects wrapped with pyotherside.QObject without crashing when
+    // the user's Python code doesn't "import pyotherside"
+    pyotherside_mod = PyObjectRef(PyImport_ImportModule("pyotherside"), true);
+    assert(pyotherside_mod);
 
     // Release the GIL
     thread_state = PyEval_SaveThread();
