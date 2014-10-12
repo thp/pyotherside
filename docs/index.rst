@@ -63,6 +63,9 @@ io.thp.pyotherside 1.4
 * :func:`call` and :func:`call_sync` now accept a Python callable object
   for the first parameter (previously, only strings were supported)
 
+* If :func:`error` doesn't have a handler defined, error messages will be
+  printed to the console as warnings
+
 
 QML ``Python`` Element
 ----------------------
@@ -89,6 +92,12 @@ Signals
 .. function:: error(string traceback)
 
     Error handler for errors from Python.
+
+.. versionchanged:: 1.4.0
+    If the error signal is not connected, PyOtherSide will print the
+    error as QWarning on the console (previously, error messages
+    were only shown if the signal was connected and printed there).
+    To avoid printing the error, just define a no-op handler.
 
 Methods
 ```````
@@ -985,6 +994,8 @@ Version 1.4.0 (UNRELEASED)
 * :func:`call` and :func:`call_sync` now also accept a Python callable as
   first argument
 * Support for `Accessing QObjects from Python`_ (properties and slots)
+* Print error messages to the console if :func:`error` doesn't have any
+  handlers connected
 
 Version 1.3.0 (2014-07-24)
 --------------------------

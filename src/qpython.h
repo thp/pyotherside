@@ -311,6 +311,9 @@ class QPython : public QObject {
         void finished(QVariant result, QJSValue *callback);
         void imported(bool result, QJSValue *callback);
 
+        void connectNotify(const QMetaMethod &signal);
+        void disconnectNotify(const QMetaMethod &signal);
+
     private:
         static QPythonPriv *priv;
 
@@ -320,6 +323,9 @@ class QPython : public QObject {
 
         int api_version_major;
         int api_version_minor;
+
+        void emitError(const QString &message);
+        int error_connections;
 };
 
 class QPython10 : public QPython {
