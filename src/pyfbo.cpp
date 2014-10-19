@@ -82,7 +82,7 @@ void PyFbo::setRenderer(QVariant rendererRef)
     // If we already have a PyFboRenderer, set its python GL renderer.
     // Otherwise it will be set when createRenderer() is called.
     if (m_fboRenderer) {
-        ((PyFboRenderer *)m_fboRenderer)->setRenderer(m_renderer);
+        static_cast<PyFboRenderer *>(m_fboRenderer)->setRenderer(m_renderer);
     }
 }
 
@@ -92,7 +92,7 @@ QQuickFramebufferObject::Renderer *PyFbo::createRenderer() const
 
     // If we already have a python GL renderer, set it now.
     if (m_renderer) {
-        ((PyFboRenderer *)m_fboRenderer)->setRenderer(m_renderer);
+        static_cast<PyFboRenderer *>(m_fboRenderer)->setRenderer(m_renderer);
     }
     return m_fboRenderer;
 }
