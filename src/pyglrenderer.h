@@ -24,11 +24,9 @@
 #include <QVariant>
 #include <QString>
 #include <QRect>
-#include <QtCore/QObject>
 
 
-class PyGLRenderer : public QObject {
-    Q_OBJECT
+class PyGLRenderer {
 
 public:
     PyGLRenderer(QVariant pyRenderer, bool useRect=true);
