@@ -37,11 +37,6 @@ public:
     void setRenderer(QVariant rendererRef);
 private:
     QVariant m_rendererRef;
-
-    // We have to keep a pointer to the renderer created by createRenderer()
-    // around, for being able to swap out its PyGLRenderer
-    // when setRenderer() is called.
-    mutable Renderer *m_fboRenderer;
 };
 
 #endif
