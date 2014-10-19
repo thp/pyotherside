@@ -1011,7 +1011,7 @@ http://qt-project.org/doc/qt-5/qtquick-scenegraph-openglunderqml-example.html.
 
             onTChanged: {
                 if (renderer) {
-                    py.callMethod(renderer, 'set_t', [t], update);
+                    py.call(py.getattr(renderer, 'set_t'), [t], update);
                 }
             }
         }
