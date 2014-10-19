@@ -136,8 +136,10 @@ void PyGLRenderer::render()
 
 void PyGLRenderer::cleanup()
 {
-    QPythonPriv *priv = QPythonPriv::instance();
-    priv->enter();
+    if (!m_initialized)
+        return;
+
+    ENSURE_GIL_STATE;
 
     PyObject *pyRendererObject = getPyRendererObject();
     if (!pyRendererObject || pyRendererObject == Py_None ||
@@ -157,7 +159,7 @@ void PyGLRenderer::cleanup()
     PyObject *args = PyTuple_New(0);
     PyObject *o = PyObject_Call(cleanupMethod, args, NULL);
     if (o) Py_DECREF(o); else PyErr_PrintEx(0);
-    m_initialized = true;
+    m_initialized = false;
     Py_DECREF(args);
     Py_DECREF(cleanupMethod);
     priv->leave();
