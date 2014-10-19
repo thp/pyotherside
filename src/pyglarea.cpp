@@ -29,6 +29,8 @@
 PyGLArea::PyGLArea()
     : m_before(false)
     , m_renderer(0)
+    , m_rendererChanged(false)
+    , m_beforeChanged(true)
 {
     connect(this, SIGNAL(windowChanged(QQuickWindow*)), this, SLOT(handleWindowChanged(QQuickWindow*)));
 }
@@ -46,10 +48,10 @@ void PyGLArea::setRenderer(QVariant renderer)
     if (renderer == m_pyRenderer)
         return;
     m_pyRenderer = renderer;
-    if (m_renderer) {
-        delete m_renderer;
-        m_renderer = 0;
-    }
+
+    // Defer creating the PyGLRenderer until sync() is called,
+    // when we have an OpenGL context.
+    m_rendererChanged = true;
     update();
 }
 
@@ -58,10 +60,8 @@ void PyGLArea::setBefore(bool before)
     if (before == m_before)
         return;
     m_before = before;
-    if (m_renderer) {
-        delete m_renderer;
-        m_renderer = 0;
-    }
+
+    m_beforeChanged = true;
     update();
 }
 
@@ -80,10 +80,9 @@ void PyGLArea::update() {
 
 void PyGLArea::sync()
 {
-    if (!m_renderer && !m_pyRenderer.isNull()) {
+    if (m_beforeChanged) {
         disconnect(window(), SIGNAL(beforeRendering()), this, SLOT(render()));
         disconnect(window(), SIGNAL(afterRendering()), this, SLOT(render()));
-        m_renderer = new PyGLRenderer(m_pyRenderer);
         if (m_before) {
             // If we allow QML to do the clearing, they would clear what we paint
             // and nothing would show.
@@ -93,11 +92,28 @@ void PyGLArea::sync()
             window()->setClearBeforeRendering(true);
             connect(window(), SIGNAL(afterRendering()), this, SLOT(render()), Qt::DirectConnection);
         }
+        m_beforeChanged = false;
+    }
+
+    if (m_rendererChanged) {
+        if (m_renderer) {
+            m_renderer->cleanup();
+            delete m_renderer;
+            m_renderer = 0;
+        }
+        if (!m_pyRenderer.isNull()) {
+            m_renderer = new PyGLRenderer(m_pyRenderer);
+            m_renderer->init();
+            window()->resetOpenGLState();
+        }
+        m_rendererChanged = false;
     }
 }
 
 void PyGLArea::render()
 {
+    if (!m_renderer)
+        return;
     QPointF pos = mapToScene(QPointF(.0, .0));
     m_renderer->setRect(
         QRect(
@@ -105,12 +121,11 @@ void PyGLArea::render()
             (long)this->width(), (long)this->height()
         )
     );
-    m_renderer->init();
     m_renderer->render();
     window()->resetOpenGLState();
 }
 
 void PyGLArea::cleanup()
 {
-    m_renderer->cleanup();
+    if (m_renderer) m_renderer->cleanup();
 }

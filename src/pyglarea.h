@@ -58,6 +58,8 @@ private:
     QVariant m_pyRenderer;
     bool m_before;
     PyGLRenderer *m_renderer;
+    bool m_rendererChanged;
+    bool m_beforeChanged;
 };
 
 #endif /* PYOTHERSIDE_PYGLAREA_H */

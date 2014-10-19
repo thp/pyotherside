@@ -31,7 +31,6 @@ class PyFbo : public QQuickFramebufferObject
 
 public:
     PyFbo();
-    ~PyFbo();
     Renderer *createRenderer() const;
 
     QVariant renderer() const { return m_rendererRef; };
@@ -40,10 +39,9 @@ private:
     QVariant m_rendererRef;
 
     // We have to keep a pointer to the renderer created by createRenderer()
-    // around, for being able to swap out its PyGLRenderer when
-    // PyFboInSGRenderer::setRenderer() is called.
+    // around, for being able to swap out its PyGLRenderer
+    // when setRenderer() is called.
     mutable Renderer *m_fboRenderer;
-    PyGLRenderer *m_renderer;
 };
 
 #endif
