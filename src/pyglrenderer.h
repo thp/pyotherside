@@ -29,25 +29,21 @@
 class PyGLRenderer {
 
 public:
-    PyGLRenderer(QVariant pyRenderer, bool useRect=true);
+    PyGLRenderer(QVariant pyRenderer);
     ~PyGLRenderer();
 
     void init();
+    void reshape(QRect geometry);
     void render();
     void cleanup();
 
-    void setRect(QRect rect);
-
 private:
-    QRect m_rect;
-    QVariant m_pyRenderer;
     PyObject *m_pyRendererObject;
+    PyObject *m_initMethod;
+    PyObject *m_reshapeMethod;
     PyObject *m_renderMethod;
+    PyObject *m_cleanupMethod;
     bool m_initialized;
-    bool m_useRect;
-
-    PyObject *getPyRendererObject();
-    PyObject *getRenderMethod();
 };
 
 #endif /* PYOTHERSIDE_PYGLRENDERER_H */

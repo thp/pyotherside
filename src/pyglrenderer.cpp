@@ -25,180 +25,129 @@
 #include <QMetaType>
 
 
-PyGLRenderer::PyGLRenderer(QVariant pyRenderer, bool useRect)
+PyGLRenderer::PyGLRenderer(QVariant pyRenderer)
     : m_pyRendererObject(0)
+    , m_initMethod(0)
+    , m_reshapeMethod(0)
     , m_renderMethod(0)
+    , m_cleanupMethod(0)
     , m_initialized(false)
 {
-    m_pyRenderer = pyRenderer;
-    m_useRect = useRect;
+
+    ENSURE_GIL_STATE;
+
+    if (pyRenderer.userType() != qMetaTypeId<PyObjectRef>()) {
+        qWarning() << "Renderer must be of type PyObjectRef (got "
+            << pyRenderer << ").";
+        return;
+    }
+
+    m_pyRendererObject = pyRenderer.value<PyObjectRef>().newRef();
+
+    if (PyObject_HasAttrString(m_pyRendererObject, "render")) {
+        m_renderMethod = PyObject_GetAttrString(m_pyRendererObject, "render");
+        if (!m_renderMethod) {
+            qWarning() << "Error getting render method of renderer.";
+            PyErr_PrintEx(0);
+        }
+    } else {
+        qWarning() << "Renderer has no render method.";
+    }
+
+    if (PyObject_HasAttrString(m_pyRendererObject, "init")) {
+        m_initMethod = PyObject_GetAttrString(m_pyRendererObject, "init");
+        if (!m_initMethod) {
+            qWarning() << "Error getting init method of renderer.";
+            PyErr_PrintEx(0);
+        }
+    }
+
+    if (PyObject_HasAttrString(m_pyRendererObject, "reshape")) {
+        m_reshapeMethod = PyObject_GetAttrString(m_pyRendererObject, "reshape");
+        if (!m_reshapeMethod) {
+            qWarning() << "Error getting reshape method of renderer.";
+            PyErr_PrintEx(0);
+        }
+    }
+
+    if (PyObject_HasAttrString(m_pyRendererObject, "cleanup")) {
+        m_cleanupMethod = PyObject_GetAttrString(m_pyRendererObject, "cleanup");
+        if (!m_cleanupMethod) {
+            qWarning() << "Error getting cleanup method of renderer.";
+            PyErr_PrintEx(0);
+        }
+    }
 }
 
 PyGLRenderer::~PyGLRenderer()
 {
-    if (m_pyRendererObject) {
-        QPythonPriv *priv = QPythonPriv::instance();
-        priv->enter();
-        Py_CLEAR(m_pyRendererObject);
-        if (m_renderMethod)
-            Py_DECREF(m_renderMethod);
-        priv->leave();
-        m_pyRendererObject = 0;
-        m_renderMethod = 0;
-    }
-}
-
-void PyGLRenderer::setRect(QRect rect) {
-    m_rect = rect;
+    ENSURE_GIL_STATE;
+    Py_CLEAR(m_initMethod);
+    Py_CLEAR(m_reshapeMethod);
+    Py_CLEAR(m_renderMethod);
+    Py_CLEAR(m_cleanupMethod);
+    Py_CLEAR(m_pyRendererObject);
 }
 
 void PyGLRenderer::init() {
-    if (m_initialized)
-        return;
-
-    QPythonPriv *priv = QPythonPriv::instance();
-    priv->enter();
-
-    PyObject *pyRendererObject = getPyRendererObject();
-    if (!pyRendererObject || pyRendererObject == Py_None) {
-        priv->leave();
-        return;
-    }
-
-    if (!PyObject_HasAttrString(m_pyRendererObject, "init")) {
-        // Optional init() method not found, consider the renderer initialized.
-        priv->leave();
-        m_initialized = true;
-        return;
-    }
-
-    PyObject *initMethod = PyObject_GetAttrString(m_pyRendererObject, "init");
-    if (!initMethod) {
-        qWarning() << "Failed to get init method of renderer.";
-        PyErr_PrintEx(0);
-        priv->leave();
-        return;
-    }
-
-    PyObject *args = PyTuple_New(0);
-    PyObject *o = PyObject_Call(initMethod, args, NULL);
-    if (o) Py_DECREF(o); else PyErr_PrintEx(0);
-    Py_DECREF(args);
-    Py_DECREF(initMethod);
-    priv->leave();
-    m_initialized = true;
-}
-
-
-void PyGLRenderer::render()
-{
-    if (!m_initialized)
-        return;
-
-    QPythonPriv *priv = QPythonPriv::instance();
-    priv->enter();
-
-    PyObject *renderMethod = getRenderMethod();
-    if (!renderMethod) {
-        qWarning() << "Failed to get render method of renderer.";
-        PyErr_PrintEx(0);
-        priv->leave();
-        return;
-    }
-
-    PyObject *o = NULL;
-    if (m_useRect) {
-        // Call the paintGL callback with arguments x, y, width, height.
-        // These are the boundaries in which the callback should render,
-        // though it may choose to ignore them and simply paint anywhere over
-        // (or below) the QML scene.
-        // (x, y) is the bottom left corner.
-        // (x + width, y + height) is the top right corner.
-        PyObject *x = PyLong_FromLong(m_rect.x());
-        PyObject *y = PyLong_FromLong(m_rect.y());
-        PyObject *width = PyLong_FromLong(m_rect.width());
-        PyObject *height = PyLong_FromLong(m_rect.height());
-        PyObject *args = PyTuple_Pack(4, x, y, width, height);
-        o = PyObject_Call(renderMethod, args, NULL);
-        Py_DECREF(x);
-        Py_DECREF(y);
-        Py_DECREF(width);
-        Py_DECREF(height);
-        Py_DECREF(args);
-    } else {
-        PyObject *args = PyTuple_New(0);
-        o = PyObject_Call(renderMethod, args, NULL);
-        Py_DECREF(args);
-    }
-    if (o) Py_DECREF(o); else PyErr_PrintEx(0);
-    priv->leave();
-}
-
-void PyGLRenderer::cleanup()
-{
-    if (!m_initialized)
+    if (m_initialized || !m_initMethod)
         return;
 
     ENSURE_GIL_STATE;
 
-    PyObject *pyRendererObject = getPyRendererObject();
-    if (!pyRendererObject || pyRendererObject == Py_None ||
-            !PyObject_HasAttrString(m_pyRendererObject, "cleanup")) {
-        priv->leave();
-        return;
-    }
-
-    PyObject *cleanupMethod = PyObject_GetAttrString(m_pyRendererObject, "cleanup");
-    if (!cleanupMethod) {
-        qWarning() << "Failed to get cleanup method of renderer.";
-        PyErr_PrintEx(0);
-        priv->leave();
-        return;
-    }
-
     PyObject *args = PyTuple_New(0);
-    PyObject *o = PyObject_Call(cleanupMethod, args, NULL);
+    PyObject *o = PyObject_Call(m_initMethod, args, NULL);
     if (o) Py_DECREF(o); else PyErr_PrintEx(0);
-    m_initialized = false;
     Py_DECREF(args);
-    Py_DECREF(cleanupMethod);
+    m_initialized = true;
+}
+
+void PyGLRenderer::reshape(QRect geometry)
+{
+    if (!m_initialized || !m_reshapeMethod)
+        return;
+
+    QPythonPriv *priv = QPythonPriv::instance();
+    priv->enter();
+
+    // Call the reshape callback with arguments x, y, width, height.
+    // These are the boundaries in which the callback should render,
+    // though it may choose to ignore them and simply paint anywhere over
+    // (or below) the QML scene.
+    // (x, y) is the bottom left corner.
+    // (x + width, y + height) is the top right corner.
+    PyObject *args = Py_BuildValue(
+        "llll", geometry.x(), geometry.y(), geometry.width(), geometry.height()
+    );
+    PyObject *o = PyObject_Call(m_reshapeMethod, args, NULL);
+    Py_DECREF(args);
+    if (o) Py_DECREF(o); else PyErr_PrintEx(0);
     priv->leave();
 }
 
-PyObject *PyGLRenderer::getPyRendererObject() {
-    if (m_pyRendererObject) {
-        return m_pyRendererObject;
-    }
-    if (m_pyRenderer.userType() != qMetaTypeId<PyObjectRef>()) {
-        qWarning() << "Renderer must be of type PyObjectRef (got "
-            << m_pyRenderer << ").";
-        return NULL;
-    }
-    m_pyRendererObject = m_pyRenderer.value<PyObjectRef>().newRef();
-    return m_pyRendererObject;
+void PyGLRenderer::render()
+{
+    if (!m_initialized || !m_renderMethod)
+        return;
+
+    ENSURE_GIL_STATE;
+
+    PyObject *args = PyTuple_New(0);
+    PyObject *o = PyObject_Call(m_renderMethod, args, NULL);
+    Py_DECREF(args);
+    if (o) Py_DECREF(o); else PyErr_PrintEx(0);
 }
 
-PyObject *PyGLRenderer::getRenderMethod() {
-    if (m_renderMethod) {
-        return m_renderMethod;
-    }
+void PyGLRenderer::cleanup()
+{
+    if (!m_initialized || !m_cleanupMethod)
+        return;
 
-    PyObject *pyRendererObject = getPyRendererObject();
-    if (!pyRendererObject || pyRendererObject == Py_None) {
-        return NULL;
-    }
+    ENSURE_GIL_STATE;
 
-    if (!PyObject_HasAttrString(m_pyRendererObject, "render")) {
-        qWarning() << "Renderer has no render method.";
-        return NULL;
-    }
-
-    PyObject *m_renderMethod = PyObject_GetAttrString(m_pyRendererObject, "render");
-    if (!m_renderMethod) {
-        qWarning() << "Failed to get render method of renderer.";
-        PyErr_PrintEx(0);
-        return NULL;
-    }
-
-    return m_renderMethod;
+    PyObject *args = PyTuple_New(0);
+    PyObject *o = PyObject_Call(m_cleanupMethod, args, NULL);
+    if (o) Py_DECREF(o); else PyErr_PrintEx(0);
+    m_initialized = false;
+    Py_DECREF(args);
 }

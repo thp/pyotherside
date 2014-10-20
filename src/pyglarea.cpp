@@ -115,10 +115,10 @@ void PyGLArea::render()
     if (!m_renderer)
         return;
     QPointF pos = mapToScene(QPointF(.0, .0));
-    m_renderer->setRect(
+    m_renderer->reshape(
         QRect(
             (long)pos.x(), (long)(window()->height() - this->height() - pos.y()),
-            (long)this->width(), (long)this->height()
+            this->width(), this->height()
         )
     );
     m_renderer->render();

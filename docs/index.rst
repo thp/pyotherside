@@ -544,15 +544,19 @@ following properties:
     Initialize OpenGL resources required for rendering.
     This method is optional.
 
-.. function:: IRenderer.render(x, y, width, height)
+.. function:: IRenderer.reshape(x, y, width, height)
 
-    Render within the given area.
-    It is the renderer's responsibility to confine itself to that area.
-    Also, it must unbind any used resources to leave the context in a clean
-    state.
+    Called when the geometry has changed.
 
     ``(x, y)`` is the position of the bottom left corner of the area, in
     window coordinates, e.g. (0, 0) is the bottom left corner of the window.
+
+.. function:: IRenderer.render()
+
+    Render to the OpenGL context.
+
+    It is the renderer's responsibility to unbind any used resources to leave
+    the context in a clean state.
 
 .. function:: IRenderer.cleanup()
 
@@ -905,7 +909,7 @@ The example below shows how to do raw OpenGL rendering in PyOpenGL using a
 PyGLArea. It has been adapted from the tutorial in the Qt documentation at
 http://qt-project.org/doc/qt-5/qtquick-scenegraph-openglunderqml-example.html.
 
-**pyglarea.py**
+**renderer.py**
 
 .. code-block:: python
 
@@ -957,10 +961,10 @@ http://qt-project.org/doc/qt-5/qtquick-scenegraph-openglunderqml-example.html.
             self.vertices_attr = glGetAttribLocation(self.program, b'vertices')
             self.t_attr = glGetUniformLocation(self.program, b't')
 
-        def render(self, x, y, width, height):
-            glMatrixMode(GL_PROJECTION)
-            glLoadIdentity()
+        def reshape(self, x, y, width, height):
             glViewport(x, y, width, height)
+
+        def render(self):
             glUseProgram(self.program)
             try:
                 glDisable(GL_DEPTH_TEST)
@@ -1041,8 +1045,8 @@ http://qt-project.org/doc/qt-5/qtquick-scenegraph-openglunderqml-example.html.
 
             Component.onCompleted: {
                 addImportPath(Qt.resolvedUrl('.'));
-                importModule('pyglarea', function () {
-                    call('pyglarea.Renderer', [], function (renderer) {
+                importModule('renderer', function () {
+                    call('renderer', [], function (renderer) {
                         glArea.renderer = renderer;
                     });
                 });

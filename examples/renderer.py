@@ -3,7 +3,6 @@ import numpy
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileShader, compileProgram
 
-
 VERTEX_SHADER = """#version 130
 attribute highp vec4 vertices;
 varying highp vec2 coords;
@@ -24,7 +23,6 @@ void main() {
     gl_FragColor = vec4(coords * .5 + .5, i, i);
 }
 """
-
 
 class Renderer(object):
 
@@ -48,6 +46,9 @@ class Renderer(object):
         self.vertices_attr = glGetAttribLocation(self.program, b'vertices')
         self.t_attr = glGetUniformLocation(self.program, b't')
 
+    def reshape(self, x, y, width, height):
+        glViewport(x, y, width, height)
+
     def render(self):
         glUseProgram(self.program)
         try:
@@ -65,7 +66,7 @@ class Renderer(object):
 
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
         finally:
-            glDisableVertexAttribArray(self.vertices_attr)
+            glDisableVertexAttribArray(0)
             glBindBuffer(GL_ARRAY_BUFFER, 0)
             glUseProgram(0)
 

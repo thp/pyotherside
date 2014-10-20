@@ -30,7 +30,6 @@ class PyFbo : public QQuickFramebufferObject
     Q_PROPERTY(QVariant renderer READ renderer WRITE setRenderer)
 
 public:
-    PyFbo();
     Renderer *createRenderer() const;
 
     QVariant renderer() const { return m_rendererRef; };

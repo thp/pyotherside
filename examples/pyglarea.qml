@@ -50,8 +50,8 @@ Item {
 
         Component.onCompleted: {
             addImportPath(Qt.resolvedUrl('.'));
-            importModule('pyglarea', function () {
-                call('pyglarea.Renderer', [], function (renderer) {
+            importModule('renderer', function () {
+                call('renderer.Renderer', [], function (renderer) {
                     glArea.renderer = renderer;
                 });
             });

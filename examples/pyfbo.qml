@@ -147,8 +147,8 @@ Item {
 
         Component.onCompleted: {
             addImportPath(Qt.resolvedUrl('.'));
-            importModule('pyfbo', function () {
-                call('pyfbo.Renderer', [], function (renderer) {
+            importModule('renderer', function () {
+                call('renderer.Renderer', [], function (renderer) {
                     fbo.renderer = renderer;
                 });
             });
