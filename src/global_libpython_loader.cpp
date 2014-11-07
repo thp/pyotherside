@@ -20,7 +20,7 @@
 
 namespace GlobalLibPythonLoader {
 
-#ifdef __linux__
+#if defined(__linux__) && !defined(ANDROID)
 
 #define _GNU_SOURCE
 #include <link.h>
