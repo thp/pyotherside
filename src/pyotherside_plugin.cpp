@@ -20,6 +20,7 @@
 #include "qpython.h"
 #include "qpython_imageprovider.h"
 #include "global_libpython_loader.h"
+#include "pythonlib_loader.h"
 
 #include "pyotherside_plugin.h"
 
@@ -49,6 +50,9 @@ PyOtherSideExtensionPlugin::initializeEngine(QQmlEngine *engine, const char *uri
     // are needed by shared Python modules won't be resolved unless we also
     // load libpython again RTLD_GLOBAL again. We do this here.
     GlobalLibPythonLoader::loadPythonGlobally();
+
+    // Extract and load embedded Python Standard Library, if necessary
+    PythonLibLoader::extractPythonLibrary();
 
     engine->addImageProvider(PYOTHERSIDE_IMAGEPROVIDER_ID, new QPythonImageProvider);
 }

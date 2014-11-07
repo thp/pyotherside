@@ -29,6 +29,12 @@ To run the included unit tests after building, use:
     ./tests/tests
 
 
+If you want to link PyOtherSide statically against Python 3, you can include
+the Python Standard Library in PyOtherSide as Qt Resource and have it extracted
+automatically on load, for this, zip up the Standard Library and place the .zip
+file as "pythonlib.zip" into src/ before running qmake.
+
+
 More information:
 
     Project page: https://thp.io/2011/pyotherside/

@@ -31,6 +31,14 @@ HEADERS += qpython_imageprovider.h
 # Importer from Qt Resources
 RESOURCES += qrc_importer.qrc
 
+# Embedded Python Library (add pythonlib.zip if you want this)
+exists (pythonlib.zip) {
+    RESOURCES += pythonlib_loader.qrc
+    DEFINES *= PYTHONLIB_LOADER_HAVE_PYTHONLIB_ZIP
+}
+HEADERS += pythonlib_loader.h
+SOURCES += pythonlib_loader.cpp
+
 # Python QML Object
 SOURCES += qpython.cpp
 HEADERS += qpython.h
