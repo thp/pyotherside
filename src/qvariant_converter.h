@@ -26,6 +26,7 @@
 #include <QDate>
 #include <QDateTime>
 #include <QDebug>
+#include <QJSValue>
 
 class QVariantListBuilder : public ListBuilder<QVariant> {
     public:
@@ -107,6 +108,14 @@ class QVariantDictIterator : public DictIterator<QVariant> {
 
 
 class QVariantConverter : public Converter<QVariant> {
+     private:
+        QVariant stripQJSValue(QVariant &v) {
+            if (v.userType() == qMetaTypeId<QJSValue>()) {
+                return v.value<QJSValue>().toVariant();
+            } else {
+                return v;
+            }
+        }
     public:
         QVariantConverter() : stringstorage() {}
         virtual ~QVariantConverter() {}
@@ -116,7 +125,7 @@ class QVariantConverter : public Converter<QVariant> {
                 return QOBJECT;
             }
 
-            QMetaType::Type t = (QMetaType::Type)v.type();
+            QMetaType::Type t = (QMetaType::Type)stripQJSValue(v).type();
             switch (t) {
                 case QMetaType::Bool:
                     return BOOLEAN;
@@ -153,11 +162,13 @@ class QVariantConverter : public Converter<QVariant> {
             }
         }
 
-        virtual ListIterator<QVariant> *list(QVariant &v) {
+        virtual ListIterator<QVariant> *list(QVariant &v_) {
+            QVariant v = stripQJSValue(v_);
             return new QVariantListIterator(v);
         }
 
-        virtual DictIterator<QVariant> *dict(QVariant &v) {
+        virtual DictIterator<QVariant> *dict(QVariant &v_) {
+            QVariant v = stripQJSValue(v_);
             return new QVariantDictIterator(v);
         }
 
