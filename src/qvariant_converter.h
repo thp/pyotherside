@@ -22,9 +22,12 @@
 #include "converter.h"
 
 #include <QVariant>
+
 #include <QTime>
 #include <QDate>
 #include <QDateTime>
+#include <QJSValue>
+
 #include <QDebug>
 
 class QVariantListBuilder : public ListBuilder<QVariant> {
@@ -146,6 +149,9 @@ class QVariantConverter : public Converter<QVariant> {
                     int userType = v.userType();
                     if (userType == qMetaTypeId<PyObjectRef>()) {
                         return PYOBJECT;
+                    } else if (userType == qMetaTypeId<QJSValue>()) {
+                        // TODO: Support boxing a QJSValue as reference in Python
+                        return type(v.value<QJSValue>().toVariant());
                     } else {
                         qDebug() << "Cannot convert:" << v;
                         return NONE;
@@ -154,10 +160,18 @@ class QVariantConverter : public Converter<QVariant> {
         }
 
         virtual ListIterator<QVariant> *list(QVariant &v) {
+            // XXX: Until we support boxing QJSValue objects directly in Python
+            if (v.userType() == qMetaTypeId<QJSValue>()) {
+                return new QVariantListIterator(v.value<QJSValue>().toVariant());
+            }
             return new QVariantListIterator(v);
         }
 
         virtual DictIterator<QVariant> *dict(QVariant &v) {
+            // XXX: Until we support boxing QJSValue objects directly in Python
+            if (v.userType() == qMetaTypeId<QJSValue>()) {
+                return new QVariantListIterator(v.value<QJSValue>().toVariant());
+            }
             return new QVariantDictIterator(v);
         }
 
