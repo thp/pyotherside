@@ -109,7 +109,7 @@ class Converter {
             QOBJECT,
         };
 
-        virtual enum Type type(V&) = 0;
+        virtual enum Type type(const V&) = 0;
         virtual long long integer(V&) = 0;
         virtual double floating(V&) = 0;
         virtual bool boolean(V&) = 0;
