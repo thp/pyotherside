@@ -139,7 +139,7 @@ class PyObjectConverter : public Converter<PyObject *> {
             }
         }
 
-        virtual enum Type type(PyObject *&o) {
+        virtual enum Type type(PyObject * const & o) {
             if (PyObject_TypeCheck(o, &pyotherside_QObjectType)) {
                 return QOBJECT;
             } else if (PyObject_TypeCheck(o, &pyotherside_QObjectMethodType)) {

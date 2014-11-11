@@ -66,7 +66,7 @@ class QVariantDictBuilder : public DictBuilder<QVariant> {
 
 class QVariantListIterator : public ListIterator<QVariant> {
     public:
-        QVariantListIterator(QVariant &v) : list(v.toList()), pos(0) {}
+        QVariantListIterator(const QVariant &v) : list(v.toList()), pos(0) {}
         virtual ~QVariantListIterator() {}
 
         virtual bool next(QVariant *v) {
@@ -87,7 +87,7 @@ class QVariantListIterator : public ListIterator<QVariant> {
 
 class QVariantDictIterator : public DictIterator<QVariant> {
     public:
-        QVariantDictIterator(QVariant &v) : dict(v.toMap()), keys(dict.keys()), pos(0) {}
+        QVariantDictIterator(const QVariant &v) : dict(v.toMap()), keys(dict.keys()), pos(0) {}
         virtual ~QVariantDictIterator() {}
 
         virtual bool next(QVariant *key, QVariant *value) {
@@ -114,7 +114,7 @@ class QVariantConverter : public Converter<QVariant> {
         QVariantConverter() : stringstorage() {}
         virtual ~QVariantConverter() {}
 
-        virtual enum Type type(QVariant &v) {
+        virtual enum Type type(const QVariant &v) {
             if (v.canConvert<QObject *>()) {
                 return QOBJECT;
             }
@@ -170,7 +170,7 @@ class QVariantConverter : public Converter<QVariant> {
         virtual DictIterator<QVariant> *dict(QVariant &v) {
             // XXX: Until we support boxing QJSValue objects directly in Python
             if (v.userType() == qMetaTypeId<QJSValue>()) {
-                return new QVariantListIterator(v.value<QJSValue>().toVariant());
+                return new QVariantDictIterator(v.value<QJSValue>().toVariant());
             }
             return new QVariantDictIterator(v);
         }
