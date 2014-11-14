@@ -922,6 +922,119 @@ Python 3.2.2 headers (with ``pyconfig.h`` from the device):
 After installing PyOtherSide in the locally-build Qt 5 (cross-compiled for
 BB10), the QML plugins folder can be deployed with the .bar file.
 
+Building for Android
+--------------------
+
+Unlike Blackberry there is no Python or Qt present by default and both need to be shipped with the application.
+
+The current solution can be summarized like this:
+
+1. Statically cross-compile Python 3 for Android using the Android NDK
+2. Statically compile PyOtherSide against the Android Python build and bundle the Python standard library inside the PyOtherSide binary
+3. Use the Qt 5 SDK to make a QtQuick application - the SDK will handle bundling of your application file and of the PyOtherSide binary automatically
+
+A more detailed guide follows. It describes how to get from the source code of the relevant components to being able to run an Android application
+with a Qt Quick 2.0 GUI running on an Android device. The `gPodder` podcast aggregator serves as (full featured & fully functional!) example of such an application.
+
+Performed in this environment:
+* Fedora 20
+* Qt 5.3.1 Android SDK
+* latest Android SDK with API level 14 installed
+* OpenJDK 1.7
+* a few GB of harddrive space
+* an Android 4.0+ device connected to the computer that is accessible over *adb* (eq. the debugging mode is enabled)
+
+*This is just one example environment where these build instructions have been tested to work. Reasonably similar environments should work just as well.*
+
+The build is going to be done in a folder called ``build`` in the users home directory,
+lets say that the use is named ``user`` (replace accordingly for your environment).
+
+We start in the home directory:
+
+.. code-block:: sh
+
+    mkdir build
+    cd build
+
+Now clone the needed projects, load submodules and switch to correct branches.
+
+.. code-block:: sh
+
+    git clone --branch fixes https://github.com/thp/python3-android
+    git clone https://github.com/thp/pyotherside
+    git clone --recursive https://github.com/gpodder/gpodder-android
+
+Next we will build Python 3 for Android. This will first download the Android NDK, then Python 3 source code, followed by crosscompiling the Python 3 code for Android on ARM.
+*NOTE that this step alone can require multiple GB of harddisk space.*
+
+.. code-block:: sh
+
+    cd python3-android
+    make all
+
+As the next step we modify the ``python.pri.android`` file to point to our Python build. If should look like this as a result (remember to modify it for your environment):
+
+.. code-block:: qmake
+
+    QMAKE_LIBS += -L/home/user/build/python3-android/build/9d-14-arm-linux-androideabi-4.8/lib -lpython3.3m -ldl -lm -lc -lssl -lcrypto
+    QMAKE_CXXFLAGS += -I/home/user/build/python3-android/build/9d-14-arm-linux-androideabi-4.8/include/python3.3m/
+
+Then copy the file over the python.pri file in the PyOtherSide project directory:
+
+.. code-block:: sh
+
+    cd ..
+    cp python3-android/python.pri.android pyotherside/python.pri
+
+PyOtherSide can also help us ship & load the Python standard library if we can provide it a suitable zip bundle, which can be created like this:
+
+.. code-block:: sh
+
+    cd python3-android/build/9d-14-arm-linux-androideabi-4.8/lib/python3.3/
+    zip -r pythonlib.zip *
+    cd ../../../../..
+
+For PyOtherSide to include the packed Python standard library it needs to be placed in its src subfolder:
+
+.. code-block:: sh
+
+    mv python3-android/build/9d-14-arm-linux-androideabi-4.8/lib/python3.3/pythonlib.zip pyotherside/src/
+
+PyOtherSide will then use the qrc mechanism to compile the compressed standard library during inside it's own binary. This removes the need for us to handle its shipping & loading ourself.
+
+Next you need to build PyOtherSide with QtCreator from the Qt 5.3 Android SDK, so make sure that the Qt 5.3 Android kit is using the exact same NDK that has been used to build Python 3 for Android. To do that go to *settings*, find the *kits* section, select the Android kit and make sure that the NDK path points to:
+
+``/home/user/build/python3-android/sdk/android-ndk-r9d``
+
+Next open the pyotherside/pyotherside.pro project file on QtCreator, select the Android kit and once the project loads go to the *project view* and make sure that under *run* the API level is set to 14 (this corresponds to Android 4.0 and later). The Android Python 3 build has been built for API level 14 and our PyOtherSide build should do the same to be compatible. 
+
+Also make sure that shadow build is disabled, just in case.
+
+Once done with the configuration got to the *build* menu and select the *built pyotherside* option - this should build PyOtherSide for Android and statically compile in our Python build and also include the Python standard library zip file with qrc.
+
+As the next step we need to move the PyOtherSide binary to the QML plugin folder for the Qt Android SDK, so that it can be fetched by the SDK when building gPodder.
+
+Let's say we have the SDK installed in the ``/opt`` directory (default for the Qt SDK installer on Linux), giving us this path to the plugin folder:
+
+``/opt/Qt5.3/5.3/android_armv7/qml``
+
+First create the folder structure for the pyotherside plugin:
+
+.. code-block:: sh
+
+    mkdir -p /opt/Qt5.3/5.3/android_armv7/qml/io/thp/pyotherside
+
+Then copy the pyotherside binary and *qmldir* file to the folder:
+
+.. code-block:: sh
+
+    cp pyotherside/src/libpyothersideplugin.so /opt/Qt5.3/5.3/android_armv7/qml/io/thp/pyotherside/
+    cp pyotherside/src/qmldir /opt/Qt5.3/5.3/android_armv7/qml/io/thp/pyotherside/
+
+Next open the gPodder project in QtCreator (gpodder-android/gpodder-android.pro) and again make sure the Android kit is selected, that the API level 14 is used and that *shadow build* is disabled. Then just press the *Run* button and the SDK should build an Android APK that includes the libpyotherside binary (it fetched automatically from the plugins directory because is referenced in the gPodder QML source code) and deploy it to the device where gPodder should be started.
+
+.. _gPodder: http://gpodder.org/
+
 Building for Windows
 --------------------
 
