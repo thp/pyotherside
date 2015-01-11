@@ -499,7 +499,7 @@ QPythonPriv::QPythonPriv()
 {
     PyImport_AppendInittab("pyotherside", PyOtherSide_init);
 
-    Py_Initialize();
+    Py_InitializeEx(0);
     PyEval_InitThreads();
 
     locals = PyObjectRef(PyDict_New(), true);
