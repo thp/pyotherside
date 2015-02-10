@@ -22,6 +22,7 @@
 #include "converter.h"
 
 #include <QVariant>
+#include <QCoreApplication>
 
 #include <QTime>
 #include <QDate>
@@ -29,6 +30,7 @@
 #include <QJSValue>
 
 #include <QDebug>
+#include <QThread>
 
 class QVariantListBuilder : public ListBuilder<QVariant> {
     public:
@@ -150,8 +152,8 @@ class QVariantConverter : public Converter<QVariant> {
                     if (userType == qMetaTypeId<PyObjectRef>()) {
                         return PYOBJECT;
                     } else if (userType == qMetaTypeId<QJSValue>()) {
-                        // TODO: Support boxing a QJSValue as reference in Python
-                        return type(v.value<QJSValue>().toVariant());
+                        Q_ASSERT(QThread::currentThread() == qApp->thread());
+                        return type(QVariant());
                     } else {
                         qDebug() << "Cannot convert:" << v;
                         return NONE;
