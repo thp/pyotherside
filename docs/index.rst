@@ -1100,7 +1100,7 @@ Known Problems:
 ChangeLog
 =========
 
-Version 1.4.0 (UNRELEASED)
+Version 1.4.0 (2015-02-19)
 --------------------------
 
 * Support for passing Python objects to QML and keeping references there
