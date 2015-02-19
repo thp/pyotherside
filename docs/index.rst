@@ -937,12 +937,13 @@ A more detailed guide follows. It describes how to get from the source code of t
 with a Qt Quick 2.0 GUI running on an Android device. The `gPodder` podcast aggregator serves as (full featured & fully functional!) example of such an application.
 
 Performed in this environment:
-* Fedora 20
-* Qt 5.3.1 Android SDK
-* latest Android SDK with API level 14 installed
-* OpenJDK 1.7
-* a few GB of harddrive space
-* an Android 4.0+ device connected to the computer that is accessible over *adb* (eq. the debugging mode is enabled)
+
+ * Fedora 20
+ * Qt 5.3.1 Android SDK
+ * latest Android SDK with API level 14 installed
+ * OpenJDK 1.7
+ * a few GB of harddrive space
+ * an Android 4.0+ device connected to the computer that is accessible over ``adb`` (eq. the debugging mode is enabled)
 
 *This is just one example environment where these build instructions have been tested to work. Reasonably similar environments should work just as well.*
 
