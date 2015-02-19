@@ -242,7 +242,17 @@ QPython::call(QVariant func, QVariant args, QJSValue callback)
     if (!callback.isNull() && !callback.isUndefined() && callback.isCallable()) {
         cb = new QJSValue(callback);
     }
-    emit process(func, args, cb);
+    // Unbox QJSValue from QVariant, since QJSValue::toVariant() can cause calls into
+    // QML engine and we don't want that to happen from non-GUI thread
+    QVariantList vl = args.toList();
+    for (int i = 0, c = vl.count(); i < c; ++i) {
+        QVariant &v = vl[i];
+        if (v.userType() == qMetaTypeId<QJSValue>()) {
+            // TODO: Support boxing a QJSValue as reference in Python
+            v = v.value<QJSValue>().toVariant();
+        }
+    }
+    emit process(func, vl, cb);
 }
 
 QVariant
