@@ -364,4 +364,13 @@ public:
     }
 };
 
+class QPython15 : public QPython {
+Q_OBJECT
+public:
+    QPython15(QObject *parent=0)
+        : QPython(parent, 1, 5)
+    {
+    }
+};
+
 #endif /* PYOTHERSIDE_QPYTHON_H */

@@ -68,6 +68,7 @@ PyOtherSideExtensionPlugin::registerTypes(const char *uri)
     qmlRegisterType<QPython12>(uri, 1, 2, PYOTHERSIDE_QPYTHON_NAME);
     qmlRegisterType<QPython13>(uri, 1, 3, PYOTHERSIDE_QPYTHON_NAME);
     qmlRegisterType<QPython14>(uri, 1, 4, PYOTHERSIDE_QPYTHON_NAME);
+    qmlRegisterType<QPython15>(uri, 1, 5, PYOTHERSIDE_QPYTHON_NAME);
     qmlRegisterType<PyGLArea>(uri, 1, 5, PYOTHERSIDE_QPYGLAREA_NAME);
     qmlRegisterType<PyFbo>(uri, 1, 5, PYOTHERSIDE_PYFBO_NAME);
 }
