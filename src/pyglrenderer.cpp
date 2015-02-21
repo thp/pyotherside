@@ -20,6 +20,7 @@
 #include "converter.h"
 #include "pyobject_ref.h"
 #include "pyglrenderer.h"
+#include "ensure_gil_state.h"
 
 #include <QDebug>
 #include <QMetaType>
@@ -107,8 +108,7 @@ void PyGLRenderer::reshape(QRect geometry)
     if (!m_initialized || !m_reshapeMethod)
         return;
 
-    QPythonPriv *priv = QPythonPriv::instance();
-    priv->enter();
+    ENSURE_GIL_STATE;
 
     // Call the reshape callback with arguments x, y, width, height.
     // These are the boundaries in which the callback should render,
@@ -122,7 +122,6 @@ void PyGLRenderer::reshape(QRect geometry)
     PyObject *o = PyObject_Call(m_reshapeMethod, args, NULL);
     Py_DECREF(args);
     if (o) Py_DECREF(o); else PyErr_PrintEx(0);
-    priv->leave();
 }
 
 void PyGLRenderer::render()
