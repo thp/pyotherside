@@ -1360,7 +1360,7 @@ ChangeLog
 Version 1.5.0 (UNRELEASED)
 --------------------------
 
-* Spport for `OpenGL rendering in Python`_ using PyOpenGL >= 3.1.0
+* Support for `OpenGL rendering in Python`_ using PyOpenGL >= 3.1.0
 * New QML components: ``PyGLArea``, ``PyFBO``
 * :func:`pythonVersion` now returns the runtime Python version
 
