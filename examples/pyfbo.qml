@@ -39,7 +39,7 @@
 ****************************************************************************/
 
 import QtQuick 2.0
-import io.thp.pyotherside 1.3
+import io.thp.pyotherside 1.5
 
 
 Item {
@@ -96,7 +96,7 @@ Item {
 
         onTChanged: {
             if (renderer) {
-                py.callMethod(renderer, 'set_t', [t], update);
+                py.call(py.getattr(renderer, 'set_t'), [t], update);
             }
         }
     }

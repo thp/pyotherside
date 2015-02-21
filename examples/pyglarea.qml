@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import io.thp.pyotherside 1.3
+import io.thp.pyotherside 1.5
 
 Item {
     width: 320
@@ -8,7 +8,6 @@ Item {
     PyGLArea {
         id: glArea
         anchors.fill: parent
-        before: true
         property var t: 0
 
         SequentialAnimation on t {
@@ -20,7 +19,7 @@ Item {
 
         onTChanged: {
             if (renderer) {
-                py.callMethod(renderer, 'set_t', [t], update);
+                py.call(py.getattr(renderer, 'set_t'), [t], update);
             }
         }
     }

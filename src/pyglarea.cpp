@@ -27,7 +27,7 @@
 
 
 PyGLArea::PyGLArea()
-    : m_before(false)
+    : m_before(true)
     , m_renderer(0)
     , m_rendererChanged(false)
     , m_beforeChanged(true)

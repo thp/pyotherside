@@ -28,7 +28,7 @@ This section describes the QML API exposed by the *PyOtherSide* QML Plugin.
 Import Versions
 ---------------
 
-The current QML API version of PyOtherSide is 1.4. When new features are
+The current QML API version of PyOtherSide is 1.5. When new features are
 introduced, or behavior is changed, the API version will be bumped and
 documented here.
 
@@ -66,6 +66,13 @@ io.thp.pyotherside 1.4
 * If :func:`error` doesn't have a handler defined, error messages will be
   printed to the console as warnings
 
+io.thp.pyotherside 1.5
+``````````````````````
+
+* Added ``PyGLArea`` and ``PyFBO`` for OpenGL rendering, see
+  `OpenGL rendering in Python`_
+
+
 
 QML ``Python`` Element
 ----------------------
@@ -79,7 +86,7 @@ To use the ``Python`` element in a QML file, you have to import the plugin using
 
 .. code-block:: javascript
 
-    import io.thp.pyotherside 1.4
+    import io.thp.pyotherside 1.5
 
 Signals
 ```````
@@ -207,6 +214,44 @@ plugin and Python interpreter.
     Get the version of the Python interpreter that is currently used.
 
 .. versionadded:: 1.1.0
+
+QML ``PyGLArea`` Element
+------------------------
+
+.. versionadded:: 1.5.0
+
+The PyGLArea allows rendering arbitrary OpenGL content from Python into
+the QML scene.
+
+Properties
+``````````
+
+.. function:: PyObject renderer
+
+    Python object that implements the IRenderer interface, see
+    `OpenGL rendering in Python`_ for details.
+
+.. function:: bool before
+
+    ``true`` to render before (= below) the rest of the QML scene,
+    ``false`` to render after (= above) the rest of the QML scene.
+    Default: ``true``
+
+QML ``PyFBO`` Element
+---------------------
+
+.. versionadded:: 1.5.0
+
+The PyFBO allows offscreen rendering of arbitrary OpenGL content from
+Python into the QML scene.
+
+Properties
+``````````
+
+.. function:: PyObject renderer
+
+    Python object that implements the IRenderer interface, see
+    `OpenGL rendering in Python`_ for details
 
 Python API
 ==========
@@ -528,16 +573,14 @@ and give meaningful error messages in case the reference is accessed).
 OpenGL rendering in Python
 ==========================
 
+.. versionadded:: 1.5.0
+
 You can render directly to a QML application's OpenGL context in your Python
-code (i.e. via PyOpenGL or vispy.gloo) by using a ``PyGLArea`` item with the
-following properties:
+code (i.e. via PyOpenGL or vispy.gloo) by using a ``PyGLArea`` or ``PyFBO`` item.
 
-**before**
-    Whether to draw the ``PyGLArea`` before (under) or after (over) the scene.
-    Defaults to ``false``.
-
-**renderer**
-    Reference to a python object providing the ``IRenderer`` interface:
+The ``IRenderer`` interface that needs to be implemented in Python and set
+as the ``renderer`` property of ``PyGLArea`` or ``PyFBO`` needs to provide
+the following functions:
 
 .. function:: IRenderer.init()
 
@@ -563,6 +606,17 @@ following properties:
     Free any resources allocated by :func:`IRenderer.init`.
     This method is optional.
 
+
+See `Rendering with PyOpenGL`_ for an example implementation.
+
+Note that you might to use a recent version of PyOpenGL (>= 3.1.0) for some of
+the examples to work, earlier versions had problems. If your distribution does
+not provide new versions, you can install the most recent version of PyOpenGL
+to your ``$HOME`` using:
+
+.. code-block:: shell
+
+    pip3 install --user --upgrade PyOpenGL PyOpenGL_accelerate
 
 Cookbook
 ========
@@ -785,7 +839,7 @@ Using this function from QML is straightforward:
 .. code-block:: javascript
 
     import QtQuick 2.0
-    import io.thp.pyotherside 1.4
+    import io.thp.pyotherside 1.5
 
     Rectangle {
         color: 'black'
@@ -881,7 +935,7 @@ This module can now be imported in QML and used as ``source`` in the QML
 .. code-block:: javascript
 
     import QtQuick 2.0
-    import io.thp.pyotherside 1.4
+    import io.thp.pyotherside 1.5
 
     Image {
         id: image
@@ -905,8 +959,12 @@ This module can now be imported in QML and used as ``source`` in the QML
 Rendering with PyOpenGL
 -----------------------
 
-The example below shows how to do raw OpenGL rendering in PyOpenGL using a
-PyGLArea. It has been adapted from the tutorial in the Qt documentation at
+.. versionadded:: 1.5.0
+
+.. image:: images/pyfbo_example.png
+
+The example below shows how to do raw OpenGL rendering in PyOpenGL using
+``PyGLArea``. It has been adapted from the tutorial in the Qt documentation at
 http://qt-project.org/doc/qt-5/qtquick-scenegraph-openglunderqml-example.html.
 
 **renderer.py**
@@ -994,7 +1052,7 @@ http://qt-project.org/doc/qt-5/qtquick-scenegraph-openglunderqml-example.html.
 .. code-block:: javascript
 
     import QtQuick 2.0
-    import io.thp.pyotherside 1.3
+    import io.thp.pyotherside 1.5
 
     Item {
         width: 320
@@ -1003,7 +1061,6 @@ http://qt-project.org/doc/qt-5/qtquick-scenegraph-openglunderqml-example.html.
         PyGLArea {
             id: glArea
             anchors.fill: parent
-            before: true
             property var t: 0
 
             SequentialAnimation on t {
@@ -1292,6 +1349,12 @@ Known Problems:
 
 ChangeLog
 =========
+
+Version 1.5.0 (UNRELEASED)
+--------------------------
+
+* Spport for `OpenGL rendering in Python`_ using PyOpenGL >= 3.1.0
+* New QML components: ``PyGLArea``, ``PyFBO``
 
 Version 1.4.0 (2015-02-19)
 --------------------------
