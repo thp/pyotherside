@@ -30,6 +30,7 @@ class PyObjectRef {
         PyObjectRef(const PyObjectRef &other);
         virtual ~PyObjectRef();
         PyObjectRef &operator=(const PyObjectRef &other);
+        bool operator==(const PyObjectRef &other);
 
         PyObject *newRef() const;
 

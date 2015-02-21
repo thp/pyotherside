@@ -67,6 +67,12 @@ PyObjectRef::operator=(const PyObjectRef &other)
     return *this;
 }
 
+bool
+PyObjectRef::operator==(const PyObjectRef &other)
+{
+    return pyobject == other.pyobject;
+}
+
 PyObject *
 PyObjectRef::newRef() const
 {

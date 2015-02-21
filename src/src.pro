@@ -28,6 +28,14 @@ HEADERS += pyotherside_plugin.h
 SOURCES += qpython_imageprovider.cpp
 HEADERS += qpython_imageprovider.h
 
+# PyGLArea
+SOURCES += pyglarea.cpp pyglrenderer.cpp
+HEADERS += pyglarea.h pyglrenderer.h
+
+# PyFBO
+SOURCES += pyfbo.cpp
+HEADERS += pyfbo.h
+
 # Importer from Qt Resources
 RESOURCES += qrc_importer.qrc
 
