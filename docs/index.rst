@@ -215,6 +215,13 @@ plugin and Python interpreter.
 
 .. versionadded:: 1.1.0
 
+.. versionchanged:: 1.5.0
+    Previously, :func:`pythonVersion` returned the compile-time version of
+    Python against which PyOtherSide was built. Starting with version 1.5.0,
+    the run-time version of Python is returned (e.g. PyOtherSide compiled
+    against Python 3.4.0 and running with Python 3.4.1 returned "3.4.0"
+    before, but returns "3.4.1" in PyOtherSide after and including 1.5.0).
+
 QML ``PyGLArea`` Element
 ------------------------
 
@@ -1355,6 +1362,7 @@ Version 1.5.0 (UNRELEASED)
 
 * Spport for `OpenGL rendering in Python`_ using PyOpenGL >= 3.1.0
 * New QML components: ``PyGLArea``, ``PyFBO``
+* :func:`pythonVersion` now returns the runtime Python version
 
 Version 1.4.0 (2015-02-19)
 --------------------------

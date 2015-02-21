@@ -365,6 +365,25 @@ QPython::pluginVersion()
 QString
 QPython::pythonVersion()
 {
+    if (SINCE_API_VERSION(1, 5)) {
+        ENSURE_GIL_STATE;
+
+        PyObjectRef version_info(PySys_GetObject("version_info"));
+        if (version_info && PyTuple_Check(version_info.borrow()) &&
+                PyTuple_Size(version_info.borrow()) >= 3) {
+
+            QStringList parts;
+            for (int i=0; i<3; i++) {
+                PyObjectRef part(PyTuple_GetItem(version_info.borrow(), i));
+                parts << convertPyObjectToQVariant(part.borrow()).toString();
+            }
+            return parts.join('.');
+        }
+
+        // Fallback to the compile-time version below
+        qWarning("Could not determine runtime Python version");
+    }
+
     return QString(PY_VERSION);
 }
 
