@@ -67,6 +67,25 @@ bool extractPythonLibrary()
 
     QString fname = QString::fromUtf8(info.dli_fname);
     qDebug() << "Got library name: " << fname;
+    // On Android, dladdr() returns only the basename of the file, so we go
+    // hunt for the full path in /proc/self/maps, where the shared library is
+    // mapped (TODO: We could parse the address range and compare that, too)
+    if (!fname.startsWith("/")) {
+        QFile mapsf("/proc/self/maps");
+        if (mapsf.exists()) {
+            mapsf.open(QIODevice::ReadOnly);
+            QTextStream maps(&mapsf);
+            QString line;
+            while (!(line = maps.readLine()).isNull()) {
+                QString filename = line.split(' ', QString::SkipEmptyParts).last();
+                if (filename.endsWith("/" + fname)) {
+                    fname = filename;
+                    qDebug() << "Resolved full path:" << fname;
+                    break;
+                }
+            }
+        }
+    }
     prependPythonPath(fname);
 #endif
     return true;
