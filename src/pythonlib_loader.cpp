@@ -20,8 +20,20 @@
 
 #include <QStandardPaths>
 #include <QDir>
+#include <QDebug>
+
+#if defined(HAVE_DLADDR)
+#  include <dlfcn.h>
+#endif
 
 namespace PythonLibLoader {
+
+static void prependPythonPath(const QString &path)
+{
+    QString pythonpath(path + ":" + QString::fromUtf8(qgetenv("PYTHONPATH")));
+    QByteArray pythonpath_utf8 = pythonpath.toUtf8();
+    qputenv("PYTHONPATH", pythonpath_utf8.constData());
+}
 
 #if defined(PYTHONLIB_LOADER_HAVE_PYTHONLIB_ZIP)
 
@@ -30,9 +42,7 @@ bool extractPythonLibrary()
     QString source(":/io/thp/pyotherside/pythonlib.zip");
     QString destdir(QStandardPaths::writableLocation(QStandardPaths::TempLocation));
     QString destination(QDir(destdir).filePath("pythonlib.zip"));
-
-    // Our embedded Python library should have priority over other path elements
-    qputenv("PYTHONPATH", (destination + ":" + QString::fromUtf8(qgetenv("PYTHONPATH"))).toUtf8());
+    prependPythonPath(destination);
 
     if (QFile::exists(destination)) {
         return true;
@@ -45,7 +55,20 @@ bool extractPythonLibrary()
 
 bool extractPythonLibrary()
 {
-    // No need to extract the Python library
+#if defined(HAVE_DLADDR)
+    // Add the library into the path in case it has a .zip file appended
+    Dl_info info;
+    memset(&info, 0, sizeof(info));
+    int res = dladdr((void *)&extractPythonLibrary, &info);
+    if (!res) {
+        qWarning() << "Could not determine library path";
+        return false;
+    }
+
+    QString fname = QString::fromUtf8(info.dli_fname);
+    qDebug() << "Got library name: " << fname;
+    prependPythonPath(fname);
+#endif
     return true;
 }
 

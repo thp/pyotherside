@@ -44,6 +44,11 @@ exists (pythonlib.zip) {
     RESOURCES += pythonlib_loader.qrc
     DEFINES *= PYTHONLIB_LOADER_HAVE_PYTHONLIB_ZIP
 }
+
+!windows {
+    DEFINES *= HAVE_DLADDR
+}
+
 HEADERS += pythonlib_loader.h
 SOURCES += pythonlib_loader.cpp
 
