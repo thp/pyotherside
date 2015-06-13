@@ -126,10 +126,8 @@ class PyObjectDictIterator : public DictIterator<PyObject *> {
 class PyObjectConverter : public Converter<PyObject *> {
     public:
         PyObjectConverter() : stringcontainer(NULL) {
-            static bool datetime_imported = false;
-            if (!datetime_imported) {
+            if (!PyDateTimeAPI) {
                 PyDateTime_IMPORT;
-                datetime_imported = true;
             }
         }
 
