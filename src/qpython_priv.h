@@ -28,6 +28,10 @@
 #include <QVariant>
 #include <QString>
 
+enum PyOtherSideImageFormat {
+    PYOTHERSIDE_IMAGE_FORMAT_ENCODED = -1,
+    PYOTHERSIDE_IMAGE_FORMAT_SVG = -2,
+};
 
 class QPythonPriv : public QObject {
     Q_OBJECT

@@ -380,6 +380,12 @@ The following constants have been added in PyOtherSide 1.3:
 **pyotherside.version**
     Version of PyOtherSide as string.
 
+.. versionadded:: 1.5.0
+
+The following constants have been added in PyOtherSide 1.5:
+
+**pyotherside.format_svg_data**
+    SVG image XML data
 
 
 Data Type Mapping
@@ -465,9 +471,11 @@ The image provider must return a tuple ``(data, size, format)``:
     pixel data in pixels.
 
 **format**
-    The pixel format of ``data`` (see `constants`_), or
+    The pixel format of ``data`` (see `constants`_),
     ``pyotherside.format_data`` if ``data`` contains an
-    encoded (PNG/JPEG) image instead of raw pixel data.
+    encoded (PNG/JPEG) image instead of raw pixel data
+    or ``pyotherside.format_svg_data`` if ``data`` contains 
+    SVG image XML data.
 
 In order to register the image provider with PyOtherSide for use
 as provider for ``image://python/`` URLs, the image provider function
