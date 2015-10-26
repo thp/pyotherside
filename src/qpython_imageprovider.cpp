@@ -51,7 +51,7 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
 
     // Image data (and metadata) returned from Python
     PyObject *pixels = NULL;
-    unsigned int width = 0, height = 0;
+    int width = 0, height = 0;
     int format = 0;
 
     // For counting the number of required bytes
@@ -150,7 +150,7 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
             // If actualBytes > requiredBytes, we can check if there are enough
             // bytes to consider the data 32-bit aligned (from Python) and avoid
             // the error (scanlines must be padded to multiples of 4 bytes)
-            if ((((width * bitsPerPixel / 8 + 3) / 4) * 4 * height) == actualBytes) {
+            if ((unsigned int)(((width * bitsPerPixel / 8 + 3) / 4) * 4 * height) == actualBytes) {
                 qDebug() << "Assuming 32-bit aligned scanlines from Python";
             } else {
                 qDebug() << "Each scanline of data must be 32-bit aligned";
@@ -182,27 +182,31 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
             QSvgRenderer renderer(svgDataArray);
 
             // Handle width, height or both not being set
+            QSize defaultSize = renderer.defaultSize();
+            int defaultWidth = defaultSize.width();
+            int defaultHeight = defaultSize.height();
+
             if (width < 0 && height < 0) {
                 // Both Width and Height have not been set - use the defaults from the SVG data
                 // (each SVG image has a default size)
                 // NOTE: we get a -1,-1 requestedSize only if sourceSize is not set at all,
                 //       if either width or height is set then the other one is 0, not -1
-                width = renderer.defaultSize().width();
-                height = renderer.defaultSize().height();
+                width = defaultWidth;
+                height = defaultHeight;
             } else { // At least width or height is valid
                 if (width <= 0) {
                     // Width is not set, use default width scaled according to height to keep
                     // aspect ratio
-                    if (renderer.defaultSize().height() != 0) {  // Protect from division by zero
-                        width = (float)renderer.defaultSize().width()*((float)height/(float)renderer.defaultSize().height());
+                    if (defaultHeight != 0) {  // Protect from division by zero
+                        width = (float)defaultWidth*((float)height/(float)defaultHeight);
                     }
                 }
 
                 if (height <= 0) {
                     // Height is not set, use default height scaled according to width to keep
                     // aspect ratio
-                    if (renderer.defaultSize().width() != 0) {  // Protect from division by zero
-                        height = (float)renderer.defaultSize().height()*((float)width/(float)renderer.defaultSize().width());
+                    if (defaultWidth != 0) {  // Protect from division by zero
+                        height = (float)defaultHeight*((float)width/(float)defaultWidth);
                     }
                 }
             }
@@ -216,12 +220,6 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
             // According to the documentation an empty QImage needs to be "flushed" before
             // being used with QPainter to prevent rendering artifacts from showing up
             img.fill(Qt::transparent);
-
-            // Convert the Python byte array to a QByteArray
-            QByteArray svgDataArray(PyByteArray_AsString(pixels), PyByteArray_Size(pixels));
-
-            // Load the SVG data to the SVG renderer
-            QSvgRenderer renderer(svgDataArray);
 
             // Paints the rendered SVG to the QImage instance
             QPainter painter(&img);
