@@ -22,6 +22,8 @@
 #include "ensure_gil_state.h"
 
 #include <QDebug>
+#include <QSvgRenderer>
+#include <QPainter>
 
 
 QPythonImageProvider::QPythonImageProvider()
@@ -49,7 +51,7 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
 
     // Image data (and metadata) returned from Python
     PyObject *pixels = NULL;
-    unsigned int width = 0, height = 0;
+    int width = 0, height = 0;
     int format = 0;
 
     // For counting the number of required bytes
@@ -109,7 +111,9 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
     }
 
     switch (format) {
-        case -1: /* pyotherside.format_data */
+        case PYOTHERSIDE_IMAGE_FORMAT_ENCODED: /* pyotherside.format_data */
+            break;
+        case PYOTHERSIDE_IMAGE_FORMAT_SVG: /* pyotherside.format_svg_data */
             break;
         case QImage::Format_Mono:
         case QImage::Format_MonoLSB:
@@ -141,12 +145,12 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
     // While we could re-pack the data to be aligned, we don't want to do that
     // for performance reasons.
     // If we're using 32-bit data (e.g. ARGB32), it will always be aligned.
-    if (format != -1 && bitsPerPixel != 32) {
+    if (format >= 0 && bitsPerPixel != 32) {
         if ((bitsPerPixel * width) % 32 != 0) {
             // If actualBytes > requiredBytes, we can check if there are enough
             // bytes to consider the data 32-bit aligned (from Python) and avoid
             // the error (scanlines must be padded to multiples of 4 bytes)
-            if ((((width * bitsPerPixel / 8 + 3) / 4) * 4 * height) == actualBytes) {
+            if ((unsigned int)(((width * bitsPerPixel / 8 + 3) / 4) * 4 * height) == actualBytes) {
                 qDebug() << "Assuming 32-bit aligned scanlines from Python";
             } else {
                 qDebug() << "Each scanline of data must be 32-bit aligned";
@@ -155,7 +159,7 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
         }
     }
 
-    if (format != -1 && requiredBytes > actualBytes) {
+    if (format >= 0 && requiredBytes > actualBytes) {
         qDebug() << "Format" << (enum QImage::Format)format <<
             "at size" << QSize(width, height) <<
             "requires at least" << requiredBytes <<
@@ -163,11 +167,70 @@ QPythonImageProvider::requestImage(const QString &id, QSize *size, const QSize &
         goto cleanup;
     }
 
+    if (format < 0) {
+        switch (format) {
+        case PYOTHERSIDE_IMAGE_FORMAT_ENCODED: {
+            // Pixel data is actually encoded image data that we need to decode
+            img.loadFromData((const unsigned char*)PyByteArray_AsString(pixels), PyByteArray_Size(pixels));
+            break;
+        }
+        case PYOTHERSIDE_IMAGE_FORMAT_SVG: {
+            // Convert the Python byte array to a QByteArray
+            QByteArray svgDataArray(PyByteArray_AsString(pixels), PyByteArray_Size(pixels));
 
-    if (format == -1) {
-        // Pixel data is actually encoded image data that we need to decode
-        img.loadFromData((const unsigned char*)PyByteArray_AsString(pixels),
-                PyByteArray_Size(pixels));
+            // Load the SVG data to the SVG renderer
+            QSvgRenderer renderer(svgDataArray);
+
+            // Handle width, height or both not being set
+            QSize defaultSize = renderer.defaultSize();
+            int defaultWidth = defaultSize.width();
+            int defaultHeight = defaultSize.height();
+
+            if (width < 0 && height < 0) {
+                // Both Width and Height have not been set - use the defaults from the SVG data
+                // (each SVG image has a default size)
+                // NOTE: we get a -1,-1 requestedSize only if sourceSize is not set at all,
+                //       if either width or height is set then the other one is 0, not -1
+                width = defaultWidth;
+                height = defaultHeight;
+            } else { // At least width or height is valid
+                if (width <= 0) {
+                    // Width is not set, use default width scaled according to height to keep
+                    // aspect ratio
+                    if (defaultHeight != 0) {  // Protect from division by zero
+                        width = (float)defaultWidth*((float)height/(float)defaultHeight);
+                    }
+                }
+
+                if (height <= 0) {
+                    // Height is not set, use default height scaled according to width to keep
+                    // aspect ratio
+                    if (defaultWidth != 0) {  // Protect from division by zero
+                        height = (float)defaultHeight*((float)width/(float)defaultWidth);
+                    }
+                }
+            }
+
+            // The pixel data is actually SVG image data that we need to render at correct size
+            //
+            // Note: according to the QImage and QPainter documentation the optimal QImage
+            // format for drawing is Format_ARGB32_Premultiplied
+            img = QImage(width, height, QImage::Format_ARGB32_Premultiplied);
+
+            // According to the documentation an empty QImage needs to be "flushed" before
+            // being used with QPainter to prevent rendering artifacts from showing up
+            img.fill(Qt::transparent);
+
+            // Paints the rendered SVG to the QImage instance
+            QPainter painter(&img);
+            renderer.render(&painter);
+            break;
+        }
+        default:
+            qWarning() << "Unknown format" << format <<
+                "has been specified and will not be handled.";
+            break;
+        }
     } else {
         // Need to keep a reference to the byte array object, as it contains
         // the backing store data for the QImage.
