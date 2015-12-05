@@ -1,5 +1,5 @@
 isEmpty(PYTHON_CONFIG) {
-    PYTHON_CONFIG = python3-config
+    PYTHON_CONFIG = x86_64-linux-gnu-python3.4-dbg-config
 }
 
 message(PYTHON_CONFIG = $$PYTHON_CONFIG)

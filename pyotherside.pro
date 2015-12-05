@@ -1,3 +1,4 @@
+CONFIG += debug
 TEMPLATE = subdirs
 SUBDIRS += src tests qtquicktests
 

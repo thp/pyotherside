@@ -27,6 +27,7 @@
 #define PYOTHERSIDE_QPYTHON_NAME "Python"
 #define PYOTHERSIDE_QPYGLAREA_NAME "PyGLArea"
 #define PYOTHERSIDE_PYFBO_NAME "PyFBO"
+#define PYOTHERSIDE_QPYTHONITEMMODEL_NAME "PythonItemModel"
 
 class Q_DECL_EXPORT PyOtherSideExtensionPlugin : public QQmlExtensionPlugin {
     Q_OBJECT

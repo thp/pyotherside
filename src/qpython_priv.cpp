@@ -22,6 +22,8 @@
 
 #include "ensure_gil_state.h"
 
+#include "pyitemmodel_proxy.h"
+
 #include <QImage>
 #include <QDebug>
 #include <QResource>
@@ -453,6 +455,15 @@ PyOtherSide_init()
     PyModule_AddIntConstant(pyotherside, "format_rgb888", QImage::Format_RGB888);
     PyModule_AddIntConstant(pyotherside, "format_rgb444", QImage::Format_RGB444);
 
+    // Role constants for data models (TBC)
+    PyModule_AddIntConstant(pyotherside, "QT_DISPLAY_ROLE", Qt::DisplayRole);
+    PyModule_AddIntConstant(pyotherside, "QT_DECORATION_ROLE", Qt::DecorationRole);
+    PyModule_AddIntConstant(pyotherside, "QT_EDIT_ROLE", Qt::EditRole);
+    PyModule_AddIntConstant(pyotherside, "QT_TOOL_TIP_ROLE", Qt::ToolTipRole);
+    PyModule_AddIntConstant(pyotherside, "QT_STATUS_TIP_ROLE", Qt::StatusTipRole);
+    PyModule_AddIntConstant(pyotherside, "QT_WHATS_THIS_ROLE", Qt::WhatsThisRole);
+    PyModule_AddIntConstant(pyotherside, "QT_USER_ROLE", Qt::UserRole);
+
     // Custom constant - pixels are to be interpreted as encoded image file data
     PyModule_AddIntConstant(pyotherside, "format_data", PYOTHERSIDE_IMAGE_FORMAT_ENCODED);
     PyModule_AddIntConstant(pyotherside, "format_svg_data", PYOTHERSIDE_IMAGE_FORMAT_SVG);
@@ -485,6 +496,8 @@ PyOtherSide_init()
     }
     Py_INCREF(&pyotherside_QObjectMethodType);
     PyModule_AddObject(pyotherside, "QObjectMethod", (PyObject *)(&pyotherside_QObjectMethodType));
+
+    init_QPythonItemModelProxyType(pyotherside);
 
     return pyotherside;
 }

@@ -10,12 +10,16 @@ HEADERS += tests.h
 SOURCES += ../src/qpython.cpp
 SOURCES += ../src/qpython_worker.cpp
 SOURCES += ../src/qpython_priv.cpp
+SOURCES += ../src/pyitemmodel_proxy.cpp
+SOURCES += ../src/qpython_itemmodel.cpp
 SOURCES += ../src/pyobject_ref.cpp
 SOURCES += ../src/qobject_ref.cpp
 
 HEADERS += ../src/qpython.h
 HEADERS += ../src/qpython_worker.h
 HEADERS += ../src/qpython_priv.h
+HEADERS += ../src/pyitemmodel_proxy.h
+HEADERS += ../src/qpython_itemmodel.h
 HEADERS += ../src/converter.h
 HEADERS += ../src/qvariant_converter.h
 HEADERS += ../src/pyobject_converter.h

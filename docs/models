@@ -1,0 +1,120 @@
+The PythonItemModel QML object provides the ability to implement a QML data
+model in Python. This is useful because a Python backend can then
+programatically manipulate the Python model directly from Python in a Pythonic
+fashion, and the QML frontend can be implemented with a standard view in a
+standard QML fashion.
+
+Right now the implementation only supports a limited set of read-only
+operations from the QML end (so a view in QML can only read from the model) but
+the architecture could quite easily be extended to support full read-write
+models in future.
+
+Example:
+
+	import io.thp.pyotherside 1.5
+	
+	Rectangle {
+	    ListView {
+	        model: model
+	        delegate: Row {
+	            Text { text: model.display }
+	        }
+	        anchors.fill: parent
+	    }
+	    PythonItemModel {
+	        id: model
+	    }
+	    Python {
+	        id: py
+	        Component.onCompleted: {
+	            addImportPath(Qt.resolvedUrl('.'));
+	            importModule('main', function() {
+	                py.call('main.get_model', [], function(result) {
+	                    // this should change to:
+	                    //     model.change_model(model_constructor);
+	                    // in future as a property is inappropriate
+	                    model.model = result;
+	                });
+	            });
+	        }
+	    }
+	}
+
+and then in main.py:
+
+    import pymodel
+    
+    def get_model(bridge):
+        model = pymodel.ListModel(bridge)
+        return model
+
+Now if the Python code had kept the reference to model, it could just
+manipulate the model like it would a list (with append, pop, insert, index
+access, etc) and the QML view will change dynamically to match.
+
+Some details:
+
+* This is still a work in progress and the API between the QML PythonItemModel
+  object and Python will change, so please do not merge this yet.
+
+* I expect to rebase this branch before submission.
+
+* There end up being three "faces" in Python. Suggestions for better names
+  appreciated:
+
+  1. The Python data object that reflects the data and manipulated from Python
+     Pythonically. The availability of this object is the goal, and I'm
+     currently calling this the "Python Side". This is how a Python backend
+     speaks in Python about the model.
+
+  2. The Python data object that is passed through to the QML PythonItemModel
+     object that it can query for data as required. This is an API I've
+     invented that quite closely matches the AbstractItemModel Qt API and I'm
+     currently calling this the "Other Side". This is how QML speaks to Python
+     about the model.
+
+  3. The Python data object that is presented by the QML PythonItemModel and is
+     used to call the PythonItemModel back, for example to inform it when
+     changes. I'm currently calling this the "bridge". Again this is an API
+     I've invented. This is how Python speaks to QML about the model.
+
+  4. Symmetry suggests that there should be a fourth face. I suppose this is
+     the PythonItemModel object in QML itself. This is how a QML frontend
+     speaks in QML about the model.
+
+* I wonder if there will be a significant performance impact in putting the
+  model into Python. I guess I'll need to try it and see.
+
+* pymodel currently provides ListModel and SortedListModel. Other things like
+  hierarchical models and allowing users to write their own entirely in Python
+  are possible with the current C++ implementation.
+
+* In Qt, AbstractItemModel's API isn't thread-safe in that the model must not
+  be modified except from the UI thread, so that while a view is retrieving
+  data the data remains consistent. This requirement is passed on to the Python
+  model implementation. I have done this using the in_ui_thread decorator in my
+  example (which we should ship).
+
+* Currently in the Python API provided by PythonItemModel there are two ways of
+  representing a QModelIndex - using integer references and using lists of
+  (row, column) tuples. The latter seems more consistent (since
+  signal_dataChanged must use it) so the other method should be removed and the
+  C++ side adapted.
+
+* signal_dataChanged should be called emit_dataChanged.
+
+* The C++ end is a complete mess and needs significant cleaning up.
+
+* Naming conventions are all over the place since python_uses_underscores and
+  C++ uses camelCase. Consistency could be improved even if using both by
+  deciding when it is appropriate to use each.
+
+* pymodel.py should be called something else and perhaps just be made available
+  as part of the pyotherside module import. This needs build system thought
+  since pyotherside currently doesn't ship any Python.
+
+* I want to keep the use of pymodel.py optional, and maintain the API between
+  PythonItemModel and Python formally. Then pyotherside users will have maximum
+  flexbility in maintaining their own custom models written in Python.
+
+* Feedback appreciated!

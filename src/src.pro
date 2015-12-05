@@ -28,6 +28,10 @@ HEADERS += pyotherside_plugin.h
 SOURCES += qpython_imageprovider.cpp
 HEADERS += qpython_imageprovider.h
 
+# QML AbstractItemModel
+SOURCES += qpython_itemmodel.cpp pyitemmodel_proxy.cpp
+HEADERS += qpython_itemmodel.h pyitemmodel_proxy.h
+
 # PyGLArea
 SOURCES += pyglarea.cpp pyglrenderer.cpp
 HEADERS += pyglarea.h pyglrenderer.h
