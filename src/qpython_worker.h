@@ -36,6 +36,7 @@ class QPythonWorker : public QObject {
     public slots:
         void process(QVariant func, QVariant args, QJSValue *callback);
         void import(QString func, QJSValue *callback);
+        void import_names(QString func, QVariant args, QJSValue *callback);
 
     signals:
         void finished(QVariant result, QJSValue *callback);

@@ -48,3 +48,12 @@ QPythonWorker::import(QString name, QJSValue *callback)
         emit imported(result, callback);
     }
 }
+
+void
+QPythonWorker::import_names(QString name, QVariant args, QJSValue *callback)
+{
+    bool result = qpython->importNames_sync(name, args);
+    if (callback) {
+        emit imported(result, callback); // using the same imported signal at the end
+    }
+}

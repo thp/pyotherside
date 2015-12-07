@@ -62,6 +62,8 @@ QPython::QPython(QObject *parent, int api_version_major, int api_version_minor)
 
     QObject::connect(this, SIGNAL(import(QString,QJSValue *)),
                      worker, SLOT(import(QString,QJSValue *)));
+    QObject::connect(this, SIGNAL(import_names(QString, QVariant, QJSValue *)),
+                     worker, SLOT(import_names(QString, QVariant, QJSValue *)));
     QObject::connect(worker, SIGNAL(imported(bool,QJSValue *)),
                      this, SLOT(imported(bool,QJSValue *)));
 
@@ -124,6 +126,67 @@ QPython::addImportPath(QString path)
 
     PyObjectRef cwd(PyUnicode_FromString(utf8bytes.constData()), true);
     PyList_Insert(sys_path, 0, cwd.borrow());
+}
+
+void
+QPython::importNames(QString name, QVariant args, QJSValue callback)
+{
+    QJSValue *cb = 0;
+    if (!callback.isNull() && !callback.isUndefined() && callback.isCallable()) {
+        cb = new QJSValue(callback);
+    }
+    emit import_names(name, args, cb);
+}
+
+bool
+QPython::importNames_sync(QString module_name, QVariant args)
+{
+    // The plan is to "from module_name import a, b, c". And args is the list with a, b, c.
+    // The module_name can be a packaged module "x.y.z" -- "from x.y.z import a, b, c".
+    // Thus:
+    //  - import the module, given by module_name,
+    //  - get the objects from the module, given by names in args,
+    //  - put the objects into globals of priv
+
+    QByteArray utf8bytes = module_name.toUtf8();
+    const char *moduleName = utf8bytes.constData();
+
+    ENSURE_GIL_STATE;
+
+    // PyOtherSide API 1.2 behavior: "import x.y.z" -- where the module 'z' is needed
+    PyObjectRef module = PyObjectRef(PyImport_ImportModule(moduleName), true);
+
+    if (!module) {
+        emitError(QString("Cannot import module: %1 (%2)").arg(module_name).arg(priv->formatExc()));
+        return false;
+    }
+
+    // at this point the module with the target objects is in PyObjectRef module,
+    // it should be well imported in Python
+
+    // Get the names of functions/objects to import
+    QVariantList vl = args.toList();
+
+    QString obj_name;   // object name to import
+    PyObjectRef result; // the object, obtained from globals_temp
+
+    // for each object name try to get it from the module
+    //  - on success put it into priv.globals
+    //  - on failure emit the error and continue
+    for (QVariantList::const_iterator obj = vl.begin(); obj != vl.end(); ++obj)
+    {
+        obj_name = obj->toString();
+        utf8bytes = obj_name.toUtf8();
+        PyObject *res = PyObject_GetAttrString(module.borrow(), utf8bytes);
+        result = PyObjectRef(res, true);
+        if (!result) {
+            emitError(QString("Object '%1' is not found in '%2': (%3)").arg(obj_name).arg(module_name).arg(priv->formatExc()));
+            continue;
+        }
+        PyDict_SetItemString(priv->globals.borrow(), utf8bytes.constData(), result.borrow());
+    }
+
+    return true;
 }
 
 void
