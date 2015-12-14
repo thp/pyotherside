@@ -1307,7 +1307,7 @@ Building for Windows
 On Windows (tested versions: Windows 7), you need to download:
 
 1. Qt 5 (VS 2010) from `qt-project.org downloads`_ (tested: 5.2.1)
-2. `Visual C++ 2010 Express`_
+2. `Visual C++ 2010 Express`_ with `SP1`_
 3. Python 3 from `python.org Windows downloads`_ (tested: 3.3.4)
 
 We use VS 2010 instead of MinGW, because the MinGW version of Qt depends on
@@ -1321,6 +1321,7 @@ have been integrated recently, and are available since PyOtherSide 1.3.0.
 
 .. _qt-project.org downloads: http://qt-project.org/downloads
 .. _Visual C++ 2010 Express: http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_4
+.. _SP1: https://www.microsoft.com/en-US/download/details.aspx?id=23691
 .. _python.org Windows downloads: http://python.org/downloads/windows/
 .. _Compiling Python on Windows: http://docs.python.org/devguide/setup.html#windows-compiling
 
