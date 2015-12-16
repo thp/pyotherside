@@ -144,6 +144,7 @@ class QVariantConverter : public Converter<QVariant> {
                 case QMetaType::QStringList:
                     return LIST;
                 case QMetaType::QVariantMap:
+                case QMetaType::QVariantHash:
                     return DICT;
                 case QMetaType::UnknownType:
                     return NONE;
