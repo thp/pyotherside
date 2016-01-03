@@ -24,6 +24,15 @@ To build against a specific Python version, use:
     make install
 
 
+To manually update the qmltypes file on x64 Linux (TODO: make this automated):
+
+    qmake
+    make
+    make INSTALL_ROOT=$(pwd)/tmp/
+    qmlplugindump io.thp.pyotherside 1.0 tmp/usr/lib/x86_64-linux-gnu/qt5/qml \
+        >src/pyotherside.qmltypes
+
+
 To run the included unit tests after building, use:
 
     ./tests/tests
