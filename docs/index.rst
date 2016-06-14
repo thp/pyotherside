@@ -72,6 +72,9 @@ io.thp.pyotherside 1.5
 * Added ``PyGLArea`` and ``PyFBO`` for OpenGL rendering, see
   `OpenGL rendering in Python`_
 
+* Added :func:`importNames` and :func:`importNames_sync` to mirror
+  Python's ``from foo import bar, baz`` import mechanism
+
 
 
 QML ``Python`` Element
@@ -149,6 +152,14 @@ path and then importing the module asynchronously:
     signal is emitted with ``traceback`` containing the exception info
     (QML API version 1.2 and newer).
 
+.. function:: importNames(string module, array object_names, function callback(success) {})
+
+    Import a list of names from a given modules, like Python's
+    ``from foo import bar, baz`` syntax -- the equivalent call
+    would be ``importNames('module', ['bar', 'baz'], ...);``
+
+.. versionadded:: 1.5.0
+
 Once modules are imported, Python function can be called on the
 imported modules using:
 
@@ -186,6 +197,10 @@ the QML UI thread:
 .. function:: importModule_sync(string name) -> bool
 
     Import a Python module. Returns ``true`` on success, ``false`` otherwise.
+
+.. function:: importNames_sync(string module, array names) -> bool
+
+    Import names from a Python modules. Returns ``true`` on success, ``false`` otherwise.
 
 .. function:: call_sync(var func, var args=[]) -> var
 
@@ -1366,12 +1381,18 @@ Known Problems:
 ChangeLog
 =========
 
-Version 1.5.0 (UNRELEASED)
+Version 1.5.0 (2016-06-14)
 --------------------------
 
 * Support for `OpenGL rendering in Python`_ using PyOpenGL >= 3.1.0
 * New QML components: ``PyGLArea``, ``PyFBO``
 * :func:`pythonVersion` now returns the runtime Python version
+* Add the library to ``PYTHONPATH`` for standard library appended as .zip (except on Windows)
+* Call ``PyDateTime_IMPORT`` as often as necessary (Fixes #46)
+* Added ``pyotherside.format_svg_data`` for using SVG data in the image provider
+* Handle converting ``QVariantHash`` to Python ``dict`` type
+* Added ``.qmltypes`` file to provide metadata information for Qt Creator
+* New functions :func:`importNames` and :func:`importNames_sync` for from-imports
 
 Version 1.4.0 (2015-02-19)
 --------------------------
