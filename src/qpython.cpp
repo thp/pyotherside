@@ -298,15 +298,10 @@ QPython::evaluate(QString expr)
     return convertPyObjectToQVariant(o.borrow());
 }
 
-void
-QPython::call(QVariant func, QVariant args, QJSValue callback)
+QVariantList
+QPython::unboxArgList(QVariant &args)
 {
-    QJSValue *cb = 0;
-    if (!callback.isNull() && !callback.isUndefined() && callback.isCallable()) {
-        cb = new QJSValue(callback);
-    }
-    // Unbox QJSValue from QVariant, since QJSValue::toVariant() can cause calls into
-    // QML engine and we don't want that to happen from non-GUI thread
+    // Unbox QJSValue from QVariant
     QVariantList vl = args.toList();
     for (int i = 0, c = vl.count(); i < c; ++i) {
         QVariant &v = vl[i];
@@ -315,11 +310,31 @@ QPython::call(QVariant func, QVariant args, QJSValue callback)
             v = v.value<QJSValue>().toVariant();
         }
     }
-    emit process(func, vl, cb);
+    return vl;
+}
+
+void
+QPython::call(QVariant func, QVariant boxed_args, QJSValue callback)
+{
+    QJSValue *cb = 0;
+    if (!callback.isNull() && !callback.isUndefined() && callback.isCallable()) {
+        cb = new QJSValue(callback);
+    }
+    // Unbox QJSValue from QVariant, since QJSValue::toVariant() can cause calls into
+    // QML engine and we don't want that to happen from non-GUI thread
+    QVariantList unboxed_args = unboxArgList(boxed_args);
+
+    emit process(func, unboxed_args, cb);
 }
 
 QVariant
-QPython::call_sync(QVariant func, QVariant args)
+QPython::call_sync(QVariant func, QVariant boxed_args)
+{
+    return call_internal(func, boxed_args, true);
+}
+
+QVariant
+QPython::call_internal(QVariant func, QVariant args, bool unbox)
 {
     ENSURE_GIL_STATE;
 
@@ -348,8 +363,18 @@ QPython::call_sync(QVariant func, QVariant args)
         return QVariant();
     }
 
+    // Unbox QJSValue from QVariant if requested. QPython::call may have done
+    // this already, but call_sync is also exposed directly, so it does not
+    // happen in this case otherwise
+    QVariant args_unboxed;
+    if (unbox) {
+        args_unboxed = unboxArgList(args);
+    } else {
+        args_unboxed = args;
+    }
+
     QVariant v;
-    QString errorMessage = priv->call(callable.borrow(), name, args, &v);
+    QString errorMessage = priv->call(callable.borrow(), name, args_unboxed, &v);
     if (!errorMessage.isNull()) {
         emitError(errorMessage);
     }

@@ -297,7 +297,11 @@ class QPython : public QObject {
          * \result The return value of the Python call as Qt data type
          **/
         Q_INVOKABLE QVariant
-        call_sync(QVariant func, QVariant args=QVariantList());
+        call_sync(QVariant func, QVariant boxed_args=QVariantList());
+
+        QVariant
+        call_internal(QVariant func, QVariant boxed_args=QVariantList(),
+            bool unbox=true);
 
         /**
          * \brief Get an attribute value of a Python object synchronously
@@ -361,7 +365,7 @@ class QPython : public QObject {
         void error(QString traceback);
 
         /* For internal use only */
-        void process(QVariant func, QVariant args, QJSValue *callback);
+        void process(QVariant func, QVariant unboxed_args, QJSValue *callback);
         void import(QString name, QJSValue *callback);
         void import_names(QString name, QVariant args, QJSValue *callback);
 
@@ -375,6 +379,8 @@ class QPython : public QObject {
         void disconnectNotify(const QMetaMethod &signal);
 
     private:
+        QVariantList unboxArgList(QVariant &args);
+
         static QPythonPriv *priv;
 
         QPythonWorker *worker;
