@@ -1381,6 +1381,11 @@ Known Problems:
 ChangeLog
 =========
 
+Version 1.5.1 (2017-03-17)
+--------------------------
+
+* Fix :func:`call_sync` when used with parameters (fix by Robie Basak; issue #49)
+
 Version 1.5.0 (2016-06-14)
 --------------------------
 
