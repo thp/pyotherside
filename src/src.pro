@@ -17,6 +17,18 @@ qmldir.files += $$_PRO_FILE_PWD_/qmldir $$_PRO_FILE_PWD_/pyotherside.qmltypes
 qmldir.path += $$target.path
 INSTALLS += qmldir
 
+qmlplugindump.target = plugins.qmltypes
+qmlplugindump.depends = target
+qmlplugindump.commands = \
+    qmlplugindump io.thp.pyotherside $$section(VERSION, ., 0, 1) . > plugins.qmltypes
+all.depends += qmlplugindump
+QMAKE_EXTRA_TARGETS += qmlplugindump all target
+
+qmltypes.files = $$OUT_PWD/plugins.qmltypes
+qmltypes.path = $$target.path
+qmltypes.CONFIG += no_check_exist
+INSTALLS += qmltypes
+
 DEPENDPATH += .
 INCLUDEPATH += .
 
