@@ -341,7 +341,7 @@ class QPython : public QObject {
         Q_INVOKABLE QString
         pythonVersion();
 
-    signals:
+     Q_SIGNALS:
         /**
          * \brief Default event handler for \c pyotherside.send()
          *
@@ -369,7 +369,7 @@ class QPython : public QObject {
         void import(QString name, QJSValue *callback);
         void import_names(QString name, QVariant args, QJSValue *callback);
 
-    private slots:
+    private Q_SLOTS:
         void receive(QVariant data);
 
         void finished(QVariant result, QJSValue *callback);

@@ -540,7 +540,7 @@ QPythonPriv::~QPythonPriv()
 void
 QPythonPriv::receiveObject(PyObject *o)
 {
-    emit receive(convertPyObjectToQVariant(o));
+    Q_EMIT receive(convertPyObjectToQVariant(o));
 }
 
 QString

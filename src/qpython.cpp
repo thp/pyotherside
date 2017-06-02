@@ -135,7 +135,7 @@ QPython::importNames(QString name, QVariant args, QJSValue callback)
     if (!callback.isNull() && !callback.isUndefined() && callback.isCallable()) {
         cb = new QJSValue(callback);
     }
-    emit import_names(name, args, cb);
+    Q_EMIT import_names(name, args, cb);
 }
 
 bool
@@ -196,7 +196,7 @@ QPython::importModule(QString name, QJSValue callback)
     if (!callback.isNull() && !callback.isUndefined() && callback.isCallable()) {
         cb = new QJSValue(callback);
     }
-    emit import(name, cb);
+    Q_EMIT import(name, cb);
 }
 
 bool
@@ -270,7 +270,7 @@ QPython::receive(QVariant variant)
         }
     } else {
         // Default action
-        emit received(variant);
+        Q_EMIT received(variant);
     }
 }
 
@@ -324,7 +324,7 @@ QPython::call(QVariant func, QVariant boxed_args, QJSValue callback)
     // QML engine and we don't want that to happen from non-GUI thread
     QVariantList unboxed_args = unboxArgList(boxed_args);
 
-    emit process(func, unboxed_args, cb);
+    Q_EMIT process(func, unboxed_args, cb);
 }
 
 QVariant
@@ -479,7 +479,7 @@ void
 QPython::emitError(const QString &message)
 {
     if (error_connections) {
-        emit error(message);
+        Q_EMIT error(message);
     } else {
         // We should only print the error if SINCE_API_VERSION(1, 4), but as
         // the error messages are useful for debugging (especially if users

@@ -34,7 +34,7 @@ public:
     QObject *value() const { return qobject; }
     operator bool() const { return (qobject != 0); }
 
-private slots:
+private Q_SLOTS:
     void handleDestroyed(QObject *obj);
 
 private:
