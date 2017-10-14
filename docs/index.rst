@@ -1381,6 +1381,11 @@ Known Problems:
 ChangeLog
 =========
 
+Version 1.5.3 (2017-10-14)
+--------------------------
+
+* Fix refcounting/ownership issue when using the QRC importer module (issue #84)
+
 Version 1.5.2 (2017-10-14)
 --------------------------
 
