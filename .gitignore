@@ -1,0 +1,16 @@
+*.dylib
+*.so
+*.o
+/.qmake.stash
+/Makefile
+/src/Makefile
+/src/moc_*.cpp
+/src/moc_predefs.h
+/src/qrc_qrc_importer.cpp
+/tests/Makefile
+/tests/moc_*.cpp
+/tests/moc_predefs.h
+/tests/tests
+/qtquicktests/Makefile
+/qtquicktests/qtquicktests
+/qtquicktests/target_wrapper.sh
