@@ -1381,6 +1381,11 @@ Known Problems:
 ChangeLog
 =========
 
+Version 1.5.2 (2017-10-14)
+--------------------------
+
+* Fix Python-to-Qt conversion for integers > 32 bits on platforms where ``sizeof(long)`` is 4 bytes (issue #86)
+
 Version 1.5.1 (2017-03-17)
 --------------------------
 
