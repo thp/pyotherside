@@ -171,7 +171,7 @@ class PyObjectConverter : public Converter<PyObject *> {
             }
         }
 
-        virtual long long integer(PyObject *&o) { return PyLong_AsLong(o); }
+        virtual long long integer(PyObject *&o) { return PyLong_AsLongLong(o); }
         virtual double floating(PyObject *&o) { return PyFloat_AsDouble(o); }
         virtual bool boolean(PyObject *&o) { return (o == Py_True); }
         virtual const char *string(PyObject *&o) {
