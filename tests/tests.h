@@ -39,6 +39,7 @@ class TestPyOtherSide : public QObject {
         void testQObjectRef();
         void testConvertToPythonAndBack();
         void testSetToList();
+        void testIntMoreThan32Bits();
 };
 
 #endif /* PYOTHERSIDE_TESTS_H */

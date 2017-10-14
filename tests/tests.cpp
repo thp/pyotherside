@@ -334,3 +334,15 @@ TestPyOtherSide::testSetToList()
     QVERIFY(l.contains(321));
     QVERIFY(l.contains(444));
 }
+
+void
+TestPyOtherSide::testIntMoreThan32Bits()
+{
+    // See https://github.com/thp/pyotherside/issues/86
+    // Affected: Devices and OSes where long is 32 bits, but long long is 64 bits
+    long long two_fortytwo = 4398046511104LL;
+    PyObject *o = PyLong_FromLongLong(two_fortytwo);
+    QVERIFY(o);
+    QVariant v = convertPyObjectToQVariant(o);
+    QVERIFY(v.toLongLong() == two_fortytwo);
+}
