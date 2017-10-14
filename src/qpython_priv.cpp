@@ -652,7 +652,7 @@ QPythonPriv::instance()
 QString
 QPythonPriv::importFromQRC(const char *module, const QString &filename)
 {
-    PyObjectRef sys_modules(PySys_GetObject((char *)"modules"), true);
+    PyObjectRef sys_modules(PySys_GetObject((char *)"modules"));
     if (!PyMapping_Check(sys_modules.borrow())) {
         return QString("sys.modules is not a mapping object");
     }
