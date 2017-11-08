@@ -860,7 +860,7 @@ to return a list-of-dicts in your Python function:
         ]
 
 Of course, the function could do other things (such as doing web requests, querying
-databases, etc..) - as long as it returns a list-olf-dicts, it will be fine (if you
+databases, etc..) - as long as it returns a list-of-dicts, it will be fine (if you
 are using a generator that yields dicts, just wrap the generator with :func:`list`).
 Using this function from QML is straightforward:
 
