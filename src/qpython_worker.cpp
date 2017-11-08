@@ -36,7 +36,7 @@ QPythonWorker::process(QVariant func, QVariant unboxed_args, QJSValue *callback)
 {
     QVariant result = qpython->call_internal(func, unboxed_args, false);
     if (callback) {
-        emit finished(result, callback);
+        Q_EMIT finished(result, callback);
     }
 }
 
@@ -45,7 +45,7 @@ QPythonWorker::import(QString name, QJSValue *callback)
 {
     bool result = qpython->importModule_sync(name);
     if (callback) {
-        emit imported(result, callback);
+        Q_EMIT imported(result, callback);
     }
 }
 
@@ -54,6 +54,6 @@ QPythonWorker::import_names(QString name, QVariant args, QJSValue *callback)
 {
     bool result = qpython->importNames_sync(name, args);
     if (callback) {
-        emit imported(result, callback); // using the same imported signal at the end
+        Q_EMIT imported(result, callback); // using the same imported signal at the end
     }
 }

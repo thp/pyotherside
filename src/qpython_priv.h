@@ -59,7 +59,7 @@ class QPythonPriv : public QObject {
         PyObjectRef pyotherside_mod;
         PyThreadState *thread_state;
 
-    signals:
+     Q_SIGNALS:
         void receive(QVariant data);
 };
 
