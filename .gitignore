@@ -6,7 +6,10 @@
 /src/Makefile
 /src/moc_*.cpp
 /src/moc_predefs.h
-/src/qrc_qrc_importer.cpp
+/plugin/Makefile
+/plugin/moc_*.cpp
+/plugin/moc_predefs.h
+/plugin/qrc_qrc_importer.cpp
 /tests/Makefile
 /tests/moc_*.cpp
 /tests/moc_predefs.h

@@ -1,7 +1,8 @@
 TEMPLATE = subdirs
-SUBDIRS += src tests qtquicktests
+SUBDIRS += src tests plugin qtquicktests
 
 tests.depends = src
+plugin.depends = src
 
 include(pyotherside.pri)
 
