@@ -390,6 +390,20 @@ pyotherside_QObjectMethod_call(PyObject *callable_object, PyObject *args, PyObje
         QMetaMethod method = metaObject->method(i);
 
         if (method.name() == ref->method()) {
+            if (method.methodType() == QMetaMethod::Signal) {
+                // Signals can't be called directly, we just return true or
+                // false depending on whether method.invoke() worked or not
+                bool result = method.invoke(o, Qt::AutoConnection,
+                        genericArguments.value(0),
+                        genericArguments.value(1), genericArguments.value(2),
+                        genericArguments.value(3), genericArguments.value(4),
+                        genericArguments.value(5), genericArguments.value(6),
+                        genericArguments.value(7), genericArguments.value(8),
+                        genericArguments.value(9));
+
+                return convertQVariantToPyObject(result);
+            }
+
             QVariant result;
             if (method.invoke(o, Qt::DirectConnection,
                     Q_RETURN_ARG(QVariant, result), genericArguments.value(0),
