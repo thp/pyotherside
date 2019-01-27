@@ -600,6 +600,15 @@ deleted (there's no way for PyOtherSide to prevent referenced QObjects from
 being deleted, but PyOtherSide tries hard to detect the deletion of objects
 and give meaningful error messages in case the reference is accessed).
 
+Calling signals of QML objects
+------------------------------
+
+.. versionadded:: 1.5.4
+
+Calling (emitting) signals of QML objects is supported since PyOtherSide 1.5.4.
+However, as signals do not have a return value as such, the return value is
+either just `true` or `false`, depending on whether the call worked or not.
+
 OpenGL rendering in Python
 ==========================
 
@@ -1380,6 +1389,13 @@ Known Problems:
 
 ChangeLog
 =========
+
+Version 1.5.4 (2019-01-27)
+--------------------------
+
+* Initialize `sys.argv` in Python for libraries that depend on it (issue #77)
+* Update `plugins.qmltypes` and cleanup project files (by martyone, PR#95)
+* Allow calling signals on QML objects from Python (issue #98)
 
 Version 1.5.3 (2017-10-14)
 --------------------------
