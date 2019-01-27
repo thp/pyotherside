@@ -1,7 +1,7 @@
 
 /**
  * PyOtherSide: Asynchronous Python 3 Bindings for Qt 5
- * Copyright (c) 2011, 2013, 2014, Thomas Perl <m@thp.io>
+ * Copyright (c) 2011, 2013-2019, Thomas Perl <m@thp.io>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above

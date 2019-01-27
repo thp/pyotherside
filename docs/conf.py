@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'PyOtherSide'
-copyright = u'2014, 2015, 2016, 2017 Thomas Perl'
+copyright = u'2014-2019 Thomas Perl'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
