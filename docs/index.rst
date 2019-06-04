@@ -1184,33 +1184,6 @@ flags for compiling and linking against Python on your system.
 
 As of version 1.3.0, PyOtherSide does not build against Python 2.x anymore.
 
-Building for Blackberry 10
---------------------------
-
-On Blackberry 10 (tested versions: 10.1, 10.2), Python 3.2.2 is already
-installed on-device.  Qt 5 is not installed (only Qt 4), so if you are
-packaging a PyOtherSide application, you need to ship Qt 5 with it.
-
-The approach we currently use is:
-
-1. Build Qt 5 using the Native SDK
-2. Get a set of matching Python 3.2.2 headers
-3. Fetch the following files from the device's filesystem:
-  * ``/usr/lib/libpython3.2m.so``
-  * ``/usr/include/python3.2m/pyconfig.h``
-4. Use ``pyconfig.h`` with the Python 3.2.2 headers and link against ``libpython3.2m``
-
-Modify ``python.pri`` to point to the fetched library and your
-Python 3.2.2 headers (with ``pyconfig.h`` from the device):
-
-.. code-block:: qmake
-
-    QMAKE_LIBS += -lpython3.2m -L/path/to/where/the/library/is
-    QMAKE_CXXFLAGS += -I/path/to/where/the/headers/are/include/python3.2m
-
-After installing PyOtherSide in the locally-build Qt 5 (cross-compiled for
-BB10), the QML plugins folder can be deployed with the .bar file.
-
 Building for Android
 --------------------
 
