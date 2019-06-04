@@ -1393,14 +1393,14 @@ ChangeLog
 Version 1.5.5 (2019-06-04)
 --------------------------
 
-* Include `dlfcn.h` to fix build errors against musl libc (by Heiko Becker, PR#100)
-* Add `--libs` to `python3-config` command line (due to Python Issue 36508 changes; fixes #102)
+* Include ``dlfcn.h`` to fix build errors against musl libc (by Heiko Becker, PR#100)
+* Add ``--libs`` to ``python3-config`` command line (due to Python Issue 36508 changes; fixes #102)
 
 Version 1.5.4 (2019-01-27)
 --------------------------
 
-* Initialize `sys.argv` in Python for libraries that depend on it (issue #77)
-* Update `plugins.qmltypes` and cleanup project files (by martyone, PR#95)
+* Initialize ``sys.argv`` in Python for libraries that depend on it (issue #77)
+* Update ``plugins.qmltypes`` and cleanup project files (by martyone, PR#95)
 * Allow calling signals on QML objects from Python (issue #98)
 
 Version 1.5.3 (2017-10-14)
