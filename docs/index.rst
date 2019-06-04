@@ -1367,7 +1367,7 @@ Version 1.5.5 (2019-06-04)
 --------------------------
 
 * Include ``dlfcn.h`` to fix build errors against musl libc (by Heiko Becker, PR#100)
-* Add ``--libs`` to ``python3-config`` command line (due to Python Issue 36508 changes; fixes #102)
+* Add ``--libs`` to ``python3-config`` command line (due to Python Issue 21536 changes; fixes #102)
 
 Version 1.5.4 (2019-01-27)
 --------------------------
