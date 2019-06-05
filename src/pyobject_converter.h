@@ -150,8 +150,10 @@ class PyObjectConverter : public Converter<PyObject *> {
                 return INTEGER;
             } else if (PyFloat_Check(o)) {
                 return FLOATING;
-            } else if (PyUnicode_Check(o) || PyBytes_Check(o)) {
+            } else if (PyUnicode_Check(o)) {
                 return STRING;
+            } else if (PyBytes_Check(o)) {
+                return BYTES;
             } else if (PyDateTime_Check(o)) {
                 // Need to check PyDateTime before PyDate, because
                 // it is a subclass of PyDate.
@@ -175,16 +177,15 @@ class PyObjectConverter : public Converter<PyObject *> {
         virtual double floating(PyObject *&o) { return PyFloat_AsDouble(o); }
         virtual bool boolean(PyObject *&o) { return (o == Py_True); }
         virtual const char *string(PyObject *&o) {
-            if (PyBytes_Check(o)) {
-                return PyBytes_AsString(o);
-            }
-
             // XXX: In Python 3.3, we can use PyUnicode_UTF8()
             if (stringcontainer != NULL) {
                 Py_DECREF(stringcontainer);
             }
             stringcontainer = PyUnicode_AsUTF8String(o);
             return PyBytes_AsString(stringcontainer);
+        }
+        virtual QByteArray bytes(PyObject *&o) {
+            return QByteArray(PyBytes_AsString(o), PyBytes_Size(o));
         }
         virtual ListIterator<PyObject *> *list(PyObject *&o) { return new PyObjectListIterator(o); }
         virtual DictIterator<PyObject *> *dict(PyObject *&o) { return new PyObjectDictIterator(o);; }
@@ -222,6 +223,7 @@ class PyObjectConverter : public Converter<PyObject *> {
         virtual PyObject * fromFloating(double v) { return PyFloat_FromDouble(v); }
         virtual PyObject * fromBoolean(bool v) { return PyBool_FromLong((long)v); }
         virtual PyObject * fromString(const char *v) { return PyUnicode_FromString(v); }
+        virtual PyObject * fromBytes(const QByteArray &v) { return PyBytes_FromStringAndSize(v.constData(), v.size()); }
         virtual PyObject * fromDate(ConverterDate v) { return PyDate_FromDate(v.y, v.m, v.d); }
         virtual PyObject * fromTime(ConverterTime v) { return PyTime_FromTime(v.h, v.m, v.s, 1000 * v.ms); }
         virtual PyObject * fromDateTime(ConverterDateTime v) {

@@ -62,6 +62,14 @@ test_converter_for(Converter<V> *conv)
     QVERIFY(conv->type(v) == Converter<V>::STRING);
     QVERIFY(strcmp(conv->string(v), "Hello World") == 0);
 
+    /* Convert from/to Bytes */
+    static const char BUF[] = { 'a', 'b', '\0', 'c', 'd' };
+    v = conv->fromBytes(QByteArray(BUF, sizeof(BUF)));
+    QVERIFY(conv->type(v) == Converter<V>::BYTES);
+    QByteArray res = conv->bytes(v);
+    QVERIFY(res.size() == sizeof(BUF));
+    QVERIFY(memcmp(BUF, res.constData(), res.size()) == 0);
+
     /* Convert from/to List */
     ListBuilder<V> *builder = conv->newList();
     v = conv->fromInteger(444);

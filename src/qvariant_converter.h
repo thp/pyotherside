@@ -134,6 +134,8 @@ class QVariantConverter : public Converter<QVariant> {
                     return FLOATING;
                 case QMetaType::QString:
                     return STRING;
+                case QMetaType::QByteArray:
+                    return BYTES;
                 case QMetaType::QDate:
                     return DATE;
                 case QMetaType::QTime:
@@ -213,6 +215,10 @@ class QVariantConverter : public Converter<QVariant> {
             return stringstorage.constData();
         }
 
+        virtual QByteArray bytes(QVariant &v) {
+            return stringstorage = v.toByteArray();
+        }
+
         virtual PyObjectRef pyObject(QVariant &v) {
             return v.value<PyObjectRef>();
         }
@@ -233,6 +239,7 @@ class QVariantConverter : public Converter<QVariant> {
         virtual QVariant fromFloating(double v) { return QVariant(v); }
         virtual QVariant fromBoolean(bool v) { return QVariant(v); }
         virtual QVariant fromString(const char *v) { return QVariant(QString::fromUtf8(v)); }
+        virtual QVariant fromBytes(const QByteArray &v) { return QVariant(v); }
         virtual QVariant fromDate(ConverterDate v) { return QVariant(QDate(v.y, v.m, v.d)); }
         virtual QVariant fromTime(ConverterTime v) { return QVariant(QTime(v.h, v.m, v.s, v.ms)); }
         virtual QVariant fromDateTime(ConverterDateTime v) {
