@@ -19,7 +19,7 @@
 #ifndef PYOTHERSIDE_QPYTHON_PRIV_H
 #define PYOTHERSIDE_QPYTHON_PRIV_H
 
-#include "Python.h"
+#include "python_wrap.h"
 
 #include "pyobject_ref.h"
 #include "pyqobject.h"

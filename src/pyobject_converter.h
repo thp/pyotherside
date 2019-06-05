@@ -22,7 +22,7 @@
 #include "converter.h"
 #include "pyqobject.h"
 
-#include "Python.h"
+#include "python_wrap.h"
 #include "datetime.h"
 #include <QDebug>
 

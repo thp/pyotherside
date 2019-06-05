@@ -19,7 +19,7 @@
 #ifndef PYOTHERSIDE_PYQOBJECT_H
 #define PYOTHERSIDE_PYQOBJECT_H
 
-#include "Python.h"
+#include "python_wrap.h"
 
 #include "qobject_ref.h"
 
