@@ -1368,7 +1368,7 @@ ChangeLog
 =========
 
 
-Version 1.5.6 (UNRELEASED)
+Version 1.5.6 (2019-06-06)
 --------------------------
 
 * Add support for ``QByteArray``, JS ``ArrayBuffer`` and Python ``bytes`` conversion (by Igor Malinovskiy, PR#103)
