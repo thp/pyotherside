@@ -19,7 +19,7 @@
 #ifndef PYOTHERSIDE_PYGLRENDERER_H
 #define PYOTHERSIDE_PYGLRENDERER_H
 
-#include "Python.h"
+#include "python_wrap.h"
 
 #include <QVariant>
 #include <QString>

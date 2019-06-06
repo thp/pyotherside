@@ -19,7 +19,7 @@
 #ifndef PYOTHERSIDE_PYGLAREA_H
 #define PYOTHERSIDE_PYGLAREA_H
 
-#include "Python.h"
+#include "python_wrap.h"
 
 #include <QString>
 #include <QVariant>

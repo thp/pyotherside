@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "Python.h"
+#include "python_wrap.h"
 
 class EnsureGILState {
     public:
