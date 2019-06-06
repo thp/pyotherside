@@ -100,6 +100,7 @@ class Converter {
             FLOATING,
             BOOLEAN,
             STRING,
+            BYTES,
             LIST,
             DICT,
             DATE,
@@ -114,6 +115,7 @@ class Converter {
         virtual double floating(V&) = 0;
         virtual bool boolean(V&) = 0;
         virtual const char *string(V&) = 0;
+        virtual QByteArray bytes(V&) = 0;
         virtual ListIterator<V> *list(V&) = 0;
         virtual DictIterator<V> *dict(V&) = 0;
         virtual ConverterDate date(V&) = 0;
@@ -126,6 +128,7 @@ class Converter {
         virtual V fromFloating(double v) = 0;
         virtual V fromBoolean(bool v) = 0;
         virtual V fromString(const char *v) = 0;
+        virtual V fromBytes(const QByteArray &v) = 0;
         virtual V fromDate(ConverterDate date) = 0;
         virtual V fromTime(ConverterTime time) = 0;
         virtual V fromDateTime(ConverterDateTime dateTime) = 0;
@@ -154,6 +157,8 @@ convert(F from)
             return tconv.fromBoolean(fconv.boolean(from));
         case FC::STRING:
             return tconv.fromString(fconv.string(from));
+        case FC::BYTES:
+            return tconv.fromBytes(fconv.bytes(from));
         case FC::LIST:
             {
                 ListBuilder<T> *listBuilder = tconv.newList();
