@@ -411,38 +411,42 @@ PyOtherSide will automatically convert Python data types to Qt data types
 The following data types are supported and can be used to pass data
 between Python and QML (and vice versa):
 
-+--------------------+------------+-----------------------------+
-| Python             | QML        | Remarks                     |
-+====================+============+=============================+
-| bool               | bool       |                             |
-+--------------------+------------+-----------------------------+
-| int                | int        |                             |
-+--------------------+------------+-----------------------------+
-| float              | double     |                             |
-+--------------------+------------+-----------------------------+
-| str                | string     |                             |
-+--------------------+------------+-----------------------------+
-| list               | JS Array   | JS Arrays are always        |
-|                    |            | converted to Python lists.  |
-+--------------------+------------+-----------------------------+
-| tuple              | JS Array   |                             |
-+--------------------+------------+-----------------------------+
-| dict               | JS Object  | Keys must be strings        |
-+--------------------+------------+-----------------------------+
-| datetime.date      | QML date   | since PyOtherSide 1.2.0     |
-+--------------------+------------+-----------------------------+
-| datetime.time      | QML time   | since PyOtherSide 1.2.0     |
-+--------------------+------------+-----------------------------+
-| datetime.datetime  | JS Date    | since PyOtherSide 1.2.0     |
-+--------------------+------------+-----------------------------+
-| set                | JS Array   | since PyOtherSide 1.3.0     |
-+--------------------+------------+-----------------------------+
-| iterable           | JS Array   | since PyOtherSide 1.3.0     |
-+--------------------+------------+-----------------------------+
-| object             | (opaque)   | since PyOtherSide 1.4.0     |
-+--------------------+------------+-----------------------------+
-| pyotherside.QObject| QObject    | since PyOtherSide 1.4.0     |
-+--------------------+------------+-----------------------------+
++--------------------+----------------+-----------------------------+
+| Python             | QML            | Remarks                     |
++====================+================+=============================+
+| bool               | bool           |                             |
++--------------------+----------------+-----------------------------+
+| int                | int            |                             |
++--------------------+----------------+-----------------------------+
+| float              | double         |                             |
++--------------------+----------------+-----------------------------+
+| str                | string         |                             |
++--------------------+----------------+-----------------------------+
+| list               | JS Array       | JS Arrays are always        |
+|                    |                | converted to Python lists.  |
++--------------------+----------------+-----------------------------+
+| tuple              | JS Array       |                             |
++--------------------+----------------+-----------------------------+
+| dict               | JS Object      | Keys must be strings        |
++--------------------+----------------+-----------------------------+
+| datetime.date      | QML date       | since PyOtherSide 1.2.0     |
++--------------------+----------------+-----------------------------+
+| datetime.time      | QML time       | since PyOtherSide 1.2.0     |
++--------------------+----------------+-----------------------------+
+| datetime.datetime  | JS Date        | since PyOtherSide 1.2.0     |
++--------------------+----------------+-----------------------------+
+| set                | JS Array       | since PyOtherSide 1.3.0     |
++--------------------+----------------+-----------------------------+
+| iterable           | JS Array       | since PyOtherSide 1.3.0     |
++--------------------+----------------+-----------------------------+
+| object             | (opaque)       | since PyOtherSide 1.4.0     |
++--------------------+----------------+-----------------------------+
+| pyotherside.QObject| QObject        | since PyOtherSide 1.4.0     |
++--------------------+----------------+-----------------------------+
+| bytes              | JS ArrayBuffer | since PyOtherSide 1.5.6;    |
+|                    |                | requires Qt 5.8; the C++    |
+|                    |                | data type is QByteArray     |
++--------------------+----------------+-----------------------------+
 
 Trying to pass in other types than the ones listed here is undefined
 behavior and will usually result in an error.
@@ -1362,6 +1366,12 @@ Known Problems:
 
 ChangeLog
 =========
+
+
+Version 1.5.6 (UNRELEASED)
+--------------------------
+
+* Add support for ``QByteArray``, JS ``ArrayBuffer`` and Python ``bytes`` conversion (by Igor Malinovskiy, PR#103)
 
 Version 1.5.5 (2019-06-04)
 --------------------------
