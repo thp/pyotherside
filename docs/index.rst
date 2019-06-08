@@ -1368,6 +1368,11 @@ ChangeLog
 =========
 
 
+Version 1.5.7 (2019-06-06)
+--------------------------
+
+* Fix Python 3.8 build compatibility by adding ``--embed`` to ``python-config`` (with fallback for previous versions)
+
 Version 1.5.6 (2019-06-06)
 --------------------------
 
