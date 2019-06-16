@@ -1368,6 +1368,11 @@ ChangeLog
 =========
 
 
+Version 1.5.8 (2019-06-16)
+--------------------------
+
+* Really fix Python 3.8 build compatibility (fix by Dan Church, PR#105)
+
 Version 1.5.7 (2019-06-06)
 --------------------------
 
