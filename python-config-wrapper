@@ -23,8 +23,11 @@ case "$WHICH_FLAG" in
     --libs)
         # Python 3.8 needs --embed, but previous versions do not have it:
         # https://github.com/python/cpython/pull/13500
-        "$PYTHON_CONFIG" --ldflags --libs --embed 2>/dev/null ||
+        if "$PYTHON_CONFIG" --ldflags --libs --embed >/dev/null 2>&1; then
+            "$PYTHON_CONFIG" --ldflags --libs --embed
+        else
             "$PYTHON_CONFIG" --ldflags --libs
+        fi
         ;;
     --includes)
         "$PYTHON_CONFIG" --includes
