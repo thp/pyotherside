@@ -519,10 +519,11 @@ QPythonPriv::QPythonPriv()
 
     // Initialize sys.argv (https://github.com/thp/pyotherside/issues/77)
     int argc = 1;
-    wchar_t *argv[argc];
+    wchar_t **argv = (wchar_t **)malloc(argc * sizeof(wchar_t *));
     argv[0] = Py_DecodeLocale("", nullptr);
     PySys_SetArgvEx(argc, argv, 0);
     PyMem_RawFree((void *)argv[0]);
+    free(argv);
 
     locals = PyObjectRef(PyDict_New(), true);
     assert(locals);
