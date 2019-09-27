@@ -24,6 +24,7 @@ namespace GlobalLibPythonLoader {
 
 #define _GNU_SOURCE
 #include <link.h>
+#include <dlfcn.h>
 
 #include <dlfcn.h>
 #include <stdio.h>
