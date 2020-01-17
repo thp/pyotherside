@@ -25,6 +25,32 @@
 
 #include "tests.h"
 
+
+// "Ensure that the current thread is ready to call the Python C API regardless
+//  of the current state of Python, or of the global interpreter lock."
+//          -- https://docs.python.org/3.9/c-api/init.html#c.PyGILState_Ensure
+struct GrabGIL {
+    GrabGIL()
+        : gil(PyGILState_Ensure())
+    {
+    }
+
+    ~GrabGIL()
+    {
+        PyGILState_Release(gil);
+    }
+
+    GrabGIL(const GrabGIL &) = delete;
+    GrabGIL(GrabGIL &&) = delete;
+    GrabGIL &operator=(const GrabGIL &) = delete;
+    GrabGIL &operator=(GrabGIL &&) = delete;
+
+    PyGILState_STATE gil;
+};
+
+#define ENSURE_PYTHON_GIL_HELD GrabGIL gil
+
+
 TestPyOtherSide::TestPyOtherSide()
     : QObject()
 {
@@ -38,6 +64,8 @@ void
 test_converter_for(Converter<V> *conv)
 {
     V v, w, x;
+
+    QVERIFY(Py_IsInitialized());
 
     /* Convert from/to Integer */
     v = conv->fromInteger(123);
@@ -123,6 +151,8 @@ void destruct(PyObject *obj) {
 
 void TestPyOtherSide::testPyObjectRefAssignment()
 {
+    ENSURE_PYTHON_GIL_HELD;
+
     // Test assignment operator of PyObjectRef
     bool destructor_called_foo = false;
     PyObject *foo = PyCapsule_New(&destructor_called_foo, "test", destruct);
@@ -191,6 +221,8 @@ void TestPyOtherSide::testPyObjectRefAssignment()
 void
 TestPyOtherSide::testPyObjectRefRoundTrip()
 {
+    ENSURE_PYTHON_GIL_HELD;
+
     // Simulate a complete round-trip of a PyObject reference, from PyOtherSide
     // to QML and back.
 
@@ -233,6 +265,8 @@ TestPyOtherSide::testPyObjectRefRoundTrip()
 void
 TestPyOtherSide::testQObjectRef()
 {
+    ENSURE_PYTHON_GIL_HELD;
+
     QObject *o = new QObject();
     QObjectRef ref(o);
 
@@ -246,18 +280,24 @@ TestPyOtherSide::testQObjectRef()
 void
 TestPyOtherSide::testQVariantConverter()
 {
+    ENSURE_PYTHON_GIL_HELD;
+
     test_converter_for<QVariant>(new QVariantConverter);
 }
 
 void
 TestPyOtherSide::testPyObjectConverter()
 {
+    ENSURE_PYTHON_GIL_HELD;
+
     test_converter_for<PyObject *>(new PyObjectConverter);
 }
 
 void
 TestPyOtherSide::testConvertToPythonAndBack()
 {
+    ENSURE_PYTHON_GIL_HELD;
+
     QVariantList l;
     l << "Hello" << 123 << 45.667 << true;
     QVariantList l2;
@@ -292,6 +332,8 @@ static void testEvaluateWith(QPython *py)
 void
 TestPyOtherSide::testEvaluate()
 {
+    // No need to grab GIL state here, as QPython objects create it
+
     // PyOtherSide API 1.0
     QPython10 py10;
     testEvaluateWith(&py10);
@@ -308,6 +350,8 @@ TestPyOtherSide::testEvaluate()
 void
 TestPyOtherSide::testSetToList()
 {
+    ENSURE_PYTHON_GIL_HELD;
+
     // Test if a Python set is converted to a list
     PyObject *set = PySet_New(NULL);
     QVERIFY(set != NULL);
@@ -346,6 +390,8 @@ TestPyOtherSide::testSetToList()
 void
 TestPyOtherSide::testIntMoreThan32Bits()
 {
+    ENSURE_PYTHON_GIL_HELD;
+
     // See https://github.com/thp/pyotherside/issues/86
     // Affected: Devices and OSes where long is 32 bits, but long long is 64 bits
     long long two_fortytwo = 4398046511104LL;
