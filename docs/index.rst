@@ -1368,6 +1368,12 @@ ChangeLog
 =========
 
 
+Version 1.5.9 (2020-01-17)
+--------------------------
+
+* Fix compilation on Windows with VS 2017 by avoiding VLAs (by Igor Malinovskiy, PR#106)
+* Ensure the Python GIL is obtained in unit tests, fixes Python 3.9-related crashes (fixes #111)
+
 Version 1.5.8 (2019-06-16)
 --------------------------
 
