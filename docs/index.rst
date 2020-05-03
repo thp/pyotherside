@@ -1191,7 +1191,7 @@ As of version 1.3.0, PyOtherSide does not build against Python 2.x anymore.
 Building for Android
 --------------------
 
-Unlike Blackberry there is no Python or Qt present by default and both need to be shipped with the application.
+There is no Python or Qt present by default and both need to be shipped with the application.
 
 The current solution can be summarized like this:
 
