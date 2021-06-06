@@ -1,0 +1,35 @@
+name: Build and test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt install -y \
+              python3-dev \
+              qt5-qmake qtbase5-dev qtdeclarative5-dev libqt5svg5-dev
+      - name: Install dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install qt@5 python@3.8
+          echo PATH=/usr/local/opt/qt@5/bin:$PATH >> ${GITHUB_ENV}
+      - run: qmake
+      - run: make
+      - run: env QT_QPA_PLATFORM=offscreen tests/tests
