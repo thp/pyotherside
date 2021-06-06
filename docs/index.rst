@@ -1163,7 +1163,7 @@ Building PyOtherSide
 The following build requirements have to be satisfied to build PyOtherSide:
 
 * Qt 5.1.0 or newer
-* Python 3.2.0 or newer
+* Python 3.3.0 or newer
 
 If you have the required build-dependencies installed, building and installing
 the PyOtherSide plugin should be as simple as:
