@@ -21,6 +21,8 @@ jobs:
         run: env PATH=/usr/local/opt/sphinx-doc/bin:$PATH make -C docs html
       - run: /usr/local/opt/qt@5/bin/qmake
       - run: make
+      - name: Run tests
+        run: tests/tsets
       - name: Installation check
         run: |
           make install INSTALL_ROOT=$(pwd)/tmp/

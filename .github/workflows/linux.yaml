@@ -23,6 +23,8 @@ jobs:
         run: make -C docs html
       - run: qmake
       - run: make
+      - name: Run tests
+        run: tests/tsets
       - name: Installation check
         run: |
           make install INSTALL_ROOT=$(pwd)/tmp/
