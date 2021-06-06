@@ -4,5 +4,5 @@ isEmpty(PYTHON_CONFIG) {
 
 message(PYTHON_CONFIG = $$PYTHON_CONFIG)
 
-QMAKE_LIBS += $$system($$PYTHON_CONFIG --ldflags)
-QMAKE_CXXFLAGS += $$system($$PYTHON_CONFIG --includes)
+QMAKE_LIBS += $$system($$PWD/python-config-wrapper $$PYTHON_CONFIG --libs)
+QMAKE_CXXFLAGS += $$system($$PWD/python-config-wrapper $$PYTHON_CONFIG --includes)

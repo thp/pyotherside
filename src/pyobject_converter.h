@@ -1,7 +1,7 @@
 
 /**
  * PyOtherSide: Asynchronous Python 3 Bindings for Qt 5
- * Copyright (c) 2011, 2013, 2014, Thomas Perl <m@thp.io>
+ * Copyright (c) 2011, 2013-2020, Thomas Perl <m@thp.io>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,7 +22,7 @@
 #include "converter.h"
 #include "pyqobject.h"
 
-#include "Python.h"
+#include "python_wrap.h"
 #include "datetime.h"
 #include <QDebug>
 
@@ -125,16 +125,13 @@ class PyObjectDictIterator : public DictIterator<PyObject *> {
 
 class PyObjectConverter : public Converter<PyObject *> {
     public:
-        PyObjectConverter() : stringcontainer(NULL) {
+        PyObjectConverter() {
             if (!PyDateTimeAPI) {
                 PyDateTime_IMPORT;
             }
         }
 
         virtual ~PyObjectConverter() {
-            if (stringcontainer != NULL) {
-                Py_DECREF(stringcontainer);
-            }
         }
 
         virtual enum Type type(PyObject * const & o) {
@@ -150,8 +147,10 @@ class PyObjectConverter : public Converter<PyObject *> {
                 return INTEGER;
             } else if (PyFloat_Check(o)) {
                 return FLOATING;
-            } else if (PyUnicode_Check(o) || PyBytes_Check(o)) {
+            } else if (PyUnicode_Check(o)) {
                 return STRING;
+            } else if (PyBytes_Check(o)) {
+                return BYTES;
             } else if (PyDateTime_Check(o)) {
                 // Need to check PyDateTime before PyDate, because
                 // it is a subclass of PyDate.
@@ -174,17 +173,9 @@ class PyObjectConverter : public Converter<PyObject *> {
         virtual long long integer(PyObject *&o) { return PyLong_AsLongLong(o); }
         virtual double floating(PyObject *&o) { return PyFloat_AsDouble(o); }
         virtual bool boolean(PyObject *&o) { return (o == Py_True); }
-        virtual const char *string(PyObject *&o) {
-            if (PyBytes_Check(o)) {
-                return PyBytes_AsString(o);
-            }
-
-            // XXX: In Python 3.3, we can use PyUnicode_UTF8()
-            if (stringcontainer != NULL) {
-                Py_DECREF(stringcontainer);
-            }
-            stringcontainer = PyUnicode_AsUTF8String(o);
-            return PyBytes_AsString(stringcontainer);
+        virtual const char *string(PyObject *&o) { return PyUnicode_AsUTF8(o); }
+        virtual QByteArray bytes(PyObject *&o) {
+            return QByteArray(PyBytes_AsString(o), PyBytes_Size(o));
         }
         virtual ListIterator<PyObject *> *list(PyObject *&o) { return new PyObjectListIterator(o); }
         virtual DictIterator<PyObject *> *dict(PyObject *&o) { return new PyObjectDictIterator(o);; }
@@ -222,6 +213,7 @@ class PyObjectConverter : public Converter<PyObject *> {
         virtual PyObject * fromFloating(double v) { return PyFloat_FromDouble(v); }
         virtual PyObject * fromBoolean(bool v) { return PyBool_FromLong((long)v); }
         virtual PyObject * fromString(const char *v) { return PyUnicode_FromString(v); }
+        virtual PyObject * fromBytes(const QByteArray &v) { return PyBytes_FromStringAndSize(v.constData(), v.size()); }
         virtual PyObject * fromDate(ConverterDate v) { return PyDate_FromDate(v.y, v.m, v.d); }
         virtual PyObject * fromTime(ConverterTime v) { return PyTime_FromTime(v.h, v.m, v.s, 1000 * v.ms); }
         virtual PyObject * fromDateTime(ConverterDateTime v) {
@@ -236,9 +228,6 @@ class PyObjectConverter : public Converter<PyObject *> {
         virtual ListBuilder<PyObject *> *newList() { return new PyObjectListBuilder(); }
         virtual DictBuilder<PyObject *> *newDict() { return new PyObjectDictBuilder(); }
         virtual PyObject * none() { Py_RETURN_NONE; }
-
-    private:
-        PyObject *stringcontainer;
 };
 
 #endif /* PYOTHERSIDE_PYOBJECT_CONVERTER_H */

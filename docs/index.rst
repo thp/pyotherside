@@ -411,38 +411,42 @@ PyOtherSide will automatically convert Python data types to Qt data types
 The following data types are supported and can be used to pass data
 between Python and QML (and vice versa):
 
-+--------------------+------------+-----------------------------+
-| Python             | QML        | Remarks                     |
-+====================+============+=============================+
-| bool               | bool       |                             |
-+--------------------+------------+-----------------------------+
-| int                | int        |                             |
-+--------------------+------------+-----------------------------+
-| float              | double     |                             |
-+--------------------+------------+-----------------------------+
-| str                | string     |                             |
-+--------------------+------------+-----------------------------+
-| list               | JS Array   | JS Arrays are always        |
-|                    |            | converted to Python lists.  |
-+--------------------+------------+-----------------------------+
-| tuple              | JS Array   |                             |
-+--------------------+------------+-----------------------------+
-| dict               | JS Object  | Keys must be strings        |
-+--------------------+------------+-----------------------------+
-| datetime.date      | QML date   | since PyOtherSide 1.2.0     |
-+--------------------+------------+-----------------------------+
-| datetime.time      | QML time   | since PyOtherSide 1.2.0     |
-+--------------------+------------+-----------------------------+
-| datetime.datetime  | JS Date    | since PyOtherSide 1.2.0     |
-+--------------------+------------+-----------------------------+
-| set                | JS Array   | since PyOtherSide 1.3.0     |
-+--------------------+------------+-----------------------------+
-| iterable           | JS Array   | since PyOtherSide 1.3.0     |
-+--------------------+------------+-----------------------------+
-| object             | (opaque)   | since PyOtherSide 1.4.0     |
-+--------------------+------------+-----------------------------+
-| pyotherside.QObject| QObject    | since PyOtherSide 1.4.0     |
-+--------------------+------------+-----------------------------+
++--------------------+----------------+-----------------------------+
+| Python             | QML            | Remarks                     |
++====================+================+=============================+
+| bool               | bool           |                             |
++--------------------+----------------+-----------------------------+
+| int                | int            |                             |
++--------------------+----------------+-----------------------------+
+| float              | double         |                             |
++--------------------+----------------+-----------------------------+
+| str                | string         |                             |
++--------------------+----------------+-----------------------------+
+| list               | JS Array       | JS Arrays are always        |
+|                    |                | converted to Python lists.  |
++--------------------+----------------+-----------------------------+
+| tuple              | JS Array       |                             |
++--------------------+----------------+-----------------------------+
+| dict               | JS Object      | Keys must be strings        |
++--------------------+----------------+-----------------------------+
+| datetime.date      | QML date       | since PyOtherSide 1.2.0     |
++--------------------+----------------+-----------------------------+
+| datetime.time      | QML time       | since PyOtherSide 1.2.0     |
++--------------------+----------------+-----------------------------+
+| datetime.datetime  | JS Date        | since PyOtherSide 1.2.0     |
++--------------------+----------------+-----------------------------+
+| set                | JS Array       | since PyOtherSide 1.3.0     |
++--------------------+----------------+-----------------------------+
+| iterable           | JS Array       | since PyOtherSide 1.3.0     |
++--------------------+----------------+-----------------------------+
+| object             | (opaque)       | since PyOtherSide 1.4.0     |
++--------------------+----------------+-----------------------------+
+| pyotherside.QObject| QObject        | since PyOtherSide 1.4.0     |
++--------------------+----------------+-----------------------------+
+| bytes              | JS ArrayBuffer | since PyOtherSide 1.5.6;    |
+|                    |                | requires Qt 5.8; the C++    |
+|                    |                | data type is QByteArray     |
++--------------------+----------------+-----------------------------+
 
 Trying to pass in other types than the ones listed here is undefined
 behavior and will usually result in an error.
@@ -599,6 +603,15 @@ reference to a QObject in Python will become invalid when the QObject is
 deleted (there's no way for PyOtherSide to prevent referenced QObjects from
 being deleted, but PyOtherSide tries hard to detect the deletion of objects
 and give meaningful error messages in case the reference is accessed).
+
+Calling signals of QML objects
+------------------------------
+
+.. versionadded:: 1.5.4
+
+Calling (emitting) signals of QML objects is supported since PyOtherSide 1.5.4.
+However, as signals do not have a return value as such, the return value is
+either just `true` or `false`, depending on whether the call worked or not.
 
 OpenGL rendering in Python
 ==========================
@@ -1150,7 +1163,7 @@ Building PyOtherSide
 The following build requirements have to be satisfied to build PyOtherSide:
 
 * Qt 5.1.0 or newer
-* Python 3.2.0 or newer
+* Python 3.3.0 or newer
 
 If you have the required build-dependencies installed, building and installing
 the PyOtherSide plugin should be as simple as:
@@ -1175,37 +1188,10 @@ flags for compiling and linking against Python on your system.
 
 As of version 1.3.0, PyOtherSide does not build against Python 2.x anymore.
 
-Building for Blackberry 10
---------------------------
-
-On Blackberry 10 (tested versions: 10.1, 10.2), Python 3.2.2 is already
-installed on-device.  Qt 5 is not installed (only Qt 4), so if you are
-packaging a PyOtherSide application, you need to ship Qt 5 with it.
-
-The approach we currently use is:
-
-1. Build Qt 5 using the Native SDK
-2. Get a set of matching Python 3.2.2 headers
-3. Fetch the following files from the device's filesystem:
-  * ``/usr/lib/libpython3.2m.so``
-  * ``/usr/include/python3.2m/pyconfig.h``
-4. Use ``pyconfig.h`` with the Python 3.2.2 headers and link against ``libpython3.2m``
-
-Modify ``python.pri`` to point to the fetched library and your
-Python 3.2.2 headers (with ``pyconfig.h`` from the device):
-
-.. code-block:: qmake
-
-    QMAKE_LIBS += -lpython3.2m -L/path/to/where/the/library/is
-    QMAKE_CXXFLAGS += -I/path/to/where/the/headers/are/include/python3.2m
-
-After installing PyOtherSide in the locally-build Qt 5 (cross-compiled for
-BB10), the QML plugins folder can be deployed with the .bar file.
-
 Building for Android
 --------------------
 
-Unlike Blackberry there is no Python or Qt present by default and both need to be shipped with the application.
+There is no Python or Qt present by default and both need to be shipped with the application.
 
 The current solution can be summarized like this:
 
@@ -1380,6 +1366,47 @@ Known Problems:
 
 ChangeLog
 =========
+
+Version UNRELEASED (YYYY-MM-DD)
+-------------------------------
+
+* Use ``PyUnicode_AsUTF8`` from Python 3.3 when converting strings; strings returned
+  from the converter are now valid as long as the ``PyObject`` is alive (previously
+  they were valid until the next string conversion or until converter was destroyed)
+
+Version 1.5.9 (2020-01-17)
+--------------------------
+
+* Fix compilation on Windows with VS 2017 by avoiding VLAs (by Igor Malinovskiy, PR#106)
+* Ensure the Python GIL is obtained in unit tests, fixes Python 3.9-related crashes (fixes #111)
+
+Version 1.5.8 (2019-06-16)
+--------------------------
+
+* Really fix Python 3.8 build compatibility (fix by Dan Church, PR#105)
+
+Version 1.5.7 (2019-06-06)
+--------------------------
+
+* Fix Python 3.8 build compatibility by adding ``--embed`` to ``python-config`` (with fallback for previous versions)
+
+Version 1.5.6 (2019-06-06)
+--------------------------
+
+* Add support for ``QByteArray``, JS ``ArrayBuffer`` and Python ``bytes`` conversion (by Igor Malinovskiy, PR#103)
+
+Version 1.5.5 (2019-06-04)
+--------------------------
+
+* Include ``dlfcn.h`` to fix build errors against musl libc (by Heiko Becker, PR#100)
+* Add ``--libs`` to ``python3-config`` command line (due to Python Issue 21536 changes; fixes #102)
+
+Version 1.5.4 (2019-01-27)
+--------------------------
+
+* Initialize ``sys.argv`` in Python for libraries that depend on it (issue #77)
+* Update ``plugins.qmltypes`` and cleanup project files (by martyone, PR#95)
+* Allow calling signals on QML objects from Python (issue #98)
 
 Version 1.5.3 (2017-10-14)
 --------------------------

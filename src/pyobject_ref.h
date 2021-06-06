@@ -20,7 +20,7 @@
 #ifndef PYOTHERSIDE_PYOBJECT_REF_H
 #define PYOTHERSIDE_PYOBJECT_REF_H
 
-#include "Python.h"
+#include "python_wrap.h"
 
 #include <QMetaType>
 

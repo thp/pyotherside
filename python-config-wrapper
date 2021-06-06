@@ -1,0 +1,38 @@
+#!/bin/sh
+# python3-config wrapper script to support Python 3.8
+# Works around https://bugs.python.org/issue36721
+
+set -e
+
+usage() {
+    echo "Usage: $0 [python3-config] (--libs|--includes)"
+    exit 1
+}
+
+if [ $# -ne 2 ]; then
+    usage
+fi
+
+PYTHON_CONFIG="$1"
+shift
+
+WHICH_FLAG="$1"
+shift
+
+case "$WHICH_FLAG" in
+    --libs)
+        # Python 3.8 needs --embed, but previous versions do not have it:
+        # https://github.com/python/cpython/pull/13500
+        if "$PYTHON_CONFIG" --ldflags --libs --embed >/dev/null 2>&1; then
+            "$PYTHON_CONFIG" --ldflags --libs --embed
+        else
+            "$PYTHON_CONFIG" --ldflags --libs
+        fi
+        ;;
+    --includes)
+        "$PYTHON_CONFIG" --includes
+        ;;
+    *)
+        usage
+        ;;
+esac
