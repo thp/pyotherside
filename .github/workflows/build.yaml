@@ -34,4 +34,4 @@ jobs:
         run: make -C docs html
       - run: qmake
       - run: make
-      - run: tests/tests
+      - run: env QT_QPA_PLATFORM=offscreen tests/tests
