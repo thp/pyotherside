@@ -18,7 +18,7 @@ jobs:
         run: |
           brew install qt@5 python@3.8 sphinx-doc
       - name: Build documentation
-        run: make -C docs html
+        run: env PATH=/usr/local/opt/sphinx-doc/bin:$PATH make -C docs html
       - run: /usr/local/opt/qt@5/bin/qmake
       - run: make
       - name: Installation check
