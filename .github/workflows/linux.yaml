@@ -1,0 +1,29 @@
+name: Linux build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Build on Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          sudo apt install -y \
+              python3-dev python3-sphinx \
+              qt5-qmake qtbase5-dev qtdeclarative5-dev libqt5svg5-dev
+      - name: Build documentation
+        run: make -C docs html
+      - run: qmake
+      - run: make
+      - name: Installation check
+        run: |
+          make install INSTALL_ROOT=$(pwd)/tmp/
+          ls -alR tmp/
