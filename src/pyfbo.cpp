@@ -1,6 +1,6 @@
 
 /**
- * PyOtherSide: Asynchronous Python 3 Bindings for Qt 5
+ * PyOtherSide: Asynchronous Python 3 Bindings for Qt 5 and Qt 6
  * Copyright (c) 2014, Dennis Tomas <den.t@gmx.de>
  *
  * Permission to use, copy, modify, and/or distribute this software for any

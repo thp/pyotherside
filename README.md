@@ -1,5 +1,5 @@
-PyOtherSide: Python 3 QML Plugin for Qt 5
-=========================================
+PyOtherSide: Python 3 QML Plugin for Qt 5 and Qt 6
+==================================================
 
 [![Build and test](https://github.com/thp/pyotherside/actions/workflows/build.yaml/badge.svg)](https://github.com/thp/pyotherside/actions/workflows/build.yaml)
 
@@ -10,8 +10,8 @@ for creating asynchronous mobile and Desktop UIs with Python.
 Requirements
 ------------
 
-- Qt >= 5.1.0
-- Python >= 3.3.0
+* Qt 5.1.0 or newer (Qt 6.x also supported)
+* Python 3.3.0 or newer
 
 
 Building
@@ -20,7 +20,7 @@ Building
 To build and install the QML plugin:
 
 ```
-qmake
+qmake   # use "qmake6" for Qt 6
 make
 make install
 ```
@@ -28,7 +28,7 @@ make install
 To build against a specific Python version, use:
 
 ```
-qmake PYTHON_CONFIG=python3.3-config
+qmake PYTHON_CONFIG=python3.3-config   # use "qmake6" for Qt 6
 make
 make install
 ```
@@ -36,7 +36,7 @@ make install
 To manually update the qmltypes file on x64 Linux (TODO: make this automated):
 
 ```
-qmake
+qmake   # use "qmake6" for Qt 6
 make
 make INSTALL_ROOT=$(pwd)/tmp/
 QML2_IMPORT_PATH=$(pwd)/tmp/usr/lib/x86_64-linux-gnu/qt5/qml \
