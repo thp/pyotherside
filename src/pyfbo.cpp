@@ -18,7 +18,7 @@
 
 #include "pyfbo.h"
 
-#include <QtGui/QOpenGLFramebufferObject>
+#include <QOpenGLFramebufferObject>
 #include <QSize>
 
 

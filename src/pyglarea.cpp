@@ -22,9 +22,12 @@
 #include <QVariant>
 #include <QPointF>
 #include <QtQuick/qquickwindow.h>
-#include <QtGui/QOpenGLShaderProgram>
-#include <QtGui/QOpenGLContext>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLContext>
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#  include <QQuickOpenGLUtils>
+#endif
 
 PyGLArea::PyGLArea()
     : m_before(true)
@@ -84,12 +87,24 @@ void PyGLArea::sync()
         disconnect(window(), SIGNAL(beforeRendering()), this, SLOT(render()));
         disconnect(window(), SIGNAL(afterRendering()), this, SLOT(render()));
         if (m_before) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
             // If we allow QML to do the clearing, they would clear what we paint
             // and nothing would show.
+
             window()->setClearBeforeRendering(false);
             connect(window(), SIGNAL(beforeRendering()), this, SLOT(render()), Qt::DirectConnection);
+#else
+            // For Qt 6, we don't support rendering as underlay; see also:
+            // https://doc.qt.io/qt-6/qquickwindow.html#integration-with-accelerated-3d-graphics-apis
+            // See also (search for "setClearBeforeRendering" on that page):
+            // https://doc.qt.io/qt-6/quick-changes-qt6.html
+            qWarning() << "PyGLArea doesn't work properly in Qt 6 yet, please use PyFBO instead.";
+            connect(window(), SIGNAL(beforeRendering()), this, SLOT(render()), Qt::DirectConnection);
+#endif
         } else {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
             window()->setClearBeforeRendering(true);
+#endif
             connect(window(), SIGNAL(afterRendering()), this, SLOT(render()), Qt::DirectConnection);
         }
         m_beforeChanged = false;
@@ -104,7 +119,11 @@ void PyGLArea::sync()
         if (!m_pyRenderer.isNull()) {
             m_renderer = new PyGLRenderer(m_pyRenderer);
             m_renderer->init();
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
             window()->resetOpenGLState();
+#else
+            QQuickOpenGLUtils::resetOpenGLState();
+#endif
         }
         m_rendererChanged = false;
     }
@@ -122,7 +141,11 @@ void PyGLArea::render()
         )
     );
     m_renderer->render();
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     window()->resetOpenGLState();
+#else
+    QQuickOpenGLUtils::resetOpenGLState();
+#endif
 }
 
 void PyGLArea::cleanup()

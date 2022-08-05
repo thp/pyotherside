@@ -1,7 +1,7 @@
 PyOtherSide Developer Guide
 ===========================
 
-*PyOtherSide* is a Qt 5 QML Plugin that provides access to a Python 3
+*PyOtherSide* is a QML Plugin for Qt 5 and Qt 6 that provides access to a Python 3
 interpreter from QML. It was designed with mobile devices in mind, where
 high-framerate touch interfaces are common, and where the user usually
 interfaces only with one application at a time via a touchscreen. As such, it
@@ -13,11 +13,17 @@ At its core, PyOtherSide is basically a simple layer that converts Qt (QML)
 objects to Python objects and vice versa, with focus on asynchronous events
 and continuation-passing style function calls.
 
-While legacy versions of PyOtherSide worked with Qt 4.x and Python 2.x, its
-focus now lies on Python 3.x and Qt 5. Python 3 has been out for several years,
-and offers some nice language features and clean-ups, while Qt 5 supports most
-mobile platforms well, and has an improved QML engine and a faster renderer (Qt
-Scene Graph) compared to Qt 4.
+
+Qt 6 Support
+============
+
+.. versionadded:: UNRELEASED
+
+PyOtherSide now supports Qt 6 while retaining source compatibility with Qt 5.
+
+The following restrictions currently apply when using Qt 6:
+
+* ``PyGLArea`` is currently broken with Qt 6, use ``PyFBO`` instead.
 
 
 QML API
@@ -1162,7 +1168,7 @@ Building PyOtherSide
 
 The following build requirements have to be satisfied to build PyOtherSide:
 
-* Qt 5.1.0 or newer
+* Qt 5.1.0 or newer (Qt 6.x also supported)
 * Python 3.3.0 or newer
 
 If you have the required build-dependencies installed, building and installing
@@ -1170,7 +1176,7 @@ the PyOtherSide plugin should be as simple as:
 
 .. code-block:: sh
 
-    qmake
+    qmake    # for Qt 6, use "qmake6"
     make
     make install
 
@@ -1179,14 +1185,12 @@ pass a suitable ``python-config`` to ``qmake`` at configure time:
 
 .. code-block:: sh
 
-    qmake PYTHON_CONFIG=python3.3-config
+    qmake PYTHON_CONFIG=python3.3-config   # For Qt 6, use "qmake6"
     make
     make install
 
 Alternatively, you can edit ``python.pri`` manually and specify the compiler
 flags for compiling and linking against Python on your system.
-
-As of version 1.3.0, PyOtherSide does not build against Python 2.x anymore.
 
 Building for Android
 --------------------
@@ -1370,6 +1374,7 @@ ChangeLog
 Version UNRELEASED (YYYY-MM-DD)
 -------------------------------
 
+* Support for **Qt 6** (Qt 5 is still supported for now)
 * Use ``PyUnicode_AsUTF8`` from Python 3.3 when converting strings; strings returned
   from the converter are now valid as long as the ``PyObject`` is alive (previously
   they were valid until the next string conversion or until converter was destroyed)

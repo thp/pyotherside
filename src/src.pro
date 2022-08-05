@@ -8,7 +8,7 @@ PLUGIN_IMPORT_PATH = io/thp/pyotherside
 
 TEMPLATE = lib
 CONFIG += qt plugin
-QT += qml quick svg
+QT += qml quick svg opengl
 
 target.path = $$[QT_INSTALL_QML]/$$PLUGIN_IMPORT_PATH
 INSTALLS += target

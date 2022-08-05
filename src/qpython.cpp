@@ -33,6 +33,11 @@
 #define SINCE_API_VERSION(smaj, smin) \
     ((api_version_major > smaj) || (api_version_major == smaj && api_version_minor >= smin))
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#  define GET_JS_ENGINE(obj) ((obj).engine())
+#else
+#  define GET_JS_ENGINE(obj) (qjsEngine(this))
+#endif
 
 QPythonPriv *
 QPython::priv = NULL;
@@ -253,7 +258,7 @@ QPython::receive(QVariant variant)
         QJSValue callback = handlers[event];
         QJSValueList args;
         for (int i=1; i<list.size(); i++) {
-            args << callback.engine()->toScriptValue(list[i]);
+            args << GET_JS_ENGINE(callback)->toScriptValue(list[i]);
         }
         QJSValue result = callback.call(args);
         if (result.isError()) {
@@ -414,7 +419,7 @@ void
 QPython::finished(QVariant result, QJSValue *callback)
 {
     QJSValueList args;
-    QJSValue v = callback->engine()->toScriptValue(result);
+    QJSValue v = GET_JS_ENGINE(*callback)->toScriptValue(result);
     args << v;
     QJSValue callbackResult = callback->call(args);
     if (SINCE_API_VERSION(1, 2)) {
@@ -431,7 +436,7 @@ void
 QPython::imported(bool result, QJSValue *callback)
 {
     QJSValueList args;
-    QJSValue v = callback->engine()->toScriptValue(QVariant(result));
+    QJSValue v = GET_JS_ENGINE(*callback)->toScriptValue(QVariant(result));
     args << v;
     QJSValue callbackResult = callback->call(args);
     if (SINCE_API_VERSION(1, 2)) {

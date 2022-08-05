@@ -77,7 +77,13 @@ bool extractPythonLibrary()
             QTextStream maps(&mapsf);
             QString line;
             while (!(line = maps.readLine()).isNull()) {
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+                // Qt::SkipEmptyParts was introduced in Qt 5.14 according to:
+                // https://doc.qt.io/qt-5/qt.html#SplitBehaviorFlags-enum
                 QString filename = line.split(' ', QString::SkipEmptyParts).last();
+#else
+                QString filename = line.split(' ', Qt::SkipEmptyParts).last();
+#endif
                 if (filename.endsWith("/" + fname)) {
                     fname = filename;
                     qDebug() << "Resolved full path:" << fname;
