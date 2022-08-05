@@ -15,3 +15,4 @@
 /qtquicktests/qtquicktests
 /qtquicktests/target_wrapper.sh
 /examples/__pycache__
+/docs/_build
