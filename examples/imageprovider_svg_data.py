@@ -19,12 +19,14 @@ import pyotherside
 
 import os
 
+HERE = os.path.dirname(__file__) or '.'
+
 def load_data(image_id, requested_size):
     # If you return data in the format "pyotherside.format_svg_data" requested_size
     # is is used as the target size when rendering the SVG image
 
     # We use the image id to get name of the SVG file to render
-    with open(image_id, 'rb') as f:
+    with open(os.path.join(HERE, image_id), 'rb') as f:
         svg_image_data = f.read()
 
     return bytearray(svg_image_data), requested_size, pyotherside.format_svg_data

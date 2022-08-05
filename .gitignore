@@ -14,3 +14,4 @@
 /qtquicktests/Makefile
 /qtquicktests/qtquicktests
 /qtquicktests/target_wrapper.sh
+/examples/__pycache__

@@ -45,6 +45,6 @@ def render(image_id, requested_size):
 
     b, g, r, a = img.split()
     img = Image.merge("RGBA", (r, g, b, a))
-    return bytearray(img.tostring()), img.size, pyotherside.format_argb32
+    return bytearray(img.tobytes()), img.size, pyotherside.format_argb32
 
 pyotherside.set_image_provider(render)

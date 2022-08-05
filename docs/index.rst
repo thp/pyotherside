@@ -1373,6 +1373,7 @@ Version UNRELEASED (YYYY-MM-DD)
 * Use ``PyUnicode_AsUTF8`` from Python 3.3 when converting strings; strings returned
   from the converter are now valid as long as the ``PyObject`` is alive (previously
   they were valid until the next string conversion or until converter was destroyed)
+* Fixed ``image_loader`` and ``imageprovider_svg_data`` examples
 
 Version 1.5.9 (2020-01-17)
 --------------------------
