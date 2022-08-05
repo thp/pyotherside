@@ -66,7 +66,6 @@ bool extractPythonLibrary()
     }
 
     QString fname = QString::fromUtf8(info.dli_fname);
-    qDebug() << "Got library name: " << fname;
     // On Android, dladdr() returns only the basename of the file, so we go
     // hunt for the full path in /proc/self/maps, where the shared library is
     // mapped (TODO: We could parse the address range and compare that, too)
