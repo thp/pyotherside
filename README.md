@@ -1,7 +1,7 @@
 PyOtherSide: Python 3 QML Plugin for Qt 5 and Qt 6
 ==================================================
 
-[![Build and test](https://github.com/thp/pyotherside/actions/workflows/build.yaml/badge.svg)](https://github.com/thp/pyotherside/actions/workflows/build.yaml)
+[![Build and test](https://github.com/thp/pyotherside/actions/workflows/build.yaml/badge.svg)](https://github.com/thp/pyotherside/actions/workflows/build.yaml) [![Documentation](https://readthedocs.org/projects/pyotherside/badge/?version=latest&style=flat)](https://pyotherside.readthedocs.io/en/latest/)
 
 A Qt plugin providing access to a Python 3 interpreter from QML
 for creating asynchronous mobile and Desktop UIs with Python.
