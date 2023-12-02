@@ -1196,8 +1196,13 @@ flags for compiling and linking against Python on your system.
 ChangeLog
 =========
 
-Version 1.6.0 (2022-08-05)
+Version UNRELEASED (YYYY-MM-DD)
 -------------------------------
+
+* Support for Qt 6.5 and newer (backwards-incompatible ``Q_RETURN_ARG()`` change) (fixes #128)
+
+Version 1.6.0 (2022-08-05)
+--------------------------
 
 * Support for **Qt 6** (Qt 5 is still supported for now)
 * Use ``PyUnicode_AsUTF8`` from Python 3.3 when converting strings; strings returned
