@@ -13,5 +13,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt install -y python3-sphinx
+      - run: sudo apt install -y python3-sphinx python3-sphinx-rtd-theme
       - run: make -C docs html
