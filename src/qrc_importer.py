@@ -16,11 +16,33 @@
 #
 
 import sys
+from importlib import abc
+from importlib.util import spec_from_loader
+
 import pyotherside
 
-from importlib import abc
+
+class PyOtherSideQtRCLoader(abc.Loader):
+    def __init__(self, filepath):
+        self.filepath = filepath
+
+    def create_module(self, spec):
+        return
+
+    def exec_module(self, module):
+        data = pyotherside.qrc_get_file_contents(self.filepath[len('qrc:') :])
+        code = compile(data, self.filepath, 'exec')
+        exec(code, module.__dict__)
+
 
 class PyOtherSideQtRCImporter(abc.MetaPathFinder, abc.SourceLoader):
+    def find_spec(self, fullname, path, target=None):
+        if path is None:
+            fname = self.get_filename(fullname)
+            if fname:
+                return spec_from_loader(fullname, PyOtherSideQtRCLoader(fname))
+        return
+
     def find_module(self, fullname, path):
         if path is None or all(x.startswith('qrc:') for x in path):
             if self.get_filename(fullname):
