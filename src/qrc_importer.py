@@ -22,37 +22,37 @@ from importlib.util import spec_from_loader
 import pyotherside
 
 
-class PyOtherSideQtRCLoader(abc.Loader):
+def get_filename(fullname):
+    basename = fullname.replace(".", "/")
+
+    for import_path in sys.path:
+        if not import_path.startswith("qrc:"):
+            continue
+
+        for candidate in ("{}/{}.py", "{}/{}/__init__.py"):
+            filename = candidate.format(import_path, basename)
+            if pyotherside.qrc_is_file(filename[len("qrc:") :]):
+                return filename
+
+
+class PyOtherSideQtRCLoader(abc.SourceLoader):
     def __init__(self, filepath):
         self.filepath = filepath
 
-    def create_module(self, spec):
-        return None
+    def get_data(self, path):
+        return pyotherside.qrc_get_file_contents(self.filepath[len("qrc:") :])
 
-    def exec_module(self, module):
-        data = pyotherside.qrc_get_file_contents(self.filepath[len('qrc:') :])
-        code = compile(data, self.filepath, 'exec')
-        exec(code, module.__dict__)
+    def get_filename(self, fullname):
+        return get_filename(fullname)
 
 
 class PyOtherSideQtRCImporter(abc.MetaPathFinder):
     def find_spec(self, fullname, path, target=None):
         if path is None:
-            fname = self.get_filename(fullname)
+            fname = get_filename(fullname)
             if fname:
                 return spec_from_loader(fullname, PyOtherSideQtRCLoader(fname))
         return None
 
-    def get_filename(self, fullname):
-        basename = fullname.replace('.', '/')
-
-        for import_path in sys.path:
-            if not import_path.startswith('qrc:'):
-                continue
-
-            for candidate in ('{}/{}.py', '{}/{}/__init__.py'):
-                filename = candidate.format(import_path, basename)
-                if pyotherside.qrc_is_file(filename[len('qrc:'):]):
-                    return filename
 
 sys.meta_path.append(PyOtherSideQtRCImporter())
