@@ -11,7 +11,7 @@ Requirements
 ------------
 
 * Qt 5.1.0 or newer (Qt 6.x also supported)
-* Python 3.3.0 or newer
+* Python 3.8.0 or newer
 
 
 Building
@@ -28,7 +28,7 @@ make install
 To build against a specific Python version, use:
 
 ```
-qmake PYTHON_CONFIG=python3.3-config   # use "qmake6" for Qt 6
+qmake PYTHON_CONFIG=python3.8-config   # use "qmake6" for Qt 6
 make
 make install
 ```

@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          brew install qt@5 python@3.8
+          brew install qt@5 python@3.12
           echo PATH=/usr/local/opt/qt@5/bin:$PATH >> ${GITHUB_ENV}
       - run: qmake
       - run: make

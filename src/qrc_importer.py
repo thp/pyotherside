@@ -16,32 +16,43 @@
 #
 
 import sys
+from importlib import abc
+from importlib.util import spec_from_loader
+
 import pyotherside
 
-from importlib import abc
 
-class PyOtherSideQtRCImporter(abc.MetaPathFinder, abc.SourceLoader):
-    def find_module(self, fullname, path):
-        if path is None or all(x.startswith('qrc:') for x in path):
-            if self.get_filename(fullname):
-                return self
+def get_filename(fullname):
+    basename = fullname.replace(".", "/")
 
-    def get_filename(self, fullname):
-        basename = fullname.replace('.', '/')
+    for import_path in sys.path:
+        if not import_path.startswith("qrc:"):
+            continue
 
-        for import_path in sys.path:
-            if not import_path.startswith('qrc:'):
-                continue
+        for candidate in ("{}/{}.py", "{}/{}/__init__.py"):
+            filename = candidate.format(import_path, basename)
+            if pyotherside.qrc_is_file(filename[len("qrc:") :]):
+                return filename
 
-            for candidate in ('{}/{}.py', '{}/{}/__init__.py'):
-                filename = candidate.format(import_path, basename)
-                if pyotherside.qrc_is_file(filename[len('qrc:'):]):
-                    return filename
+
+class PyOtherSideQtRCLoader(abc.SourceLoader):
+    def __init__(self, filepath):
+        self.filepath = filepath
 
     def get_data(self, path):
-        return pyotherside.qrc_get_file_contents(path[len('qrc:'):])
+        return pyotherside.qrc_get_file_contents(self.filepath[len("qrc:") :])
 
-    def module_repr(self, m):
-        return "<module '{}' from '{}'>".format(m.__name__, m.__file__)
+    def get_filename(self, fullname):
+        return get_filename(fullname)
+
+
+class PyOtherSideQtRCImporter(abc.MetaPathFinder):
+    def find_spec(self, fullname, path, target=None):
+        if path is None:
+            fname = get_filename(fullname)
+            if fname:
+                return spec_from_loader(fullname, PyOtherSideQtRCLoader(fname))
+        return None
+
 
 sys.meta_path.append(PyOtherSideQtRCImporter())
