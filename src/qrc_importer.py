@@ -27,7 +27,7 @@ class PyOtherSideQtRCLoader(abc.Loader):
         self.filepath = filepath
 
     def create_module(self, spec):
-        return
+        return None
 
     def exec_module(self, module):
         data = pyotherside.qrc_get_file_contents(self.filepath[len('qrc:') :])
@@ -35,18 +35,13 @@ class PyOtherSideQtRCLoader(abc.Loader):
         exec(code, module.__dict__)
 
 
-class PyOtherSideQtRCImporter(abc.MetaPathFinder, abc.SourceLoader):
+class PyOtherSideQtRCImporter(abc.MetaPathFinder):
     def find_spec(self, fullname, path, target=None):
         if path is None:
             fname = self.get_filename(fullname)
             if fname:
                 return spec_from_loader(fullname, PyOtherSideQtRCLoader(fname))
-        return
-
-    def find_module(self, fullname, path):
-        if path is None or all(x.startswith('qrc:') for x in path):
-            if self.get_filename(fullname):
-                return self
+        return None
 
     def get_filename(self, fullname):
         basename = fullname.replace('.', '/')
@@ -59,11 +54,5 @@ class PyOtherSideQtRCImporter(abc.MetaPathFinder, abc.SourceLoader):
                 filename = candidate.format(import_path, basename)
                 if pyotherside.qrc_is_file(filename[len('qrc:'):]):
                     return filename
-
-    def get_data(self, path):
-        return pyotherside.qrc_get_file_contents(path[len('qrc:'):])
-
-    def module_repr(self, m):
-        return "<module '{}' from '{}'>".format(m.__name__, m.__file__)
 
 sys.meta_path.append(PyOtherSideQtRCImporter())
