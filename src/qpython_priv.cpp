@@ -532,7 +532,6 @@ QPythonPriv::QPythonPriv()
     PyImport_AppendInittab("pyotherside", PyOtherSide_init);
 
     Py_InitializeEx(0);
-    PyEval_InitThreads();
 
     // Initialize sys.argv (https://github.com/thp/pyotherside/issues/77)
     int argc = 1;
