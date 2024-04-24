@@ -1169,7 +1169,7 @@ Building PyOtherSide
 The following build requirements have to be satisfied to build PyOtherSide:
 
 * Qt 5.1.0 or newer (Qt 6.x also supported)
-* Python 3.3.0 or newer
+* Python 3.8.0 or newer
 
 If you have the required build-dependencies installed, building and installing
 the PyOtherSide plugin should be as simple as:
@@ -1185,7 +1185,7 @@ pass a suitable ``python-config`` to ``qmake`` at configure time:
 
 .. code-block:: sh
 
-    qmake PYTHON_CONFIG=python3.3-config   # For Qt 6, use "qmake6"
+    qmake PYTHON_CONFIG=python3.8-config   # For Qt 6, use "qmake6"
     make
     make install
 
@@ -1199,6 +1199,8 @@ ChangeLog
 Version UNRELEASED (YYYY-MM-DD)
 -------------------------------
 
+* Dropped support for Python < 3.8 (PR#131)
+* Added support for Python 3.12 (PR#131)
 * Support for Qt 6.5 and newer (backwards-incompatible ``Q_RETURN_ARG()`` change) (fixes #128)
 
 Version 1.6.0 (2022-08-05)
