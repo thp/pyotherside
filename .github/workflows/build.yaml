@@ -29,7 +29,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           brew install qt@5 python@3.12
-          echo PATH=/usr/local/opt/qt@5/bin:$PATH >> ${GITHUB_ENV}
+          echo PATH=/opt/homebrew/opt/qt@5/bin:/usr/local/opt/qt@5/bin:$PATH >> ${GITHUB_ENV}
       - run: qmake
       - run: make
       - run: env QT_QPA_PLATFORM=offscreen tests/tests
