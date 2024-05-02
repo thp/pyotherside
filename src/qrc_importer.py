@@ -48,9 +48,10 @@ class PyOtherSideQtRCLoader(abc.SourceLoader):
 
 class PyOtherSideQtRCImporter(abc.MetaPathFinder):
     def find_spec(self, fullname, path, target=None):
-        fname = get_filename(fullname)
-        if fname:
-            return spec_from_loader(fullname, PyOtherSideQtRCLoader(fname))
+        if path is None or all(x.startswith('qrc:') for x in path):
+            fname = get_filename(fullname)
+            if fname:
+                return spec_from_loader(fullname, PyOtherSideQtRCLoader(fname))
         return None
 
 
