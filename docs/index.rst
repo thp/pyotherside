@@ -1196,8 +1196,8 @@ flags for compiling and linking against Python on your system.
 ChangeLog
 =========
 
-Version UNRELEASED (YYYY-MM-DD)
--------------------------------
+Version 1.6.1 (2024-05-18)
+--------------------------
 
 * Dropped support for Python < 3.8 (PR#131)
 * Added support for Python 3.12 (PR#131)
