@@ -31,7 +31,7 @@ def get_filename(fullname):
 
         for candidate in ("{}/{}.py", "{}/{}/__init__.py"):
             filename = candidate.format(import_path, basename)
-            if pyotherside.qrc_is_file(filename[len("qrc:") :]):
+            if pyotherside.qrc_is_file(filename[len("qrc:"):]):
                 return filename
 
 
@@ -40,7 +40,7 @@ class PyOtherSideQtRCLoader(abc.SourceLoader):
         self.filepath = filepath
 
     def get_data(self, path):
-        return pyotherside.qrc_get_file_contents(self.filepath[len("qrc:") :])
+        return pyotherside.qrc_get_file_contents(self.filepath[len("qrc:"):])
 
     def get_filename(self, fullname):
         return get_filename(fullname)
@@ -48,7 +48,7 @@ class PyOtherSideQtRCLoader(abc.SourceLoader):
 
 class PyOtherSideQtRCImporter(abc.MetaPathFinder):
     def find_spec(self, fullname, path, target=None):
-        if path is None:
+        if path is None or all(x.startswith('qrc:') for x in path):
             fname = get_filename(fullname)
             if fname:
                 return spec_from_loader(fullname, PyOtherSideQtRCLoader(fname))
