@@ -499,7 +499,7 @@ The image provider must return a tuple ``(data, size, format)``:
     The pixel format of ``data`` (see `constants`_),
     ``pyotherside.format_data`` if ``data`` contains an
     encoded (PNG/JPEG) image instead of raw pixel data
-    or ``pyotherside.format_svg_data`` if ``data`` contains 
+    or ``pyotherside.format_svg_data`` if ``data`` contains
     SVG image XML data.
 
 In order to register the image provider with PyOtherSide for use
@@ -1195,6 +1195,12 @@ flags for compiling and linking against Python on your system.
 
 ChangeLog
 =========
+
+Version UNRELEASED
+------------------
+
+* No longer call PyEval_InitThreads() at Python startup. It's no longer needed
+  since Python 3.7.
 
 Version 1.6.1 (2024-05-18)
 --------------------------
