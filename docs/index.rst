@@ -1196,8 +1196,8 @@ flags for compiling and linking against Python on your system.
 ChangeLog
 =========
 
-Version 1.6.2
--------------
+Version UNRELEASED
+------------------
 
 * No longer call PyEval_InitThreads() at Python startup. It's no longer needed
   since Python 3.7.
