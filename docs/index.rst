@@ -1196,11 +1196,11 @@ flags for compiling and linking against Python on your system.
 ChangeLog
 =========
 
-Version UNRELEASED
-------------------
+Version 1.6.2 (2025-02-15)
+--------------------------
 
-* No longer call PyEval_InitThreads() at Python startup. It's no longer needed
-  since Python 3.7.
+* Do not call PyEval_InitThreads(); not needed since Python 3.7 (PR#132)
+* Fixed PyOtherSideQtRCImporter for submodule imports (PR#134)
 
 Version 1.6.1 (2024-05-18)
 --------------------------
